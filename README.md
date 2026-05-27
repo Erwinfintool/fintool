@@ -1,0 +1,2 @@
+# fintool
+Kapitalverzehr-Simulator
