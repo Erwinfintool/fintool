@@ -1,1 +1,682 @@
-cat ~/Downloads/renditerechner_v2.html | pbcopy
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rendite-Simulator | Fintool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark:  #2C3E7A;
+    --blue-mid:   #3D5498;
+    --blue-light: #5B73B8;
+    --blue-bg:    #EEF1FA;
+    --red:        #C0392B;
+    --red-light:  #E8A09A;
+    --immo:       #2C3E7A;
+    --immo-bg:    #EEF1FA;
+    --aktien:     #1A6B3A;
+    --aktien-bg:  #E8F5EE;
+    --lev:        #6B3A8A;
+    --lev-bg:     #F2EBF9;
+    --grey-50:    #F8F9FB;
+    --grey-100:   #ECEEF2;
+    --grey-300:   #C4C8D0;
+    --grey-500:   #7A8090;
+    --grey-800:   #1A1D24;
+    --white:      #FFFFFF;
+    --radius:     14px;
+    --radius-sm:  8px;
+    --shadow:     0 4px 24px rgba(44,62,122,0.10);
+    --shadow-sm:  0 2px 8px rgba(44,62,122,0.08);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--grey-50);
+    color: var(--grey-800);
+    min-height: 100vh;
+  }
+
+  /* ── SPLASH SCREEN ── */
+  #splash {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+    background: var(--white);
+    text-align: center;
+  }
+
+  .splash-eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--blue-mid);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .splash-eyebrow span { opacity: 0.4; margin: 0 8px; }
+
+  .splash-title {
+    font-size: clamp(32px, 8vw, 52px);
+    font-weight: 300;
+    color: var(--grey-800);
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+  }
+  .splash-title strong {
+    font-weight: 800;
+  }
+
+  .splash-sub {
+    font-size: clamp(15px, 3vw, 18px);
+    color: var(--grey-500);
+    line-height: 1.55;
+    max-width: 420px;
+    margin-bottom: 40px;
+  }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 420px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+    color: var(--white);
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(44,62,122,0.25);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(44,62,122,0.30); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .splash-or {
+    font-size: 13px;
+    color: var(--grey-300);
+    margin: 4px 0 16px;
+  }
+
+  .btn-outline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+    padding: 16px 24px;
+    background: var(--white);
+    color: var(--blue-mid);
+    border: 1.5px solid var(--blue-light);
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-outline:hover { background: var(--blue-bg); }
+
+  /* ── APP SCREEN ── */
+  #app { display: none; }
+
+  .app-header {
+    background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-header-left { display: flex; align-items: center; gap: 12px; }
+  .app-logo {
+    width: 36px; height: 36px;
+    background: var(--white);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .app-logo svg { width: 22px; height: 22px; }
+  .app-title { color: var(--white); font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .app-sub { color: rgba(255,255,255,0.65); font-size: 11px; margin-top: 1px; }
+  .btn-back {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+  .red-bar {
+    background: var(--red);
+    height: 4px;
+  }
+
+  /* ── SECTIONS ── */
+  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .section {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--grey-100);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header-icon { font-size: 16px; }
+  .section-header-title { font-size: 13px; font-weight: 700; color: var(--grey-800); }
+  .section-header-sub { font-size: 11px; color: var(--grey-500); margin-top: 1px; }
+
+  .section-body { padding: 16px 18px; }
+
+  /* ── FIELDS ── */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--grey-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .field-col label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--grey-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--grey-50);
+    border: 1.5px solid var(--grey-100);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .input-wrap:focus-within { border-color: var(--blue-mid); }
+  .input-wrap input {
+    flex: 1; border: none; background: transparent;
+    padding: 9px 10px; font-size: 14px; font-weight: 700;
+    color: var(--blue-dark); outline: none; min-width: 0;
+  }
+  .input-unit {
+    padding: 0 10px; font-size: 12px;
+    color: var(--grey-500); font-weight: 500; flex-shrink: 0;
+  }
+
+  .output-val {
+    background: var(--grey-50);
+    border: 1.5px solid var(--grey-100);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px;
+    font-size: 14px; font-weight: 700;
+    color: var(--grey-800);
+  }
+
+  .divider { height: 1px; background: var(--grey-100); margin: 14px 0; }
+
+  /* ── ASSUMPTIONS ── */
+  .assump-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 480px) { .assump-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+  .assump-item {}
+  .assump-label {
+    font-size: 10px; font-weight: 700;
+    color: var(--grey-500); text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 5px;
+  }
+
+  /* ── PERIOD ── */
+  .period-row {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+  .period-label { font-size: 12px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  input[type=range] {
+    flex: 1; min-width: 120px;
+    accent-color: var(--blue-dark);
+    height: 4px;
+  }
+  .period-val { font-size: 22px; font-weight: 800; color: var(--blue-dark); min-width: 56px; text-align: center; }
+
+  /* ── RESULTS ── */
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 520px) { .result-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .result-card-hdr {
+    padding: 10px 12px;
+    font-size: 11px; font-weight: 700;
+    color: var(--white);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .rc-immo .result-card-hdr   { background: var(--blue-dark); }
+  .rc-aktien .result-card-hdr { background: var(--aktien); }
+  .rc-lev .result-card-hdr    { background: var(--lev); }
+
+  .result-card-body { background: var(--white); padding: 12px; }
+  .result-row {
+    display: flex; justify-content: space-between;
+    align-items: baseline; gap: 6px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--grey-100);
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-lbl { font-size: 11px; color: var(--grey-500); flex: 1; }
+  .result-val { font-size: 13px; font-weight: 700; color: var(--grey-800); text-align: right; flex-shrink: 0; }
+  .result-row.hl .result-lbl { color: var(--grey-800); font-weight: 600; font-size: 12px; }
+  .result-row.hl .result-val { font-size: 16px; }
+  .rc-immo .result-row.hl .result-val   { color: var(--blue-dark); }
+  .rc-aktien .result-row.hl .result-val { color: var(--aktien); }
+  .rc-lev .result-row.hl .result-val    { color: var(--lev); }
+
+  /* ── BAR CHART ── */
+  .chart-bars {
+    display: flex; gap: 12px; align-items: flex-end;
+    height: 140px; padding: 0 8px 4px;
+  }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .bar { width: 100%; border-radius: 5px 5px 0 0; min-height: 4px; transition: height .4s cubic-bezier(.4,0,.2,1); }
+  .bar-val { font-size: 12px; font-weight: 800; color: var(--grey-800); }
+  .bar-lbl { font-size: 10px; color: var(--grey-500); text-align: center; line-height: 1.3; }
+
+  /* ── FOOTER ── */
+  .app-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--grey-300);
+    margin-top: 8px;
+    padding-bottom: 20px;
+  }
+  .app-footer a { color: var(--blue-light); text-decoration: none; }
+  .app-footer strong { color: var(--grey-500); }
+
+  .tag {
+    display: inline-block;
+    background: var(--blue-bg);
+    color: var(--blue-mid);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 3px 8px; border-radius: 20px;
+    margin-left: 6px;
+  }
+  .tag-red { background: #FEF0EE; color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+  <p class="splash-eyebrow">Rendite <span>·</span> Anlage</p>
+  <h1 class="splash-title">Rendite<strong>rechner</strong>-Simulator</h1>
+  <p class="splash-sub">Immobilien vs. Aktien vs. Aktien mit Leverage — alle Annahmen sichtbar und veränderbar.</p>
+  <button class="btn-primary" onclick="showApp()">
+    ▶ &nbsp;Direkt zum Simulator
+  </button>
+  <p class="splash-or">oder</p>
+  <button class="btn-outline" onclick="showApp()">
+    Mehr erfahren &nbsp;→
+  </button>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 18L9 12L13 15L18 8" stroke="#2C3E7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="6" r="2" fill="#C0392B"/>
+        </svg>
+      </div>
+      <div>
+        <div class="app-title">Renditerechner-Simulator</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+
+  <div class="page">
+
+    <!-- Annahmen -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">⚙</span>
+        <div>
+          <div class="section-header-title">Annahmen <span class="tag">Veränderbar</span></div>
+          <div class="section-header-sub">Beobachten Sie, wie sensibel die Ergebnisse auf Veränderungen reagieren</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="assump-grid">
+          <div class="assump-item">
+            <div class="assump-label">FK Immobilien</div>
+            <div class="input-wrap"><input type="number" id="a_fkImmo" value="50" min="0" max="90" step="1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">FK Aktien (Leverage)</div>
+            <div class="input-wrap"><input type="number" id="a_fkAktien" value="50" min="0" max="90" step="1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Immobilienrendite</div>
+            <div class="input-wrap"><input type="number" id="a_immoRend" value="3.0" min="0" max="10" step="0.1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Dividendenrendite</div>
+            <div class="input-wrap"><input type="number" id="a_divRend" value="2.0" min="0" max="8" step="0.1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Depotgebühr</div>
+            <div class="input-wrap"><input type="number" id="a_depot" value="0.20" min="0" max="2" step="0.05"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Produktkosten (TER)</div>
+            <div class="input-wrap"><input type="number" id="a_ter" value="0.15" min="0" max="2" step="0.05"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Lombardzins</div>
+            <div class="input-wrap"><input type="number" id="a_lombard" value="3.0" min="0" max="8" step="0.25"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Hypothekarzins</div>
+            <div class="input-wrap"><input type="number" id="a_hypo" value="2.0" min="0" max="6" step="0.25"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Verwaltungsaufwand</div>
+            <div class="input-wrap"><input type="number" id="a_verwalt" value="4.0" min="0" max="10" step="0.5"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Unterhalt / Rückst.</div>
+            <div class="input-wrap"><input type="number" id="a_unterhalt" value="1.0" min="0" max="5" step="0.25"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investitionen -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">💰</span>
+        <div>
+          <div class="section-header-title">Investition & Kapitalstruktur</div>
+          <div class="section-header-sub">Kaufpreis / Investitionsbetrag und Wertentwicklung über die Haltedauer</div>
+        </div>
+      </div>
+      <div class="section-body">
+
+        <!-- Immo -->
+        <div class="field-label">🏠 Anlageimmobilien</div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>Kaufpreis</label>
+            <div class="input-wrap"><input type="number" id="i_investImmo" value="3000000" step="50000"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field-col">
+            <label>Eigenkapital</label>
+            <div class="output-val" id="o_ekImmo">1'500'000</div>
+          </div>
+          <div class="field-col">
+            <label>Wertentwicklung</label>
+            <div class="input-wrap"><input type="number" id="i_wertImmo" value="75" min="-50" max="300" step="5"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Aktien -->
+        <div class="field-label">📈 Aktien (ohne Leverage)</div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>Investition (EK)</label>
+            <div class="input-wrap"><input type="number" id="i_investAktien" value="1500000" step="50000"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field-col">
+            <label>Eigenkapital</label>
+            <div class="output-val" id="o_ekAktien">1'500'000</div>
+          </div>
+          <div class="field-col">
+            <label>Wertentwicklung</label>
+            <div class="input-wrap"><input type="number" id="i_wertAktien" value="170" min="-80" max="500" step="5"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Leverage -->
+        <div class="field-label">⚡ Aktien mit Leverage <span class="tag tag-red">Lombardkredit</span></div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>Investition (total)</label>
+            <div class="input-wrap"><input type="number" id="i_investLev" value="3000000" step="50000"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field-col">
+            <label>Eigenkapital</label>
+            <div class="output-val" id="o_ekLev">1'500'000</div>
+          </div>
+          <div class="field-col">
+            <label>Wertentwicklung</label>
+            <div class="input-wrap"><input type="number" id="i_wertLev" value="170" min="-80" max="500" step="5"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Haltedauer -->
+    <div class="section">
+      <div class="section-body">
+        <div class="period-row">
+          <span class="period-label">Haltedauer</span>
+          <input type="range" id="slider_period" min="5" max="40" value="20" step="1">
+          <span class="period-val"><span id="lbl_period">20</span> J.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultate -->
+    <div class="result-grid">
+      <div class="result-card rc-immo">
+        <div class="result-card-hdr">🏠 Immobilien</div>
+        <div class="result-card-body">
+          <div class="result-row"><span class="result-lbl">Mietertrag p.a.</span><span class="result-val" id="r_miet">—</span></div>
+          <div class="result-row"><span class="result-lbl">Nettoertrag p.a.</span><span class="result-val" id="r_nettoImmo">—</span></div>
+          <div class="result-row"><span class="result-lbl">Cashertrag total</span><span class="result-val" id="r_cashImmo">—</span></div>
+          <div class="result-row"><span class="result-lbl">EK heute</span><span class="result-val" id="r_ekHeuteImmo">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">Total Vermögen</span><span class="result-val" id="r_totalImmo">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">EK-Rendite p.a.</span><span class="result-val" id="r_rendImmo">—</span></div>
+        </div>
+      </div>
+      <div class="result-card rc-aktien">
+        <div class="result-card-hdr">📈 Aktien</div>
+        <div class="result-card-body">
+          <div class="result-row"><span class="result-lbl">Dividende p.a.</span><span class="result-val" id="r_divAktien">—</span></div>
+          <div class="result-row"><span class="result-lbl">Nettoertrag p.a.</span><span class="result-val" id="r_nettoAktien">—</span></div>
+          <div class="result-row"><span class="result-lbl">Cashertrag total</span><span class="result-val" id="r_cashAktien">—</span></div>
+          <div class="result-row"><span class="result-lbl">EK heute</span><span class="result-val" id="r_ekHeuteAktien">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">Total Vermögen</span><span class="result-val" id="r_totalAktien">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">EK-Rendite p.a.</span><span class="result-val" id="r_rendAktien">—</span></div>
+        </div>
+      </div>
+      <div class="result-card rc-lev">
+        <div class="result-card-hdr">⚡ Leverage</div>
+        <div class="result-card-body">
+          <div class="result-row"><span class="result-lbl">Dividende p.a.</span><span class="result-val" id="r_divLev">—</span></div>
+          <div class="result-row"><span class="result-lbl">Nettoertrag p.a.</span><span class="result-val" id="r_nettoLev">—</span></div>
+          <div class="result-row"><span class="result-lbl">Cashertrag total</span><span class="result-val" id="r_cashLev">—</span></div>
+          <div class="result-row"><span class="result-lbl">EK heute</span><span class="result-val" id="r_ekHeuteLev">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">Total Vermögen</span><span class="result-val" id="r_totalLev">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">EK-Rendite p.a.</span><span class="result-val" id="r_rendLev">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">📊</span>
+        <div><div class="section-header-title">EK-Rendite p.a. im Vergleich</div></div>
+      </div>
+      <div class="section-body">
+        <div class="chart-bars">
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vI">—</div>
+            <div class="bar" id="bc_bI" style="background:var(--blue-dark);"></div>
+            <div class="bar-lbl">Immo-<br>bilien</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vA">—</div>
+            <div class="bar" id="bc_bA" style="background:var(--aktien);"></div>
+            <div class="bar-lbl">Aktien</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vL">—</div>
+            <div class="bar" id="bc_bL" style="background:var(--lev);"></div>
+            <div class="bar-lbl">Aktien<br>Leverage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-footer">
+      Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin Heri</a>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /app -->
+
+<script>
+function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; compute(); }
+function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='flex'; }
+
+function fmt(v)    { return Math.round(v).toLocaleString('de-CH'); }
+function fmtP(v)   { return (v*100).toFixed(2)+'%'; }
+function val(id)   { return parseFloat(document.getElementById(id).value)||0; }
+function set(id,t) { document.getElementById(id).textContent=t; }
+
+function compute() {
+  const fkI=val('a_fkImmo')/100, fkA=val('a_fkAktien')/100;
+  const iR=val('a_immoRend')/100, dR=val('a_divRend')/100;
+  const dep=val('a_depot')/100, ter=val('a_ter')/100;
+  const lom=val('a_lombard')/100, hyp=val('a_hypo')/100;
+  const vw=val('a_verwalt')/100, un=val('a_unterhalt')/100;
+  const invI=val('i_investImmo'), invA=val('i_investAktien'), invL=val('i_investLev');
+  const wI=val('i_wertImmo')/100, wA=val('i_wertAktien')/100, wL=val('i_wertLev')/100;
+  const T=val('slider_period');
+
+  // Immo
+  const hK=invI*fkI, ekI=invI-hK;
+  const miet=invI*iR, hzins=hK*hyp, vwA=miet*vw, unA=invI*un;
+  const nI=miet-hzins-vwA-unA, cI=T*nI;
+  const wHI=invI*(1+wI), ekHI=wHI-hK;
+  const totI=ekHI+cI;
+  const rpI=Math.pow(Math.max(totI/ekI,0.0001),1/T)-1;
+
+  // Aktien
+  const ekA=invA, divA=invA*dR, depA=invA*dep, terA=invA*ter;
+  const nA=divA-depA-terA, cA=T*nA;
+  const wHA=invA*(1+wA), ekHA=wHA;
+  const totA=ekHA+cA;
+  const rpA=Math.pow(Math.max(totA/ekA,0.0001),1/T)-1;
+
+  // Leverage
+  const lK=invL*fkA, ekL=invL-lK;
+  const divL=invL*dR, depL=invL*dep, terL=invL*ter, lzins=lK*lom;
+  const nL=divL-depL-terL-lzins, cL=T*nL;
+  const wHL=invL*(1+wL), ekHL=wHL-lK;
+  const totL=ekHL+cL;
+  const rpL=Math.pow(Math.max(totL/ekL,0.0001),1/T)-1;
+
+  // Outputs
+  set('o_ekImmo',  fmt(ekI));
+  set('o_ekAktien',fmt(ekA));
+  set('o_ekLev',   fmt(ekL));
+
+  set('r_miet',        fmt(miet)+' CHF');
+  set('r_nettoImmo',   fmt(nI)+' CHF');
+  set('r_cashImmo',    fmt(cI)+' CHF');
+  set('r_ekHeuteImmo', fmt(ekHI)+' CHF');
+  set('r_totalImmo',   fmt(totI)+' CHF');
+  set('r_rendImmo',    fmtP(rpI));
+
+  set('r_divAktien',    fmt(divA)+' CHF');
+  set('r_nettoAktien',  fmt(nA)+' CHF');
+  set('r_cashAktien',   fmt(cA)+' CHF');
+  set('r_ekHeuteAktien',fmt(ekHA)+' CHF');
+  set('r_totalAktien',  fmt(totA)+' CHF');
+  set('r_rendAktien',   fmtP(rpA));
+
+  set('r_divLev',    fmt(divL)+' CHF');
+  set('r_nettoLev',  fmt(nL)+' CHF');
+  set('r_cashLev',   fmt(cL)+' CHF');
+  set('r_ekHeuteLev',fmt(ekHL)+' CHF');
+  set('r_totalLev',  fmt(totL)+' CHF');
+  set('r_rendLev',   fmtP(rpL));
+
+  // Chart
+  const rI=rpI*100, rA=rpA*100, rL=rpL*100;
+  const mx=Math.max(Math.abs(rI),Math.abs(rA),Math.abs(rL),1);
+  const mxH=120;
+  function bh(v){return Math.max(4,Math.round(Math.max(v,0)/mx*mxH))+'px';}
+  set('bc_vI',fmtP(rpI)); set('bc_vA',fmtP(rpA)); set('bc_vL',fmtP(rpL));
+  document.getElementById('bc_bI').style.height=bh(rI);
+  document.getElementById('bc_bA').style.height=bh(rA);
+  document.getElementById('bc_bL').style.height=bh(rL);
+}
+
+document.getElementById('slider_period').addEventListener('input',function(){
+  document.getElementById('lbl_period').textContent=this.value; compute();
+});
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',compute));
+</script>
+</body>
+</html>
