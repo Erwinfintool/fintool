@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renditefolgerisiko-Simulator | Fintool</title>
+<style>
+  :root{
+    --bg:#eef0f3; --panel:#ffffff; --panel2:#f4f5f7; --border:#e5e8ed;
+    --text:#16213a; --muted:#7c8494; --navy:#1c3f73; --blue:#2f5fa8; --blue-dark:#1c3f73;
+    --accent:#2f5fa8; --accent-dark:#1c3f73; --accent-soft:#e7edf7;
+    --red:#c0392b; --red-soft:#fbeae8; --amber:#c98a1a; --amber-soft:#fbf1de;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text);
+  }
+  .topbar{background:#ffffff; border-bottom:1px solid var(--border);}
+  .topbar-inner{max-width:1240px; margin:0 auto; padding:18px 28px; display:flex; align-items:center; justify-content:space-between;}
+  .topbar-title{font-size:19px; font-weight:700; letter-spacing:-.01em; color:var(--text);}
+  .logo{display:inline-flex; align-items:flex-end; font-family:Georgia,"Times New Roman",serif; font-size:21px; font-weight:700; letter-spacing:.02em; color:var(--blue);}
+  .logo svg{width:24px; height:31px; margin:0 1px; overflow:visible;}
+  .page{max-width:1240px; margin:0 auto; padding:28px;}
+  .subtitle{color:var(--muted); font-size:14.5px; margin:0 0 24px 0; max-width:900px; line-height:1.6;}
+  .layout{display:grid; grid-template-columns:340px 1fr; gap:22px; align-items:start;}
+  @media (max-width:980px){.layout{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:0 1px 3px rgba(20,30,60,0.05);}
+  .card + .card{margin-top:16px;}
+  .prose{font-size:14.5px; line-height:1.75; color:var(--text);}
+  .prose p{margin:0 0 14px 0;}
+  .prose p:last-child{margin-bottom:0;}
+  .prose strong{color:var(--blue-dark);}
+  .section-title{font-size:11.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:700; margin:0 0 14px 0;}
+  .section-title.big{font-size:17px; text-transform:none; letter-spacing:0; color:var(--text); font-weight:700; font-family:Georgia,"Times New Roman",serif;}
+  label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px; margin-top:16px; font-weight:600;}
+  label:first-of-type{margin-top:0;}
+  .row{display:flex; gap:10px;}
+  .row > div{flex:1;}
+  .bignum{font-size:22px; font-weight:800; color:var(--text); margin-bottom:8px; letter-spacing:-.01em;}
+  input[type=number], select{
+    width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    padding:9px 11px; border-radius:9px; font-size:14px;
+  }
+  input[type=number]:focus{outline:2px solid var(--blue); outline-offset:1px;}
+  input[type=range]{
+    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:999px;
+    background:#e4e6eb; outline:none; cursor:pointer; margin:6px 0 4px 0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#fff;
+    border:2.5px solid var(--blue); box-shadow:0 1px 3px rgba(20,30,60,.25); cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%; background:#fff; border:2.5px solid var(--blue); cursor:pointer;
+  }
+  .rangebounds{display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:2px;}
+  .rangeval{float:right; color:var(--blue-dark); font-weight:700; font-size:12.5px;}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.5;}
+  .toggle-group{display:flex; gap:8px; flex-wrap:wrap;}
+  .toggle-group button{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text); padding:9px 16px;
+    font-size:12.5px; cursor:pointer; font-weight:700; border-radius:999px;
+  }
+  .toggle-group button.active{background:var(--blue); color:#ffffff; border-color:var(--blue);}
+  .checkbox-row{display:flex; align-items:center; gap:8px; margin-top:14px;}
+  .checkbox-row input{width:auto; accent-color:var(--blue);}
+  .checkbox-row label{margin:0; font-weight:600; color:var(--text);}
+  button.primary{
+    width:100%; margin-top:20px; background:var(--blue); color:#ffffff; border:none;
+    padding:14px; border-radius:11px; font-weight:700; font-size:15px; cursor:pointer;
+  }
+  button.primary:hover{background:var(--blue-dark);}
+  .kpis{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;}
+  .kpi{background:var(--panel2); border:1px solid var(--border); border-radius:14px; padding:16px;}
+  .kpi .label{font-size:11.5px; color:var(--muted); letter-spacing:.02em; font-weight:600;}
+  .kpi .value{font-size:26px; font-weight:800; margin-top:6px; letter-spacing:-.01em;}
+  .kpi .value.green{color:#2a7d4f;} .kpi .value.red{color:var(--red);} .kpi .value.neutral{color:var(--text);}
+  .kpi .subtext{font-size:12px; color:var(--muted); margin-top:3px; line-height:1.4;}
+  .chart-wrap{position:relative; height:360px;}
+  .chart-wrap svg text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--muted);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .legend i{width:11px; height:11px; border-radius:3px; display:inline-block;}
+  .disclaimer{font-size:12px; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); margin-top:18px; padding-top:14px;}
+
+  /* ---------- Splash / App-Startbildschirm ---------- */
+  .splash{
+    position:fixed; inset:0; background:#ffffff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:22px; z-index:100; padding:24px;
+  }
+  .tile{
+    width:300px; max-width:80vw; border-radius:44px; overflow:hidden; cursor:pointer;
+    box-shadow:0 18px 50px rgba(20,30,60,.18); display:flex; flex-direction:column;
+    border:none; background:none; padding:0; font:inherit; text-align:left;
+  }
+  .tile-top{
+    background:var(--navy); padding:38px 20px 30px 20px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:26px;
+  }
+  .tile-logo{display:inline-flex; align-items:flex-end; font-family:Georgia,"Times New Roman",serif; font-weight:700; font-size:34px; color:#ffffff; letter-spacing:.01em;}
+  .tile-logo svg{width:40px; height:52px; margin:0 1px; overflow:visible;}
+  .tile-play{
+    width:88px; height:88px; border-radius:18px; background:#3f6fb0; display:flex;
+    align-items:center; justify-content:center; transition:filter .15s;
+  }
+  .tile:hover .tile-play{filter:brightness(1.08);}
+  .tile-play svg{width:34px; height:34px; margin-left:5px;}
+  .tile-bottom{background:var(--red); padding:20px 16px; text-align:center;}
+  .tile-bottom-text{color:#ffffff; font-weight:800; font-size:16px; letter-spacing:.04em;}
+  .splash-hint{color:var(--muted); font-size:13px; max-width:320px; text-align:center; line-height:1.5;}
+  .app.hidden{display:none;}
+  .back-btn{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text); font-weight:700;
+    font-size:13px; padding:8px 16px 8px 12px; border-radius:999px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .back-btn:hover{background:var(--border);}
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash">
+  <button class="tile" id="tileEnter" aria-label="Renditefolgerisiko-Simulator starten">
+    <div class="tile-top">
+      <div class="tile-logo">FI<svg viewBox="0 0 130 170" fill="none"><polyline points="14,132 34,112 52,138" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/><polyline points="5,158 48,58 64,132 114,4" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>TOOL</div>
+      <div class="tile-play"><svg viewBox="0 0 24 24"><polygon points="4,2 22,12 4,22" fill="#1c3f73"/></svg></div>
+    </div>
+    <div class="tile-bottom"><div class="tile-bottom-text">RENDITEFOLGERISIKO</div></div>
+  </button>
+  <div class="splash-hint">Klicken Sie auf das Symbol, um den Renditefolgerisiko-Simulator zu starten.</div>
+</div>
+
+<div class="app hidden" id="app">
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="back-btn" id="backBtn">&#8592; Startseite</button>
+    <div class="topbar-title">Renditefolgerisiko-Simulator</div>
+    <div class="logo">FI<svg viewBox="0 0 130 170" fill="none"><polyline points="14,132 34,112 52,138" stroke="#a9adb3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><polyline points="5,158 48,58 64,132 114,4" stroke="#e2231c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>TOOL</div>
+  </div>
+</header>
+
+<div class="page">
+<p class="subtitle">Wie sicher reicht Ihr Aktienkapital, wenn Sie mit 65 in Rente gehen und regelmässig Geld daraus entnehmen? Dieses Tool spielt Ihre Situation tausende Male mit zufälligen Börsenverläufen durch und zeigt Ihnen die Bandbreite möglicher Ergebnisse — auf Basis eines Schweizer Aktienportfolios (SPI).</p>
+
+<div class="card">
+  <div class="section-title big">Die Problemstellung</div>
+  <div class="prose">
+    <p>Wenn Sie mit 65 in Rente gehen und einen grossen Teil Ihres Alterskapitals in Aktien angelegt haben, hängt Ihr finanzielles Auskommen nicht nur davon ab, wie gut die Börse im Durchschnitt über 20 oder 30 Jahre läuft. Entscheidend ist auch, <strong>in welcher Reihenfolge</strong> die guten und die schlechten Jahre eintreffen. Das nennt man das Renditefolgerisiko. In unserem Kapitalverzehr-Simulator, bei dem wir die Problemstellung Kapital versus Rente anhand fester Rendite-Szenarien thematisieren, haben wir bewusst davon abstrahiert. Es ist aber natürlich eine Tatsache, dass zwei Personen mit exakt derselben Durchschnittsrendite am Ende völlig unterschiedlich dastehen können — je nachdem, ob der grosse Börsencrash gleich zu Beginn der Pensionierung passiert oder erst gegen Ende. Wer früh in der Rentenzeit einen Einbruch erlebt und gleichzeitig laufend Geld entnimmt, verkauft Aktien zu tiefen Kursen. Das Kapital hat es danach schwerer, sich zu erholen, selbst wenn die Börse später wieder steigt.</p>
+    <p>Damit Sie ein Gefühl für dieses Risiko bekommen, rechnet dieser Simulator Ihre Situation nicht nur einmal, sondern tausende Male durch — jedes Mal mit einer anderen, zufällig gewürfelten Abfolge von guten und schlechten Börsenjahren. Man nennt das eine Monte-Carlo-Simulation, benannt nach dem Casino, weil auch hier der Zufall eine zentrale Rolle spielt. Am Ende zeigt Ihnen das Tool keine einzelne Prognose, sondern eine ganze Bandbreite möglicher Verläufe: von eher glücklichen bis zu eher unglücklichen Zeitpunkten für den Ruhestand.</p>
+    <p>Für die zufälligen Jahresrenditen stehen zwei Methoden zur Wahl. Bei der <strong>parametrischen Methode</strong> ziehen wir die Renditen aus einer angenommenen Verteilung mit einer festen mittleren Rendite und einer festen Schwankungsbreite (Volatilität) — beide Werte können Sie links frei anpassen. Bei der <strong>historischen Bootstrap-Methode</strong> ziehen wir stattdessen echte, tatsächlich eingetretene Jahresrenditen Schweizer Aktien seit 1900, inklusive realer Krisenjahre wie 1931, 1974, 2008 oder 2022 — das bildet reale Marktschwankungen oft realistischer ab als eine reine Normalverteilung.</p>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT: CONTROLS -->
+  <div>
+    <div class="card">
+      <div class="section-title">Pensionierung & Kapital</div>
+
+      <label>Startkapital bei Pensionierung</label>
+      <div class="bignum" id="startCapitalBig">CHF 1'000'000</div>
+      <input type="range" id="startCapital" min="50000" max="5000000" step="10000" value="1000000">
+      <div class="rangebounds"><span>50k</span><span>5M</span></div>
+
+      <label>Pensionsalter</label>
+      <div class="bignum" id="startAgeBig">65 Jahre</div>
+      <input type="range" id="startAge" min="55" max="75" step="1" value="65">
+      <div class="rangebounds"><span>55</span><span>75</span></div>
+
+      <label>Planungshorizont bis Alter</label>
+      <div class="bignum" id="endAgeBig">95 Jahre</div>
+      <input type="range" id="endAge" min="75" max="110" step="1" value="95">
+      <div class="rangebounds"><span>75</span><span>110</span></div>
+      <div class="hint">Planungshorizont = Alter, bis zu dem das Kapital reichen soll (z.B. 95 = rund 30 Jahre Entnahmephase).</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Entnahme</div>
+
+      <label>Entnahme-Modus</label>
+      <div class="toggle-group" id="withdrawMode">
+        <button data-val="fixed" class="active">Fixer CHF-Betrag/Jahr</button>
+        <button data-val="pct">% des Startkapitals/Jahr</button>
+      </div>
+
+      <div id="withdrawFixedWrap">
+        <label>Jährliche Entnahme (CHF, Jahr 1)</label>
+        <div class="bignum" id="withdrawAmountBig">CHF 40'000</div>
+        <input type="range" id="withdrawAmount" min="5000" max="300000" step="1000" value="40000">
+        <div class="rangebounds"><span>5k</span><span>300k</span></div>
+      </div>
+      <div id="withdrawPctWrap" style="display:none;">
+        <label>Entnahmerate p.a. <span class="rangeval" id="withdrawPctVal">4.0%</span></label>
+        <input type="range" id="withdrawPct" min="1" max="8" step="0.1" value="4.0">
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="inflAdjust" checked>
+        <label for="inflAdjust">Entnahme jährlich an Teuerung anpassen</label>
+      </div>
+      <div id="inflWrap">
+        <label>Angenommene Teuerung p.a. <span class="rangeval" id="inflVal">1.5%</span></label>
+        <input type="range" id="inflRate" min="0" max="4" step="0.1" value="1.5">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Anlagestrategie (SPI)</div>
+
+      <label>Aktienquote <span class="rangeval" id="equityWeightVal">80%</span></label>
+      <input type="range" id="equityWeight" min="0" max="100" step="5" value="80">
+      <div class="hint">Anteil des Kapitals, der in Schweizer Aktien (SPI) angelegt ist. Der Rest gilt als "sicherer Teil" (Obligationen/Cash) mit fixer, tiefer Verzinsung.</div>
+
+      <label>Verzinsung sicherer Teil <span class="rangeval" id="safeReturnVal">1.0%</span></label>
+      <input type="range" id="safeReturn" min="-1" max="4" step="0.25" value="1.0">
+    </div>
+
+    <div class="card">
+      <div class="section-title">Simulationsmethode</div>
+
+      <div class="toggle-group" id="simMethod">
+        <button data-val="param" class="active">Parametrisch</button>
+        <button data-val="boot">Historisches Bootstrap</button>
+      </div>
+
+      <div id="paramWrap">
+        <div class="row">
+          <div>
+            <label>Erwartete Rendite p.a.</label>
+            <input type="number" id="meanReturn" value="6.8" step="0.1">
+          </div>
+          <div>
+            <label>Volatilität p.a.</label>
+            <input type="number" id="volReturn" value="18.5" step="0.5">
+          </div>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="fatTails">
+          <label for="fatTails">Fat Tails (Student-t statt Normalverteilung)</label>
+        </div>
+        <div class="hint">Defaults: 6,8% Rendite / 18,5% Volatilität p.a. — das ist die nominale Jahresrendite (geometrisches Mittel) bzw. Schwankungsbreite Schweizer Aktien seit 1900 in CHF (Quelle: Pictet Wealth Management). Werte frei anpassbar.</div>
+      </div>
+
+      <div id="bootWrap" style="display:none;">
+        <div class="hint" style="margin-top:0;">Zieht zufällige Jahresrenditen (mit Zurücklegen) aus der echten historischen Renditereihe Schweizer Aktien seit 1900 (126 Jahre, CHF, seit 1992 auf Basis des SPI, Quelle Pictet Wealth Management) — erfasst reale Krisenjahre wie 1931, 1974, 2008 oder 2022 besser als eine reine Normalverteilung.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="primary" id="runBtn">Simulation starten</button>
+      <div class="hint" style="margin-top:10px; text-align:center;">Jeder Lauf rechnet Ihre Situation 10'000 Mal durch.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Erfolgswahrscheinlichkeit</div><div class="value green" id="kpiSuccess">–</div><div class="subtext">Kapital reicht bis Planungshorizont</div></div>
+      <div class="kpi"><div class="label">Kapital im Mittelfeld (Median)</div><div class="value neutral" id="kpiMedian">–</div><div class="subtext">bei Erreichen des Horizonts</div></div>
+      <div class="kpi"><div class="label">Kapital aufgebraucht (ungünstigste 10%)</div><div class="value red" id="kpiWorst">–</div><div class="subtext">Alter, in dem in den schlechtesten 10% der Fälle das Kapital ausgeht</div></div>
+      <div class="kpi"><div class="label">Alter bei Kapitalende (Median)</div><div class="value neutral" id="kpiFailAge">–</div><div class="subtext">nur unter Fällen mit Kapitalverzehr</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Kapitalverlauf – Bandbreite über alle Simulationsläufe</div>
+      <div class="chart-wrap"><div id="fanChart" style="width:100%;height:100%;"></div></div>
+      <div class="legend">
+        <span><i style="background:rgba(47,95,168,0.15)"></i>10–90% Bandbreite (hellblaue Fläche)</span>
+        <span><i style="background:rgba(47,95,168,0.32)"></i>25–75% Bandbreite (kräftiger blaue Fläche)</span>
+        <span><i style="background:var(--blue)"></i>Median (dunkelblaue Kurve)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Verteilung: Alter bei Kapitalaufbrauch (nur "gescheiterte" Läufe)</div>
+      <div class="chart-wrap" style="height:240px;"><div id="histChart" style="width:100%;height:100%;"></div></div>
+      <div class="legend">
+        <span><i style="background:#c0392b"></i>Anzahl Simulationsläufe (rote Balken), die in diesem Alter das Kapital aufgebraucht haben</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title big">Was Ihr Ergebnis bedeutet</div>
+      <div class="prose" id="explanation"></div>
+    </div>
+
+    <div class="card disclaimer">
+      <strong>Datenquelle:</strong> Sowohl die parametrischen Defaults (nominale Jahresrendite 6,8% und Volatilität 18,5% p.a.) als auch die historische Bootstrap-Reihe basieren auf derselben offiziellen Datenreihe: der nominalen Jahresrendite Schweizer Aktien in CHF von 1900 bis 2025 (126 Jahre), seit 1992 auf Basis des SPI, davor auf Pictet-eigenen Berechnungen bzw. dem Dimson/Marsh/Staunton-(DMS)-Datensatz. Quelle: Pictet Wealth Management, "Die langfristige Performance von Schweizer Aktien und Obligationen (1900–2025)", Publikation Februar 2026, Tabelle 1 & 3.
+      <br><br>
+      <strong>Hinweis:</strong> Dieses Tool dient ausschliesslich der Illustration des Renditefolgerisikos (Sequence-of-Returns-Risk) und ersetzt keine individuelle Finanz- oder Vorsorgeberatung. Alle Annahmen sind vereinfacht und nicht als Anlageempfehlung zu verstehen. Steuern, Vorsorgeausgleich, AHV/Säule-3a-Effekte und Gebühren sind nicht berücksichtigt. Für reale Planung eine individuelle Beratung heranziehen.
+    </div>
+
+    <div class="card">
+      <div class="section-title big">Für technisch Interessierte</div>
+      <div class="prose">
+        <p>Formal ist das Modell ein diskreter, jährlicher stochastischer Prozess. Das Portfolio wird in einen riskanten Teil (SPI, Gewicht <em>w</em>) und einen sicheren, deterministischen Teil (Gewicht 1&#8211;<em>w</em>, feste Verzinsung <em>r</em><sub>sicher</sub>) zerlegt. In jedem Jahr <em>t</em> wird eine Zufallsrendite <em>R</em><sub>t</sub> für den Aktienteil gezogen, die Portfoliorendite ergibt sich als <em>R</em><sub>p,t</sub> = <em>w</em>&middot;<em>R</em><sub>t</sub> + (1&#8211;<em>w</em>)&middot;<em>r</em><sub>sicher</sub>, und das Kapital entwickelt sich rekursiv als <em>K</em><sub>t</sub> = <em>K</em><sub>t-1</sub>&middot;(1+<em>R</em><sub>p,t</sub>) &#8211; <em>E</em><sub>t</sub>, wobei <em>E</em><sub>t</sub> die (ggf. teuerungsindexierte) Entnahme im Jahr <em>t</em> ist. Wichtig: der sichere Teil hat hier Varianz null und Korrelation null zum Aktienteil &#8211; das unterschätzt tendenziell sowohl Diversifikationseffekte als auch Tail-Risiken aus gemeinsamen Stressszenarien (z.B. Zinsschock, der Aktien und Obligationen gleichzeitig trifft).</p>
+
+        <p><strong>Warum Renditefolgerisiko überhaupt existiert:</strong> Bei einer reinen Buy-and-Hold-Anlage ohne Zahlungsflüsse hängt das Endvermögen nur vom Produkt &Pi;(1+<em>R</em><sub>t</sub>) über alle Jahre ab &#8211; und die Multiplikation ist kommutativ, die Reihenfolge der Faktoren ist irrelevant. Sobald aber periodisch Kapital entnommen wird, ist <em>K</em><sub>T</sub> eine nichtlineare, pfadabhängige Funktion der gesamten geordneten Sequenz (<em>R</em><sub>1</sub>,&#8230;,<em>R</em><sub>T</sub>), nicht nur ihres arithmetischen oder geometrischen Mittels. Permutiert man dieselbe Menge von Jahresrenditen, ändert sich das Endvermögen, weil eine frühe negative Rendite die Basis reduziert, von der spätere prozentuale Erholungen ausgehen &#8211; während eine Entnahme in guten Jahren einen kleineren Anteil des (dann grösseren) Kapitals ausmacht. Das ist der mathematische Kern des Sequence-of-Returns-Risikos.</p>
+
+        <p><strong>Parametrische Ziehung:</strong> Im Normalfall wird <em>R</em><sub>t</sub> = &mu; + &sigma;&middot;<em>Z</em> gesetzt, mit <em>Z</em> ~ N(0,1), erzeugt über eine Box-Muller-Transformation aus zwei unabhängigen U(0,1)-Zufallszahlen. Das unterstellt i.i.d. normalverteilte Jahresrenditen &#8211; keine Autokorrelation, keine Volatilitäts-Clusterbildung (kein GARCH-Effekt) und keine Mean-Reversion. Empirisch sind Aktienrenditen jedoch leptokurtisch: extreme Jahre wie 1931, 1974 oder 2008 kommen häufiger vor, als eine Normalverteilung mit derselben Volatilität vorhersagen würde. Aktiviert man "Fat Tails", wird stattdessen aus einer (auf Einheitsvarianz reskalierten) Student-t-Verteilung mit 5 Freiheitsgraden gezogen: <em>T</em> = <em>Z</em> / &radic;(<em>V</em>/5), wobei <em>V</em> die Summe von 5 quadrierten unabhängigen Standardnormalvariablen ist (&chi;&sup2;-verteilt mit 5 Freiheitsgraden) &#8211; die Implementierung dieser Chi-Quadrat-Summe ist direkt im Code nachvollziehbar. Die Student-t-Verteilung mit <em>df</em> Freiheitsgraden hat Varianz <em>df</em>/(<em>df</em>&#8211;2) (für <em>df</em>=5 also 5/3) und Exzess-Kurtosis 6/(<em>df</em>&#8211;4) (für <em>df</em>=5 also 6) &#8211; deutlich fetter als die Kurtosis 0 der Normalverteilung. Mit sinkendem <em>df</em> werden die Ränder fetter, aber ab <em>df</em>&#8804;4 existiert die Kurtosis nicht mehr und ab <em>df</em>&#8804;2 nicht einmal mehr die Varianz; für <em>df</em>&rarr;&#8734; konvergiert die Student-t-Verteilung gegen die Normalverteilung. Die feste Wahl <em>df</em>=5 ist ein Kompromiss: spürbar fettere Ränder als Normal, aber noch mit endlicher, wohldefinierter Varianz.</p>
+
+        <p><strong>Historisches Bootstrap:</strong> Hier wird <em>R</em><sub>t</sub> jedes Jahr unabhängig mit Zurücklegen (i.i.d.) aus den 126 beobachteten Jahresrenditen 1900&#8211;2025 gezogen. Das reproduziert exakt die empirische Randverteilung inklusive tatsächlicher Schiefe und Kurtosis, ohne eine Verteilungsannahme treffen zu müssen &#8211; ein nichtparametrischer Ansatz. Der entscheidende Kompromiss: durch das i.i.d.-Ziehen wird jede reale serielle Abhängigkeitsstruktur der historischen Reihe zerstört (z.B. kurzfristige Autokorrelation, Volatilitäts-Clustering oder langfristige Mean-Reversion, falls vorhanden), da jedes Jahr unabhängig vom vorherigen gezogen wird. Ein Block-Bootstrap (Resampling zusammenhängender Mehrjahres-Blöcke statt einzelner Jahre) würde solche Abhängigkeiten teilweise erhalten, wird hier aber aus Gründen der Einfachheit nicht verwendet. Zusätzlich: mit <em>n</em>=126 Beobachtungen ist die Stichprobe für Tail-Ereignisse klein &#8211; das Bootstrap kann keine Renditen erzeugen, die extremer sind als die historisch beobachteten (z.B. keine Wiederholung von 1931 in noch schlimmerer Form), was das tatsächliche Tail-Risiko eher unterschätzt. Die frühen Jahre (1899&#8211;1925) stammen zudem nicht direkt aus SPI-Daten, sondern aus dem Dimson/Marsh/Staunton-Datensatz bzw. Pictet-eigenen Rekonstruktionen und spiegeln teils historische Sondersituationen (Weltkriege, Frankenregime vor 1936) wider, die für künftige Regime nur bedingt repräsentativ sein dürften.</p>
+
+        <p><strong>Monte-Carlo-Fehler und Konvergenz:</strong> Bei <em>N</em>=10'000 unabhängigen Simulationsläufen ist die "Erfolgswahrscheinlichkeit" ein Anteilsschätzer <em>p&#770;</em> = 1 &#8211; (Anzahl Ruin-Fälle)/<em>N</em> mit Standardfehler &radic;(<em>p&#770;</em>(1&#8211;<em>p&#770;</em>)/<em>N</em>) &#8211; bei <em>p&#770;</em>&asymp;0,5 also rund &plusmn;0,5 Prozentpunkte (1 Standardfehler), bzw. ein 95%-Konfidenzintervall von etwa &plusmn;1 Prozentpunkt. Für die Perzentilbänder (10/25/50/75/90%) gilt Analoges über die asymptotische Verteilung von Ordnungsstatistiken; auch hier sinkt der Standardfehler mit 1/&radic;<em>N</em>. Wichtig für die Interpretation der Fan-Chart-Grafik: die gezeigten Bänder sind <em>Querschnitts</em>-Perzentile &#8211; für jedes Alter separat über alle <em>N</em> Pfade berechnet, nicht die Verläufe einzelner, durchgängig "glücklicher" oder "unglücklicher" Simulationsläufe. Das 10%-Band zu Beginn und das 10%-Band am Ende gehören daher in der Regel nicht demselben simulierten Pfad an; die Grafik zeigt die Bandbreite der Verteilung zu jedem Zeitpunkt, keine einzelne Trajektorie.</p>
+
+        <p><strong>Weitere Vereinfachungen:</strong> Die Jahresrenditen sind nominal (nicht inflationsbereinigt), während die Entnahme optional mit einer fixen Teuerungsrate <em>i</em> wächst &#8211; implizit wird damit Unabhängigkeit zwischen Aktienrenditen und Inflation unterstellt, obwohl beide historisch korreliert sind (z.B. schwache reale Aktienrenditen in Hochinflationsphasen wie den 1970er-Jahren). Rebalancing zwischen Aktien- und sicherem Teil wird implizit und kostenfrei in jedem Jahr angenommen. Nicht modelliert sind Steuern, Vorsorgeausgleich, Gebühren, unregelmässige Entnahmen sowie Sterblichkeitsrisiko (das Modell rechnet deterministisch bis zum gewählten Planungshorizont statt mit einer Überlebenswahrscheinlichkeitsverteilung).</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+// ---------- Historical annual return series (real, official, sourced) ----------
+// Nominale Jahresrendite Schweizer Aktien, CHF, 1900-2025 (126 Jahre). Seit 1992 auf Basis des SPI,
+// davor Pictet-eigene Berechnungen bzw. Dimson/Marsh/Staunton (DMS) Dataset für 1899-1925.
+// Source: Pictet Wealth Management, "Die langfristige Performance von Schweizer Aktien und
+// Obligationen (1900-2025)", Tabelle 3, Publikation Februar 2026.
+const SPI_HIST = [
+  -0.7,1.9,10.0,10.1,16.2,6.5,6.4,-8.6,6.0,6.4,          // 1900-1909
+  4.0,3.1,3.5,5.4,3.9,-2.5,2.0,6.3,-0.1,-23.8,           // 1910-1919
+  -24.6,-5.1,31.1,17.4,15.6,10.4,21.7,26.1,21.1,-6.2,    // 1920-1929
+  -5.6,-30.1,5.2,9.5,-7.2,-11.3,52.5,7.8,1.8,-16.5,      // 1930-1939
+  3.6,34.7,6.4,-1.6,5.6,16.0,7.6,9.9,-5.2,14.1,          // 1940-1949
+  9.7,19.5,8.4,10.5,26.1,6.0,2.1,-10.3,22.8,29.2,        // 1950-1959
+  44.5,49.4,-17.7,-0.2,-6.9,-7.0,-12.1,47.2,39.5,4.5,    // 1960-1969
+  -10.6,15.5,20.7,-20.0,-33.1,46.8,7.9,8.1,-0.5,10.9,    // 1970-1979
+  6.1,-11.9,13.3,27.3,4.5,61.4,9.7,-27.5,23.6,22.6,      // 1980-1989
+  -19.3,17.7,17.6,50.8,-7.6,23.1,18.3,55.2,15.4,11.7,    // 1990-1999
+  11.9,-22.0,-26.0,22.1,6.9,35.6,20.7,-0.1,-34.0,23.2,   // 2000-2009
+  2.9,-7.7,17.7,24.6,13.0,2.7,-1.4,19.9,-8.6,30.6,       // 2010-2019
+  3.8,23.4,-16.5,6.1,6.2,17.8                             // 2020-2025
+];
+
+// Parametric defaults, grounded in the same official long-run figures: nominale Jahresrendite
+// (geometrisches Mittel) 6.8% und Volatilität (Standardabweichung) 18.5% seit 1900, CHF
+// (Pictet Wealth Management, Tabelle 1, Februar 2026).
+const SPI_DEFAULT = {mean:6.8, vol:18.5};
+
+// Anzahl Simulationsläufe ist fix (nicht durch Nutzer:innen wählbar) — hoch genug für stabile
+// Perzentile, ohne die Seite spürbar zu verlangsamen.
+const NUM_SIMS = 10000;
+
+// ---------- Helpers ----------
+function fmtNum(x){
+  const neg = x<0;
+  x = Math.round(Math.abs(x));
+  const s = String(x);
+  let out = '';
+  for(let i=0;i<s.length;i++){
+    const posFromEnd = s.length-i;
+    out += s[i];
+    if(posFromEnd>1 && posFromEnd%3===1) out += "'";
+  }
+  return (neg?'-':'')+out;
+}
+function fmtCHF(x){ return "CHF " + fmtNum(x); }
+function fmtAxisK(x){
+  if(Math.abs(x) < 500) return fmtNum(Math.round(x));
+  return fmtNum(Math.round(x/1000)) + 'k';
+}
+function fmtPct(x, digits){ return x.toFixed(digits===undefined?1:digits).replace('.',',') + '%'; }
+function randNormal(){
+  let u=0,v=0;
+  while(u===0) u = Math.random();
+  while(v===0) v = Math.random();
+  return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+}
+function randStudentT(df){
+  const z = randNormal();
+  let chisq = 0;
+  for(let i=0;i<df;i++){ const n=randNormal(); chisq += n*n; }
+  return z / Math.sqrt(chisq/df);
+}
+function percentile(arr, p){
+  const sorted = [...arr].sort((a,b)=>a-b);
+  const idx = (sorted.length-1)*p;
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  if(lo===hi) return sorted[lo];
+  return sorted[lo] + (sorted[hi]-sorted[lo])*(idx-lo);
+}
+
+// ---------- UI wiring ----------
+function setupToggle(id, onChange){
+  const el = document.getElementById(id);
+  el.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      el.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(btn.dataset.val);
+    });
+  });
+}
+function activeVal(id){
+  return document.querySelector('#'+id+' button.active').dataset.val;
+}
+
+setupToggle('withdrawMode', v=>{
+  document.getElementById('withdrawFixedWrap').style.display = v==='fixed' ? 'block':'none';
+  document.getElementById('withdrawPctWrap').style.display = v==='pct' ? 'block':'none';
+});
+setupToggle('simMethod', v=>{
+  document.getElementById('paramWrap').style.display = v==='param' ? 'block':'none';
+  document.getElementById('bootWrap').style.display = v==='boot' ? 'block':'none';
+});
+
+// ---------- Range slider fill + linked displays (Fintool look) ----------
+function updateFill(el){
+  const min = parseFloat(el.min), max = parseFloat(el.max), val = parseFloat(el.value);
+  const pct = max>min ? ((val-min)/(max-min))*100 : 0;
+  el.style.background = `linear-gradient(to right, var(--blue) ${pct}%, #e4e6eb ${pct}%)`;
+}
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  updateFill(el);
+  el.addEventListener('input', ()=>updateFill(el));
+});
+
+['withdrawPct','inflRate','equityWeight','safeReturn'].forEach(id=>{
+  const el = document.getElementById(id);
+  const valEl = document.getElementById(id+'Val');
+  el.addEventListener('input', ()=>{ valEl.textContent = el.value + '%'; });
+});
+
+document.getElementById('startCapital').addEventListener('input', function(){
+  document.getElementById('startCapitalBig').textContent = fmtCHF(Number(this.value));
+});
+document.getElementById('startAge').addEventListener('input', function(){
+  document.getElementById('startAgeBig').textContent = this.value + ' Jahre';
+});
+document.getElementById('endAge').addEventListener('input', function(){
+  document.getElementById('endAgeBig').textContent = this.value + ' Jahre';
+});
+document.getElementById('withdrawAmount').addEventListener('input', function(){
+  document.getElementById('withdrawAmountBig').textContent = fmtCHF(Number(this.value));
+});
+
+// ---------- Core simulation ----------
+function getParams(){
+  return {
+    startCapital: parseFloat(document.getElementById('startCapital').value),
+    startAge: parseInt(document.getElementById('startAge').value),
+    endAge: parseInt(document.getElementById('endAge').value),
+    withdrawMode: activeVal('withdrawMode'),
+    withdrawAmount: parseFloat(document.getElementById('withdrawAmount').value),
+    withdrawPct: parseFloat(document.getElementById('withdrawPct').value)/100,
+    inflAdjust: document.getElementById('inflAdjust').checked,
+    inflRate: parseFloat(document.getElementById('inflRate').value)/100,
+    equityWeight: parseFloat(document.getElementById('equityWeight').value)/100,
+    safeReturn: parseFloat(document.getElementById('safeReturn').value)/100,
+    simMethod: activeVal('simMethod'),
+    meanReturn: parseFloat(document.getElementById('meanReturn').value)/100,
+    volReturn: parseFloat(document.getElementById('volReturn').value)/100,
+    fatTails: document.getElementById('fatTails').checked,
+    numSims: NUM_SIMS
+  };
+}
+
+function drawEquityReturn(p){
+  if(p.simMethod === 'param'){
+    const raw = p.fatTails ? randStudentT(5)/Math.sqrt(5/3) : randNormal(); // scale t to unit variance approx
+    return p.meanReturn + p.volReturn * raw;
+  } else {
+    return SPI_HIST[Math.floor(Math.random()*SPI_HIST.length)] / 100;
+  }
+}
+
+function runSimulation(p){
+  const years = p.endAge - p.startAge;
+  const paths = []; // paths[run][yearIndex]
+  const finalCapitals = [];
+  const failAges = [];
+
+  for(let run=0; run<p.numSims; run++){
+    let capital = p.startCapital;
+    let withdrawal = p.withdrawMode === 'fixed' ? p.withdrawAmount : p.startCapital * p.withdrawPct;
+    const path = [capital];
+    let failedYear = null;
+
+    for(let y=0; y<years; y++){
+      if(failedYear !== null){
+        // Kapital bereits aufgebraucht: keine weiteren (negativen) Entnahmen möglich, bleibt bei 0.
+        path.push(0);
+        if(p.inflAdjust) withdrawal *= (1+p.inflRate);
+        continue;
+      }
+      const eqR = drawEquityReturn(p);
+      const portR = p.equityWeight * eqR + (1-p.equityWeight) * p.safeReturn;
+      capital = capital * (1+portR) - withdrawal;
+      if(capital <= 0){
+        failedYear = y+1;
+        capital = 0;
+      }
+      path.push(capital);
+      if(p.inflAdjust) withdrawal *= (1+p.inflRate);
+    }
+    paths.push(path);
+    finalCapitals.push(capital);
+    if(failedYear !== null) failAges.push(p.startAge + failedYear);
+  }
+
+  const bands = [];
+  for(let y=0; y<=years; y++){
+    const vals = paths.map(pa=>pa[y]);
+    bands.push({
+      age: p.startAge + y,
+      p10: percentile(vals,0.10), p25: percentile(vals,0.25),
+      p50: percentile(vals,0.50), p75: percentile(vals,0.75), p90: percentile(vals,0.90)
+    });
+  }
+
+  const successRate = 1 - failAges.length/p.numSims;
+  const medianFinal = percentile(finalCapitals, 0.5);
+  const worstFailAge = failAges.length ? percentile(failAges, 0.10) : null;
+  const medianFailAge = failAges.length ? percentile(failAges, 0.5) : null;
+
+  return {bands, successRate, medianFinal, worstFailAge, medianFailAge, failAges, years};
+}
+
+// ---------- Charts (dependency-free inline SVG, no CDN/network required) ----------
+function buildFanSVG(bands){
+  const W=800,H=360,padL=88,padR=88,padT=16,padB=40;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const ages = bands.map(b=>b.age);
+  const xMin=ages[0], xMax=ages[ages.length-1];
+  const allVals=[];
+  bands.forEach(b=>allVals.push(b.p10,b.p90,b.p25,b.p75,b.p50));
+  let yMax=Math.max(...allVals), yMin=Math.min(0,Math.min(...allVals));
+  if(yMax===yMin) yMax=yMin+1;
+  yMax*=1.08;
+  const x = age => padL + (xMax>xMin ? (age-xMin)/(xMax-xMin) : 0)*innerW;
+  const y = val => padT + innerH - ((val-yMin)/(yMax-yMin))*innerH;
+
+  function pathBand(top,bottom){
+    let d='M'+x(bands[0].age)+','+y(bands[0][top]);
+    for(let i=1;i<bands.length;i++) d+=' L'+x(bands[i].age)+','+y(bands[i][top]);
+    for(let i=bands.length-1;i>=0;i--) d+=' L'+x(bands[i].age)+','+y(bands[i][bottom]);
+    return d+' Z';
+  }
+  function pathLine(key){
+    let d='M'+x(bands[0].age)+','+y(bands[0][key]);
+    for(let i=1;i<bands.length;i++) d+=' L'+x(bands[i].age)+','+y(bands[i][key]);
+    return d;
+  }
+
+  let gridY='', labelsY='';
+  for(let t=0;t<=5;t++){
+    const val = yMin + (yMax-yMin)*t/5;
+    const yy = y(val);
+    gridY += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#e5e8ed" stroke-width="1"/>`;
+    labelsY += `<text x="${padL-10}" y="${yy+5}" text-anchor="end" font-size="14" font-weight="600" fill="#4a5568">${fmtAxisK(val)}</text>`;
+    labelsY += `<text x="${W-padR+10}" y="${yy+5}" text-anchor="start" font-size="14" font-weight="600" fill="#4a5568">${fmtAxisK(val)}</text>`;
+  }
+  let gridX='', labelsX='';
+  const ageStep = Math.max(1, Math.round((xMax-xMin)/8));
+  for(let a=xMin; a<=xMax; a+=ageStep){
+    const xx=x(a);
+    gridX += `<line x1="${xx}" y1="${padT}" x2="${xx}" y2="${H-padB}" stroke="#e5e8ed" stroke-width="0.5"/>`;
+    labelsX += `<text x="${xx}" y="${H-padB+22}" text-anchor="middle" font-size="13" font-weight="600" fill="#4a5568">${a}</text>`;
+  }
+  labelsX += `<text x="${x(xMax)}" y="${H-padB+22}" text-anchor="middle" font-size="13" font-weight="600" fill="#4a5568">${xMax}</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;">
+    ${gridY}${gridX}
+    <path d="${pathBand('p90','p10')}" fill="rgba(47,95,168,0.13)" stroke="none"/>
+    <path d="${pathBand('p75','p25')}" fill="rgba(47,95,168,0.28)" stroke="none"/>
+    <path d="${pathLine('p50')}" fill="none" stroke="#2f5fa8" stroke-width="2.5"/>
+    ${labelsY}${labelsX}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#c7cdd7"/>
+    <line x1="${W-padR}" y1="${padT}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+  </svg>`;
+}
+
+function buildHistSVG(labels, values, totalRuns){
+  const W=800,H=240,padL=58,padR=58,padT=16,padB=44;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const maxV = Math.max(1, ...values);
+  const n = labels.length;
+  const barW = innerW/n;
+  let bars='', labelsX='';
+  const skip = Math.max(1, Math.round(n/15));
+  for(let i=0;i<n;i++){
+    const v=values[i];
+    const bh=(v/maxV)*innerH;
+    const bx=padL+i*barW, by=padT+innerH-bh;
+    bars += `<rect x="${bx+1}" y="${by}" width="${Math.max(1,barW-2)}" height="${bh}" fill="#c0392b" rx="1.5"><title>Alter ${labels[i]}: ${fmtNum(v)} von ${fmtNum(totalRuns)} Läufen</title></rect>`;
+    if(i % skip === 0){
+      labelsX += `<text x="${bx+barW/2}" y="${H-padB+22}" text-anchor="middle" font-size="13" font-weight="600" fill="#4a5568">${labels[i]}</text>`;
+    }
+  }
+  let gridY='', labelsY='';
+  for(let t=0;t<=4;t++){
+    const val=maxV*t/4;
+    const yy=padT+innerH-(val/maxV)*innerH;
+    gridY += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#e5e8ed" stroke-width="1"/>`;
+    labelsY += `<text x="${padL-10}" y="${yy+5}" text-anchor="end" font-size="14" font-weight="600" fill="#4a5568">${fmtNum(Math.round(val))}</text>`;
+    labelsY += `<text x="${W-padR+10}" y="${yy+5}" text-anchor="start" font-size="14" font-weight="600" fill="#4a5568">${fmtNum(Math.round(val))}</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;">
+    ${gridY}
+    ${bars}
+    ${labelsY}${labelsX}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#c7cdd7"/>
+    <line x1="${W-padR}" y1="${padT}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+  </svg>`;
+}
+
+function renderFanChart(result){
+  document.getElementById('fanChart').innerHTML = buildFanSVG(result.bands);
+}
+
+function renderHistChart(result, p){
+  const buckets = {};
+  for(let a=p.startAge; a<=p.endAge; a++) buckets[a]=0;
+  result.failAges.forEach(a=>{ const ra = Math.round(a); buckets[ra] = (buckets[ra]||0)+1; });
+  const labels = Object.keys(buckets).map(Number);
+  const values = Object.values(buckets);
+  document.getElementById('histChart').innerHTML = buildHistSVG(labels, values, p.numSims);
+}
+
+// ---------- Plain-language explanation of results ----------
+function buildExplanation(result, p){
+  const successPct = result.successRate*100;
+  const failCount = result.failAges.length;
+  const years = result.years;
+
+  let lead;
+  if(successPct >= 90){
+    lead = `Das ist ein solides Ergebnis: In der grossen Mehrheit der durchgerechneten Verläufe reicht Ihr Kapital wie geplant.`;
+  } else if(successPct >= 70){
+    lead = `Das Ergebnis ist ordentlich, aber nicht narrensicher: In gut jedem fünften bis dritten Fall geht das Geld vor Ihrem Planungshorizont aus.`;
+  } else if(successPct >= 50){
+    lead = `Das Ergebnis ist durchwachsen: In fast der Hälfte der durchgerechneten Verläufe reicht das Kapital nicht bis zum Planungshorizont.`;
+  } else {
+    lead = `Das Ergebnis ist riskant: In der Mehrheit der durchgerechneten Verläufe geht das Kapital vor Ihrem Planungshorizont aus.`;
+  }
+
+  let p1 = `Wir haben Ihre Situation <strong>${fmtNum(p.numSims)} Mal</strong> durchgerechnet — vom Pensionsalter ${p.startAge} bis zum geplanten Alter ${p.endAge}, jedes Mal mit einer anderen, zufällig gewürfelten Abfolge von guten und schlechten Börsenjahren. In <strong>${fmtPct(successPct,1)}</strong> dieser ${fmtNum(p.numSims)} Verläufe reichte Ihr Startkapital von ${fmtCHF(p.startCapital)} bis zum Schluss. ${lead} In der Grafik oben erkennen Sie das an der dunkelblauen Kurve (Median) und den beiden blauen Flächen, die zeigen, wie breit das Spektrum möglicher Kapitalverläufe tatsächlich ist.`;
+
+  let p2;
+  if(failCount > 0){
+    p2 = `Im mittleren Verlauf (dunkelblaue Kurve) blieben mit ${p.endAge} noch <strong>${fmtCHF(result.medianFinal)}</strong> übrig. Aber Vorsicht: In den ungünstigsten 10% der simulierten Verläufe — dem unteren Rand der hellblauen Fläche — war das Kapital bereits mit rund <strong>${Math.round(result.worstFailAge)} Jahren</strong> aufgebraucht — das sind ${p.endAge - Math.round(result.worstFailAge)} Jahre vor Ihrem Planungshorizont. Das Histogramm darunter zeigt diese "gescheiterten" Verläufe im Detail: Jeder rote Balken steht für die Anzahl Simulationsläufe, in denen das Kapital genau in diesem Alter aufgebraucht war. Von diesen Fällen ging das Geld im Schnitt mit etwa ${Math.round(result.medianFailAge)} Jahren aus — das ist ungefähr dort, wo das Histogramm seinen höchsten Balken zeigt.`;
+  } else {
+    p2 = `Im mittleren Verlauf (dunkelblaue Kurve) blieben mit ${p.endAge} noch <strong>${fmtCHF(result.medianFinal)}</strong> übrig. In keinem der ${fmtNum(p.numSims)} simulierten Verläufe ging das Kapital vor dem Planungshorizont aus — entsprechend bleibt das Histogramm darunter leer. Auch das ist allerdings keine Garantie für die Zukunft, sondern eine Momentaufnahme unter den aktuell gewählten Annahmen.`;
+  }
+
+  const p3 = `Diese Bandbreite an Ergebnissen — von komfortabel bis knapp, sichtbar an der Aufweitung der blauen Fläche über die Jahre — zeigt, wie stark Ihr Alterskapital nicht nur vom langfristigen Durchschnitt der Börse abhängt, sondern auch vom reinen Timing: Ob die schlechten Börsenjahre zufällig kurz nach Ihrer Pensionierung liegen oder erst viel später, macht am Ende einen grossen Unterschied.`;
+
+  let p4;
+  if(successPct >= 90){
+    p4 = `Falls Ihnen auch dieses solide Ergebnis noch zu knapp ist oder Sie zusätzliche Sicherheit wollen, haben Sie zwei wirksame Stellschrauben: die jährliche Entnahme reduzieren, oder den Anteil risikoarmer Anlagen erhöhen (Aktienquote senken, mehr im "sicheren Teil" halten). Beides macht das Ergebnis stabiler, senkt aber in der Regel auch das mittlere Endkapital etwas — das ist der übliche Trade-off zwischen Sicherheit und erwarteter Rendite.`;
+  } else if(successPct >= 50){
+    p4 = `Wenn Ihnen dieses Ergebnis — insbesondere die ungünstigsten 10% der Verläufe — zu riskant erscheint, gibt es zwei naheliegende Hebel, um die Erfolgswahrscheinlichkeit zu erhöhen. Erstens: die jährliche Entnahme reduzieren beziehungsweise eine tiefere Entnahmerate wählen — das ist meist der wirksamste Hebel, weil er sich sofort auf jeden simulierten Pfad auswirkt. Zweitens: den Anteil risikoarmer Anlagen erhöhen, also die Aktienquote senken und mehr im "sicheren Teil" halten — das reduziert die Schwankungsbreite und damit auch die schlechtesten Fälle, senkt aber typischerweise auch das mittlere Endkapital. Probieren Sie links beide Regler aus und beobachten Sie, wie Erfolgswahrscheinlichkeit und Median-Endkapital gegenläufig reagieren.`;
+  } else {
+    p4 = `Bei diesem Ergebnis lohnt es sich, deutlich gegenzusteuern, bevor Sie sich auf diese Entnahmestrategie festlegen. Am wirksamsten ist in der Regel, die jährliche Entnahme spürbar zu senken beziehungsweise eine deutlich tiefere Entnahmerate zu wählen — reduzieren Sie den Betrag links so lange, bis die Erfolgswahrscheinlichkeit ein Niveau erreicht, mit dem Sie sich wohlfühlen. Ergänzend oder alternativ können Sie den Anteil risikoarmer Anlagen erhöhen, also die Aktienquote senken; das dämpft insbesondere die ungünstigsten 10% der Verläufe, geht aber zulasten des mittleren Endkapitals. Beide Hebel gemeinsam wirken oft stärker als jeder für sich allein.`;
+  }
+
+  return `<p>${p1}</p><p>${p2}</p><p>${p3}</p><p>${p4}</p>`;
+}
+
+function runSingle(){
+  const p = getParams();
+  const result = runSimulation(p);
+  document.getElementById('kpiSuccess').textContent = fmtPct(result.successRate*100,1);
+  document.getElementById('kpiSuccess').className = 'value ' + (result.successRate>0.85 ? 'green' : result.successRate>0.6 ? 'neutral':'red');
+  document.getElementById('kpiMedian').textContent = fmtCHF(result.medianFinal);
+  document.getElementById('kpiWorst').textContent = result.worstFailAge ? ('Alter ' + Math.round(result.worstFailAge)) : '—';
+  document.getElementById('kpiFailAge').textContent = result.medianFailAge ? ('Alter ' + Math.round(result.medianFailAge)) : '—';
+  document.getElementById('explanation').innerHTML = buildExplanation(result, p);
+  renderFanChart(result);
+  renderHistChart(result, p);
+}
+
+document.getElementById('runBtn').addEventListener('click', runSingle);
+
+// ---------- Splash / App-Startbildschirm ----------
+document.getElementById('tileEnter').addEventListener('click', ()=>{
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('app').classList.remove('hidden');
+});
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('splash').style.display = 'flex';
+});
+
+// initial run
+runSingle();
+</script>
+</body>
+</html>
