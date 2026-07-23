@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einführung in die Finanzmathematik für Einsteiger — Erwin W. Heri</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --brand:       #fd4f57;
+      --brand-dark:  #c83a42;
+      --paper:       #ffffff;
+      --text:        #1a1a1a;
+      --muted:       #888;
+      --border:      #e8e4dc;
+      --formula-bg:  #fff5f5;
+      --ui-dark:     #111111;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: #1a1a1a;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    #header {
+      background: var(--ui-dark);
+      color: white;
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      border-bottom: 3px solid var(--brand);
+    }
+    #header .brand {
+      font-family: sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 2px;
+    }
+    #header .booktitle {
+      font-size: 14px;
+      font-weight: normal;
+      color: #e8e8e8;
+      letter-spacing: 0.01em;
+    }
+    #header-chapter {
+      font-family: sans-serif;
+      font-size: 11px;
+      color: #888;
+      text-align: right;
+      max-width: 320px;
+    }
+
+    /* ── STAGE ───────────────────────────────────────────── */
+    #stage {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px 0;
+      overflow: hidden;
+    }
+
+    /* ── PAGES ───────────────────────────────────────────── */
+    .page {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      max-width: 780px;
+      background: var(--paper);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      padding: 40px 64px 28px;
+      border-radius: 2px;
+      height: calc(100vh - 118px);
+      overflow: hidden;
+    }
+    .page.active { display: flex; }
+    .page-body {
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Centre content vertically, but keep chapter-label pinned to top */
+    .page-body > .chapter-label + * { margin-top: auto; }
+    .page-body > *:first-child:not(.chapter-label) { margin-top: auto; }
+    .page-body > *:last-child { margin-bottom: auto; }
+    .page-footer {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      padding-top: 9px;
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: sans-serif;
+      font-size: 10px;
+      color: #bbb;
+      letter-spacing: 0.02em;
+    }
+    #page-0 .page-footer { display: none; }
+    .page.anim-forward { animation: fadeIn 0.22s ease forwards; }
+    .page.anim-back    { animation: fadeIn 0.22s ease forwards; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── TYPOGRAPHY ──────────────────────────────────────── */
+    .page h1 {
+      font-size: 19px;
+      color: #111;
+      font-weight: normal;
+      line-height: 1.3;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--brand);
+    }
+    .page h2 {
+      font-size: 14px;
+      color: var(--brand);
+      font-weight: bold;
+      margin: 22px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-family: sans-serif;
+    }
+    .page p {
+      font-size: 14.5px;
+      line-height: 1.75;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .chapter-label {
+      font-family: sans-serif;
+      font-size: 10px;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* ── FORMULAS ────────────────────────────────────────── */
+    .formula {
+      background: var(--formula-bg);
+      border-left: 3px solid var(--brand);
+      padding: 10px 16px;
+      margin: 12px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #222;
+      border-radius: 0 3px 3px 0;
+      line-height: 1.5;
+    }
+    .formula.big {
+      font-size: 20px;
+      padding: 18px 24px;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    /* ── VIDEO BUTTONS ───────────────────────────────────── */
+    .video-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--brand);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      margin: 12px 0;
+      cursor: pointer;
+      border-radius: 3px;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      transition: background 0.15s, transform 0.1s;
+      text-align: left;
+      width: 100%;
+      max-width: 500px;
+    }
+    .video-btn:hover {
+      background: var(--brand-dark);
+      transform: translateX(2px);
+    }
+    .play-icon {
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 11px;
+      padding-left: 2px;
+    }
+    .btn-text { display: flex; flex-direction: column; }
+    .btn-label {
+      font-size: 9px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 1px;
+      font-family: sans-serif;
+    }
+    .btn-title { font-size: 13px; }
+
+    /* ── NAV ─────────────────────────────────────────────── */
+    #nav {
+      background: var(--ui-dark);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-shrink: 0;
+      border-top: 3px solid var(--brand);
+    }
+    #nav button {
+      background: transparent;
+      color: #ccc;
+      border: 1px solid #444;
+      padding: 6px 20px;
+      cursor: pointer;
+      border-radius: 2px;
+      font-size: 12px;
+      font-family: sans-serif;
+      transition: all 0.15s;
+      min-width: 90px;
+    }
+    #nav button:hover:not(:disabled) {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+    }
+    #nav button:disabled { opacity: 0.2; cursor: default; }
+    #page-indicator {
+      color: #666;
+      font-family: sans-serif;
+      font-size: 11px;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    /* ── COVER ───────────────────────────────────────────── */
+    #page-0 { padding: 0; overflow: hidden; }
+    .cover-inner {
+      height: 100%;
+      min-height: calc(100vh - 118px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 64px 72px;
+      background: #fff;
+      border-left: 6px solid var(--brand);
+    }
+    .cover-brand {
+      font-family: sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 48px;
+      font-weight: bold;
+    }
+    .cover-author {
+      font-size: 15px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+    .cover-title {
+      font-size: 38px;
+      line-height: 1.15;
+      color: #111;
+      margin-bottom: 16px;
+      max-width: 480px;
+    }
+    .cover-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 52px;
+      max-width: 380px;
+      line-height: 1.6;
+    }
+    .cover-rule {
+      width: 48px;
+      height: 3px;
+      background: var(--brand);
+      margin-bottom: 28px;
+    }
+    .cover-tagline {
+      font-size: 13.5px;
+      color: #555;
+      line-height: 2;
+      max-width: 340px;
+    }
+
+    /* ── TOC ─────────────────────────────────────────────── */
+    .toc-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: color 0.12s;
+    }
+    .toc-entry:hover .toc-name { color: var(--brand); }
+    .toc-entry.ch { font-weight: bold; }
+    .toc-entry.ch .toc-name { color: #111; }
+    .toc-entry.sub { padding-left: 20px; }
+    .toc-entry.sub .toc-name { font-size: 13px; color: var(--muted); font-weight: normal; }
+    .toc-arrow { font-size: 11px; color: var(--brand); opacity: 0.5; }
+
+    /* ── MODAL ───────────────────────────────────────────── */
+    #video-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    #video-modal.open { display: flex; }
+    #modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+    }
+    #modal-box {
+      position: relative;
+      z-index: 1;
+      background: #0a0a0a;
+      border-radius: 3px;
+      overflow: hidden;
+      width: min(92vw, 960px);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.95);
+    }
+    #modal-head {
+      background: var(--brand);
+      color: white;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #modal-head span { font-size: 13px; font-family: sans-serif; }
+    #modal-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.75);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 2px;
+      transition: color 0.12s;
+    }
+    #modal-close:hover { color: white; }
+    #video-player {
+      width: 100%;
+      display: block;
+      max-height: 72vh;
+      background: #000;
+    }
+    #video-frame {
+      width: 100%;
+      height: 72vh;
+      border: none;
+      display: block;
+      background: #000;
+    }
+
+    @media (max-width: 600px) {
+      .page { padding: 28px 20px 36px; }
+      .cover-inner { padding: 40px 24px; border-left: 4px solid var(--brand); }
+      .cover-title { font-size: 26px; }
+      #nav button { min-width: 70px; padding: 6px 8px; font-size: 11px; }
+    }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+    .fn-page-ref { color: #222; font-size: 11px; vertical-align: super; font-weight: 600; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+    .fn-page-ref { color: #222; font-size: 11px; vertical-align: super; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div id="header">
+  <div>
+    <div class="brand">Fintool · Lehrbuch</div>
+    <div class="booktitle">Einführung in die Finanzmathematik für Einsteiger</div>
+  </div>
+  <div id="header-chapter"></div>
+</div>
+<div id="stage">
+
+<!-- PAGE 0: COVER -->
+<div class="page active" id="page-0" data-chapter="Cover">
+<div class="page-body">
+  <div class="cover-inner">
+    <div class="cover-brand">Fintool · Lehrbuch</div>
+    <div class="cover-author">Erwin W. Heri</div>
+    <div class="cover-title">Einführung in die<br>Finanzmathematik<br>für Einsteiger</div>
+    <div class="cover-subtitle">Die mathematischen Grundlagen der Geldanlage — verständlich erklärt</div>
+    <div class="cover-rule"></div>
+    <div class="cover-tagline">Kapital wächst.<br>Zeit schlägt Rendite.<br>Kosten fressen still und leise.</div>
+  </div>
+</div>
+<div class="page-footer"><span></span><span></span></div>
+</div>
+<!-- PAGE 1: TOC -->
+<div class="page" id="page-1" data-chapter="Inhaltsverzeichnis">
+<div class="page-body">
+  <h1>Inhaltsverzeichnis</h1>
+  <div class="toc-entry ch" onclick="goToPage(2)">
+    <span class="toc-name">Vorwort: Warum Finanzmathematik für alle?</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(4)">
+    <span class="toc-name">Kapitel 1 — Zinseszins: Die Grundformel der Geldanlage</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(14)">
+    <span class="toc-name">Kapitel 2 — Finanzgrafiken richtig lesen: Die logarithmische Skala</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(18)">
+    <span class="toc-name">Kapitel 3 — Rendite messen: Diskret, stetig, zeit- und geldgewichtet</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(27)">
+    <span class="toc-name">Kapitel 4 — Der Wert des Geldes in der Zeit: Barwert und Diskontierung</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(33)">
+    <span class="toc-name">Kapitel 5 — Anleihen: Duration und Zinsänderungsrisiko</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(37)">
+    <span class="toc-name">Kapitel 6 — Risiko messen: Volatilität, Normalverteilung, Fat Tails</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(44)">
+    <span class="toc-name">Kapitel 7 — Aktienbewertung: Von PE bis CAPE</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(49)">
+    <span class="toc-name">Kapitel 8 — Portfoliotheorie, CAPM und Kapitalmarktlinie</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(52)">
+    <span class="toc-name">Abschluss: Was die Formeln leisten — und was nicht</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(54)">
+    <span class="toc-name">Formelreferenz: Die wichtigsten Gleichungen im Überblick</span><span class="toc-arrow">→</span>
+  </div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>1</span>
+</div>
+</div>
+<!-- PAGE 2 -->
+<div class="page" id="page-2" data-chapter="Vorwort">
+<div class="page-body">
+  <span class="chapter-label">Vorwort</span>
+  <h1>Vorwort: Warum Finanzmathematik für alle?</h1>
+  <p>Geldanlage ist keine Geheimwissenschaft. Wer weiss, wie die grundlegenden Formeln funktionieren, hat einen entscheidenden Vorteil: Er kann mitdenken. Er kann Behauptungen prüfen. Er kann erkennen, wenn ihm jemand etwas verkaufen will, das sich nicht rechnet.</p>
+  <p>Dieses Buch, das auf der Grundlage der Wissensplattform fintool.ch entstanden ist, ist für Menschen geschrieben, die keine Mathematiker sind — und es auch nicht werden wollen. Voraussetzung ist lediglich: Grundrechenarten und die Bereitschaft, eine Gleichung nicht als Bedrohung, sondern als abgekürzte Sprache zu betrachten. Eine Formel ist nichts anderes als ein Satz, der in Symbolen statt in Worten geschrieben ist. Einmal verstanden, sagt sie oft mehr als drei Absätze Text.</p>
+  <p>Jedes Kapitel beginnt mit der Frage: Warum ist das wichtig? Dann kommt das Werkzeug — die Formel, mit konkreten Zahlen erklärt. Dann die Verbindung zur realen Welt: Wo begegnet uns das? Was bedeutet es praktisch? Ergänzende Videos vertiefen die Konzepte und zeigen sie in Aktion.<sup class="fn-page-ref">*</sup></p>
+</div>
+<div class="page-footnote"><sup class="fn-page-ref">*</sup> Wenn Sie finden, die Referenten würden in den jeweiligen Videos zu langsam oder zu schnell sprechen, können Sie die Sprechgeschwindigkeit unten rechts verändern.</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>2</span>
+</div>
+</div>
+<!-- PAGE 3 -->
+<div class="page" id="page-3" data-chapter="Vorwort">
+<div class="page-body">
+  <span class="chapter-label">Vorwort · Fortsetzung</span>
+  <p>Der rote Faden des Buchs ist eine einzige Gleichung. Wer am Ende diese eine Gleichung wirklich verstanden hat, versteht damit die Hälfte der gesamten Finanzwirtschaft. Alle anderen Konzepte — Barwert, Duration, Aktienbewertung, Portfoliotheorie — sind Variationen und Erweiterungen davon. Die Gleichung lautet:</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Kapital wächst. Zeit schlägt Rendite. Kosten fressen still und leise. Das sind drei der Lektionen der Finanzmathematik. Alle drei folgen direkt aus dieser Formel. Der Rest ist Konsequenz.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>3</span>
+</div>
+</div>
+<!-- PAGE 4 -->
+<div class="page" id="page-4" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1</span>
+  <h1>Kapitel 1 — Zinseszins: Die Grundformel der Geldanlage</h1>
+  <p>Stellen wir uns vor, jemand legt 100 Franken an — und erhält jedes Jahr 8% Rendite. Nach einem Jahr hat er 108 Franken. Soweit klar. Aber was passiert im zweiten Jahr? Nicht nur das ursprüngliche Kapital trägt Zins — auch die 8 Franken des ersten Jahres werden verzinst. Das ist der Zinseszins: Zins auf Zins.</p>
+  <p>Die allgemeine Formel: Kapital K<sub>0</sub> wird zu K<sub>n</sub> nach n Jahren bei einer jährlichen Rendite r:</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Konkret: 100 Franken zu 8% wachsen in 10 Jahren auf 100 × 1.08<sup>10</sup> = 215.89 Franken. In 20 Jahren auf 466.10 Franken. In 30 Jahren auf 1’006.27 Franken. In 40 Jahren auf 2’172.45 Franken. Die letzten zehn Jahre bringen mehr als die gesamten ersten 30 zusammen. Das ist der Exponent in Aktion.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>4</span>
+</div>
+</div>
+<!-- PAGE 5 -->
+<div class="page" id="page-5" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Zum Vergleich: Ohne Zinseszins — also nur mit einfachem Zins auf das Startkapital — wären es nach 40 Jahren: 100 + 40 × 8 = 420 Franken. Mit Zinseszins: 2’172 Franken. Der Unterschied ist nicht ein bisschen mehr, er ist ein fundamentaler Unterschied der Grössenordnung. Zeit und Zinseszins sind das mächtigste Duo der Finanzwelt.</p>
+  <p>Der Unterschied zwischen 2% und 8% Jahresrendite nach 40 Jahren: 220 vs. 2’172 Franken — ein Faktor von fast 10. Sechs Prozentpunkte Unterschied im Zinssatz ergeben, über 40 Jahre aufgezinst, einen Faktor von fast 10 im Endvermögen. Das erklärt, warum Kostenunterschiede von 1 bis 2 Prozentpunkten pro Jahr bei Anlageprodukten über lange Zeiträume so bedeutsam sind. Der Zinseszins arbeitet sowohl für den Anleger als auch für den Produktanbieter.</p>
+  <button class="video-btn" onclick="playVideo('v31')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 31</span><span class="btn-title">Zinseszinsformel: Grundgedanke</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>5</span>
+</div>
+</div>
+<!-- PAGE 6 -->
+<div class="page" id="page-6" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Ein Betrag K<sub>0</sub> wächst in einem Jahr auf K<sub>0</sub> × (1+r). Im zweiten Jahr auf K<sub>0</sub> × (1+r)<sup>2</sup>. Nach n Jahren auf K<sub>0</sub> × (1+r)<sup>n</sup>. Das Video zeigt den Weg von den ersten Zahlen zur allgemeinen Formel — am einfachsten Beispiel einer mehrjährigen Geldanlage. Einmal verstanden, denkt man anders über Zeit, Rendite, Inflation und Schuldzinsen.</p>
+  <button class="video-btn" onclick="playVideo('v32')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 32</span><span class="btn-title">Zinseszinsformel: Auflösung nach r</span></div>
+  </button>
+  <p>Gleiche Gleichung, andere Blickrichtung. Welche Rendite hat ein Marktindex über 20 Jahre erzielt? Dazu löst man die Formel nach r auf:</p>
+  <div class="formula">r  =  (K<sub>n</sub> / K<sub>0</sub>)<sup>1/n</sup>  −  1</div>
+  <p>Beispiel: Index von 1’000 auf 4’000 Punkte über 20 Jahre: (4’000/1’000)<sup>1/20</sup> − 1 = 7.18% per annum. Das ist die annualisierte Rendite — die Jahresrendite, die man hätte erzielen müssen, um vom Startpunkt auf den Endpunkt zu gelangen. Diese Formel ist der Schlüssel, um historische Marktrenditen selbst zu berechnen und Prospektangaben zu verifizieren.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>6</span>
+</div>
+</div>
+<!-- PAGE 7 -->
+<div class="page" id="page-7" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <button class="video-btn" onclick="playVideo('v2201')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 2201</span><span class="btn-title">Vom Raucher zum Millionär</span></div>
+  </button>
+  <p>Ein konkretes Alltagsbeispiel zeigt, was passiert, wenn jemand aufhört zu rauchen und das gesparte Geld konsequent anlegt. Die Formel K<sub>n</sub> = K<sub>0</sub> × (1+r)<sup>n</sup> angewendet auf die Lebenswirklichkeit. Kleine Beträge, regelmässig investiert, akkumulieren sich über Jahrzehnte zu substanziellen Summen — das ist das Hauptthema dieses Videos.</p>
+  <h2>Die 72er-Regel — Verdoppelungszeit im Kopfrechnen</h2>
+  <p>Aus der Zinseszinsformel lässt sich eine elegante Faustregel ableiten, die man im Kopf rechnen kann:</p>
+  <div class="formula">Verdoppelungszeit (Jahre)  =  72 / r%</div>
+  <p>Bei 6% Rendite: 72/6 = 12 Jahre. Bei 3%: 24 Jahre. Bei 8%: 9 Jahre. Bei 1%: 72 Jahre. Das Kapital liegt auf dem Konto — aber um sich zu verdoppeln, braucht es bei 1% nominellem Zins ganze 72 Jahre.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>7</span>
+</div>
+</div>
+<!-- PAGE 8 -->
+<div class="page" id="page-8" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Dieselbe Regel auf der anderen Seite: Inflation von 2% pro Jahr halbiert die Kaufkraft in rund 36 Jahren (72/2 = 36). Das nominale Kapital liegt noch da — aber es kauft nach 36 Jahren nur noch halb so viel. Das ist ein wichtiges Argument gegen rein nominalwertorientiertes Denken beim Sparen.</p>
+  <p>Die Regel funktioniert auch als schnelles Kontrollmittel: Wer weiss, dass sich ein Index in 9 Jahren verdoppelt hat, kann sofort sagen: Die Rendite war ungefähr 8% per annum. Wer ein Finanzprodukt sieht, das 10% p.a. verspricht, weiss: Das Kapital verdoppelt sich in 7.2 Jahren. Klingt das realistisch? Die Faustregel erlaubt schnelle Plausibilitätsprüfungen ohne Taschenrechner.</p>
+  <button class="video-btn" onclick="playVideo('v35')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 35</span><span class="btn-title">Die 72er-Regel: Herleitung</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>8</span>
+</div>
+</div>
+<!-- PAGE 9 -->
+<div class="page" id="page-9" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Die Verdoppelungsbedingung K<sub>n</sub> = 2 × K<sub>0</sub> ergibt eingesetzt: n = ln(2) / ln(1+r) ≈ 0.693 / r. Multipliziert mit 100 (r in Prozent): n ≈ 69.3 / r%. Die Zahl 72 ist mit anderen Worten eine Aufrundung — gut teilbar durch viele Zinssätze (1, 2, 3, 4, 6, 8, 9, 12). Das Video leitet die Regel Schritt für Schritt her und zeigt, warum 72 und nicht 69 oder 70.</p>
+  <button class="video-btn" onclick="playVideo('v29_8500')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 29 / 8500</span><span class="btn-title">Die 72er-Regel — Praxis und aktuelle Daten</span></div>
+  </button>
+  <p>Zwei Videos zum selben Thema von der Anwendungsseite: Was bedeutet die Regel praktisch, wie rechnet man sie im Kopf, welche Konsequenzen für Anlageentscheide und Inflation? Video 8500 ist das aktuellste der Reihe und bringt aktuelle Zahlen zu Inflation, Sparkontozins und Marktrenditen mit in die Überlegungen ein.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>9</span>
+</div>
+</div>
+<!-- PAGE 10 -->
+<div class="page" id="page-10" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <h2>Nominale und reale Rendite — der Kaufkraftblick</h2>
+  <p>Bisher haben wir die nominelle Rendite betrachtet — wie der Kontostand in Franken wächst. Aber Franken von heute kaufen mehr als Franken in 20 Jahren, weil Inflation die Kaufkraft aushöhlt. Was zählt für den Anleger, ist die reale Rendite: der Kaufkraftgewinn nach Abzug der Inflation.</p>
+  <p>Die Fisher-Gleichung verbindet nominale Rendite r, reale Rendite r_real und Inflation π:</p>
+  <div class="formula">(1 + r_real)  =  (1 + r_nominal) / (1 + π)</div>
+  <p>Für kleine Werte können wir das vereinfachen zu: r_real ≈ r_nominal − π. Bei 7% Nominalrendite und 2% Inflation: r_real ≈ 5%. Auf den Zinseszins angewendet: 100 Franken wachsen in 30 Jahren nominal auf 761 Franken (7%), real auf 432 Franken (5%). Das Konto zeigt 761 — aber die Kaufkraft entspricht heutigen 432 Franken.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>10</span>
+</div>
+</div>
+<!-- PAGE 11 -->
+<div class="page" id="page-11" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Wichtige Konsequenz: Ein Sparkonto mit 0.25% Nominalzins und 2% Inflation ergibt eine reale Rendite von −1.75% pro Jahr. Das Kapital wächst nominal — schrumpft real. Nach 20 Jahren hat man nominell mehr Franken, kauft damit aber 30% weniger als heute. Wer sein Erspartes langfristig schützen will, muss eine reale Rendite anpeilen, d.h. eine nominelle Rendite, die die Inflation übertrifft. </p>
+  <h2>Der Sparplan: Regelmässig Geld anlegen</h2>
+  <p>Bisher haben wir immer ein einmaliges Startkapital K_0 betrachtet. Die Realität des Privatanlegers ist aber oft anders: Man legt nur selten einmalig 100&#x27;000 Franken an und schaut dann einfach zu. Eher spart man monatlich einen fixen Betrag und baut Vermögen über die Zeit auf. Das ist der Sparplan — und er hat eine eigene, elegante Formel.</p>
+  <p>Wer jeden Monat denselben Betrag C anlegt und dafür eine Rendite r pro Periode erhält, kommt nach n Perioden auf folgendes Endkapital (FV = Future Value):</p>
+  <div class="formula">FV  =  C  ×  [(1 + r)<sup>n</sup> − 1]  /  r</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>11</span>
+</div>
+</div>
+<!-- PAGE 12 -->
+<div class="page" id="page-12" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Konkretes Beispiel: Jeden Monat 500 Franken anlegen, 6% Jahresrendite (0.5% pro Monat), über 30 Jahre (360 Monate). FV = 500 × [(1.005)<sup>360</sup> − 1] / 0.005 = 500 × (6.022 − 1) / 0.005 = 500 × 1&#x27;004.5 = 502&#x27;258 Franken. Total eingezahlt: 500 × 360 = 180&#x27;000 Franken. Einmal mehr: Der Zinseszins hat weitere 322&#x27;258 Franken erzeugt — fast das Doppelte der Einzahlungen.</p>
+  <p>Die Formel funktioniert auch rückwärts: Wer in 25 Jahren eine Million Franken haben möchte und mit 5% Jahresrendite rechnet — wie viel muss er monatlich anlegen? Gesucht ist C, gegeben FV = 1&#x27;000&#x27;000, r = 0.004167 (5%/12), n = 300 (25 Jahre). Umgestellt: C = FV × r / [(1+r)^n − 1] = 1&#x27;000&#x27;000 × 0.004167 / [(1.004167)^300 − 1] = 1&#x27;000&#x27;000 × 0.004167 / (3.481 − 1) = rund 1&#x27;679 Franken pro Monat.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>12</span>
+</div>
+</div>
+<!-- PAGE 13 -->
+<div class="page" id="page-13" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Drei Erkenntnisse aus der Sparplanformel: Erstens, Zeit ist mächtiger als Geld. Wer 30 Jahre lang 300 Franken anlegt, kommt auf mehr als wer 20 Jahre lang 600 Franken anlegt — obwohl das total eingezahlte Kapital ähnlich ist. Zweitens, früher Beginn schlägt späten. Wer mit 25 anfängt, braucht monatlich weniger als wer mit 35 anfängt, um mit 65 dieselbe Summe zu erreichen. Drittens, regelmässige kleine Beträge akkumulieren sich zu grossen Summen — das ist keine Magie, sondern der Exponent.</p>
+  <p>Eine wichtige praktische Ergänzung: Der Sparplan hat auch einen psychologischen Vorzug — er eliminiert das Timing-Problem. Wer monatlich einen fixen Betrag anlegt, kauft automatisch mehr Anteile beispielsweise eines Aktienfonds, wenn die Kurse tief sind und weniger, wenn sie hoch sind. Das ist das sogenannte Dollar-Cost-Averaging bzw. der Durchschnittskosteneffekt. Mathematisch ist er kein Zaubermittel, aber er schützt vor dem häufigsten Fehler des Privatanlegers: dem Versuch, den Markt zu timen.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>13</span>
+</div>
+</div>
+<!-- PAGE 14 -->
+<div class="page" id="page-14" data-chapter="Kapitel 2">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 2</span>
+  <h1>Kapitel 2 — Finanzgrafiken richtig lesen: Die logarithmische Skala</h1>
+  <p>Wer langfristige Kursreihen betrachtet — Aktienindizes über 50, 100 oder 200 Jahre — merkt früh: Die y-Achse verhält sich merkwürdig. Die Abstände sind nicht gleich gross. Das ist kein Fehler. Es ist eine bewusste Entscheidung. Und wer nicht versteht, warum, liest Finanzgrafiken systematisch falsch.</p>
+  <p>Auf einer linearen Skala ist der Abstand zwischen 100 und 200 gleich gross wie zwischen 1’000 und 1’100 — beides 100 Einheiten. Auf einer logarithmischen Skala ist der Abstand zwischen 100 und 200 gleich gross wie zwischen 1’000 und 2’000 — beides 100% Zuwachs. Für Anleger, die sich für Renditen interessieren, ist die logarithmische Darstellung die sauberere.</p>
+  <p>Eine lineare Skala macht spätere Perioden optisch dramatischer als frühe — selbst wenn die prozentualen Renditen identisch sind. Finanzmedien verwenden häufig lineare Skalen, weil sie optisch dramatischer wirken. Das verzerrt die historische Perspektive auf systematische Weise.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>14</span>
+</div>
+</div>
+<!-- PAGE 15 -->
+<div class="page" id="page-15" data-chapter="Kapitel 2">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 2 · Fortsetzung</span>
+  <button class="video-btn" onclick="playVideo('v33')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 33</span><span class="btn-title">Logarithmische vs. Lineare Skala — Teil 1</span></div>
+  </button>
+  <p>An Umsatz- und langfristigen Kursdaten zeigt dieses Video, welche Bedeutung die Wahl der y-Achsen-Skalierung hat. Lineare Skala oder logarithmische Skala — das ist keine neutrale technische Entscheidung. Es ist eine Entscheidung darüber, welche Aspekte der Daten betont werden. Wer nicht weiss, was auf der y-Achse steht, versteht die Grafik nicht.</p>
+  <button class="video-btn" onclick="playVideo('v34')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 34</span><span class="btn-title">Logarithmische vs. Lineare Skala — Teil 2</span></div>
+  </button>
+  <p>Die formale Grundlage: Wenn y = log<sub>a</sub>(x), dann gilt a<sup>y</sup> = x. Der natürliche Logarithmus (Basis e = 2.718) ist eng verwandt mit der Zinseszinsformel: ln(K<sub>n</sub>/K<sub>0</sub>) = r × n für stetige Verzinsung. Auf einer log-Skala entspricht gleicher grafischer Abstand immer demselben prozentualen Zuwachs, unabhängig vom absoluten Niveau. Das macht log-Skalen zum Standardwerkzeug für Kursreihen über lange Zeiträume.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>15</span>
+</div>
+</div>
+<!-- PAGE 16 -->
+<div class="page" id="page-16" data-chapter="Kapitel 2">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 2 · Fortsetzung</span>
+  <p>Ein Praxishinweis zur Interpretation von Kursrückgängen auf log-Skalen: Ein Rückgang um eine bestimmte Strecke entspricht immer demselben prozentualen Verlust. Ein Rückgang von 10’000 auf 5’000 sieht auf einer log-Skala gleich gross aus wie ein Rückgang von 1’000 auf 500 — beides sind 50% Verlust. Auf einer linearen Skala sieht der erste Rückgang zehnmal dramatischer aus. Das ist nicht nur eine technische Feinheit: Es beeinflusst, wie Anleger historische Krisen einschätzen und vergleichen.</p>
+  <p>Video 2470  —  Wenn die Blase platzt — Wie man Börsenentwicklungen darstellt</p>
+  <p>Die Darstellung von Börsenentwicklungen sollte gewissen Regeln folgen, die oft verantwortungslos vernachlässigt werden. Dieses Video zeigt, wie unterschiedliche Darstellungsweisen dasselbe Kursgeschehen völlig verschieden erscheinen lassen — und warum das in der Finanzberichterstattung regelmässig ausgenutzt wird.</p>
+  <button class="video-btn" onclick="playVideo('v5460')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 5460</span><span class="btn-title">Platzt die Blase bald?</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>16</span>
+</div>
+</div>
+<!-- PAGE 17 -->
+<div class="page" id="page-17" data-chapter="Kapitel 2">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 2 · Fortsetzung</span>
+  <p>Auch wenn Logarithmen nicht besonders beliebt sind: Wer langfristige Dow-Jones-Charts oder irgendwelche Aktienmarktentwicklungen ohne logarithmische Skala darstellt, zeigt eine Grafik, die den Charakter der Entwicklung fundamental verzerrt. Dieses Video zeigt, wie man es richtig macht — und wie man bei Finanzgrafiken aus Zeitungen und Bankpublikationen sofort erkennt, ob man etwas mehr oder etwas weniger Seriöses vor sich hat.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>17</span>
+</div>
+</div>
+<!-- PAGE 18 -->
+<div class="page" id="page-18" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3</span>
+  <h1>Kapitel 3 — Rendite messen: Diskret, stetig, zeitgewichtet, geldgewichtet</h1>
+  <p>Rendite ist nicht gleich Rendite. Wer zwei Fonds vergleicht, muss sicher sein, dass beide Renditen nach derselben Methode berechnet wurden. Wer historische Renditezahlen aus verschiedenen Quellen kombiniert, sollte wissen, ob er Äpfel mit Birnen vergleicht. Vier Unterscheidungen sind zentral: diskret vs. stetig, arithmetisch vs. geometrisch, zeitgewichtet vs. geldgewichtet.</p>
+  <h2>Diskrete und stetige Rendite</h2>
+  <button class="video-btn" onclick="playVideo('v48')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 48</span><span class="btn-title">Rendite: Diskret vs. Stetig</span></div>
+  </button>
+  <p>Die einfache (diskrete) Rendite misst die prozentuale Veränderung zwischen Anfangs- und Endwert: Beispiel: Eine Aktie steigt von 100 € auf 110 €. R = 110 / 100 − 1 = 0,10 = 10 %</p>
+  <p>Die diskrete Rendite entspricht also der normalen Prozentrechnung: „Mein Investment ist um 10 % gestiegen.“</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>18</span>
+</div>
+</div>
+<!-- PAGE 19 -->
+<div class="page" id="page-19" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <div class="formula">r<sub>diskret</sub>  =  (K<sub>t</sub>  −  K<sub>t-1</sub>) / K<sub>t-1</sub></div>
+  <p>Die stetige (logarithmische) Rendite verwendet den natürlichen Logarithmus, weil sie eine kontinuierliche (stetige) Verzinsung unterstellt:    r = ln(P₁ / P₀). Im gleichen Beispiel:  r = ln(110 / 100) = ln(1,10) ≈ 0,0953 = 9,53 %. </p>
+  <div class="formula">r<sub>stetig</sub>  =  ln(K<sub>t</sub> / K<sub>t-1</sub>)</div>
+  <p>Der Unterschied liegt somit darin, wie die Rendite über die Zeit berechnet bzw. verzinst wird.</p>
+  <p>Die beiden Renditen lassen sich ineinander umrechnen:</p>
+  <p>r = ln(1 + R)  -&gt;  R = eʳ − 1</p>
+  <p>Bei kleinen Renditen sind diskrete und stetige Rendite fast gleich. Bei größeren Renditen weichen sie stärker voneinander ab.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>19</span>
+</div>
+</div>
+<!-- PAGE 20 -->
+<div class="page" id="page-20" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <p>Wichtiger praktischer Unterschied: Diskrete Renditen addieren sich nicht sauber über die Zeit. Stetige Renditen schon.</p>
+  <p>Beispiel: Eine Aktie steigt von 100 € auf 110 € und danach von 110 € auf 121 €.</p>
+  <p>Die diskrete Rendite in der ersten Periode beträgt:</p>
+  <p>R₁ = 110 / 100 − 1 = 0,10 = 10 %. Und in der zweiten Periode ebenfalls</p>
+  <p>R₂ = 121 / 110 − 1 = 0,10 = 10 %</p>
+  <p>Wenn man beide diskreten Renditen addiert, erhält man:</p>
+  <p>10 % + 10 % = 20 %</p>
+  <p>Tatsächlich ist der Gesamtanstieg aber: R  = 121 / 100 − 1 = 0,21 = 21 %</p>
+  <p>Deshalb müssen diskrete Renditen über mehrere Perioden multiplikativ verknüpft werden:</p>
+  <p>1 + R gesamt = (1 + R₁)(1 + R₂) · … · (1 + Rₙ)</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>20</span>
+</div>
+</div>
+<!-- PAGE 21 -->
+<div class="page" id="page-21" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <p>also: R = (1 + R₁)(1 + R₂) · … · (1 + Rₙ) − 1</p>
+  <p>Stetige Renditen sind dagegen additiv:  R = r₁ + r₂ + … + rₙ</p>
+  <p>oder:  R = Σ rₜ, für t = 1 bis n   mit:    rₜ = ln(Pₜ / Pₜ₋₁)</p>
+  <p>Kurz gesagt: Die diskrete Rendite ist die «normale» prozentuale Rendite. Die stetige Rendite ist logarithmisch, weil sie eine stetige Verzinsung unterstellt und besonders in Finanzmathematik, Statistik und in Modellen zur Anwendung kommt.</p>
+  <p>Merkpunkt: Im Zweifel immer fragen, welche Methode irgendwelchen Aussagen und Berechnungen zugrunde liegt?</p>
+  <h2>Arithmetisches und geometrisches Mittel</h2>
+  <p>Im ersten Jahr +50%, im zweiten −50%. Arithmetisches Mittel: 0%. Tatsächliches Ergebnis: 100 × 1.5 × 0.5 = 75. Verlust von 25%. Das korrekte Mass für die jährliche Rendite ist das geometrische Mittel: (1.5 × 0.5)<sup>1/2</sup> − 1 = −13.4% p.a. Näherungsformel:</p>
+  <div class="formula">g  =  μ  −  σ<sup>2</sup> / 2</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>21</span>
+</div>
+</div>
+<!-- PAGE 22 -->
+<div class="page" id="page-22" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <p>Je grösser die Volatilität σ, desto grösser die Abweichung zwischen arithmetischem Mittel μ und geometrischem Mittel g. Das hat eine direkte Konsequenz: Risikoreduktion durch Diversifikation verbessert nicht nur das Risikoprofil, sondern auch die langfristige geometrische Rendite. Volatilität ist ein Drag auf die langfristige Rendite.</p>
+  <h2>Zeit- und Geldrendite</h2>
+  <button class="video-btn" onclick="playVideo('v51')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 51</span><span class="btn-title">Zeit- und Geldrendite</span></div>
+  </button>
+  <p>Der Unterschied zwischen Zeit- und Geldrendite liegt also darin, ob Ein- und Auszahlungen berücksichtigt werden und wessen Anlageerfolg bewertet werden soll.</p>
+  <p>Zeitrendite</p>
+  <p>Die Zeitrendite, auch zeitgewichtete Rendite genannt, misst, wie gut sich eine Anlage oder ein Portfolio entwickelt hat, unabhängig davon, wann Geld ein- oder ausgezahlt wurde. Das bedeutet: Einzahlungen und Auszahlungen des Anlegers sollen die Rendite nicht verzerren.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>22</span>
+</div>
+</div>
+<!-- PAGE 23 -->
+<div class="page" id="page-23" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <p>Die Zeitrendite eignet sich daher besonders, um die Leistung eines Fondsmanagers oder einer Anlagestrategie zu beurteilen.</p>
+  <div class="formula">TWR  =  (1+r<sub>1</sub>) × (1+r<sub>2</sub>) × ... × (1+r<sub>n</sub>)  −  1</div>
+  <p>Beispiel: Ein Portfolio steigt in Periode 1 um 10 % und fällt in Periode 2 um 5 %. Dann wird die Gesamtrendite so berechnet:</p>
+  <p>TWR = (1 + R₁)(1 + R₂) – 1 =  (1 + 0,10)(1 − 0,05) -1 = 0,045 = 4.5%</p>
+  <p>Die Zeitrendite beträgt also 4,5 %.</p>
+  <p>Geldrendite</p>
+  <p>Die Geldrendite, auch geldgewichtete Rendite genannt, berücksichtigt hingegen wann und wie viel Geld investiert oder entnommen wurde.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>23</span>
+</div>
+</div>
+<!-- PAGE 24 -->
+<div class="page" id="page-24" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <p>Das bedeutet: Eine Einzahlung kurz vor einem Kursanstieg wirkt sich stark positiv aus. Eine Einzahlung kurz vor einem Kursrückgang wirkt sich stark negativ aus. Die Geldrendite zeigt daher eher, welche Rendite der konkrete Anleger tatsächlich mit seinem eingesetzten Geld erzielt hat. Sie entspricht häufig dem sogenannten internen Zinsfuß.</p>
+  <p>Einfacher Unterschied: Die Zeitrendite beantwortet die Frage: „Wie gut hat sich die Anlage selbst entwickelt?“ Die Geldrendite beantwortet die Frage: „Wie gut hat sich mein tatsächlich investiertes Geld entwickelt?“</p>
+  <p>Merksatz: Zeitrendite = unabhängig von Ein- und Auszahlungen; Geldrendite = abhängig von Ein- und Auszahlungen. Oder anders gesagt: Die Zeitrendite bewertet eher den Manager oder die Strategie, die Geldrendite bewertet eher das tatsächliche Ergebnis des Anlegers.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>24</span>
+</div>
+</div>
+<!-- PAGE 25 -->
+<div class="page" id="page-25" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <p>Studien zeigen, dass Anleger in Aktienfonds systematisch eine tiefere Geldrendite erzielen als die publizierten Zeitrenditen — weil sie prozyklisch investieren: Sie kaufen wenn die Stimmung gut und die Kurse hoch sind, Sie verkaufen wenn die Stimmung schlecht und die Kurse tief sind. Der sogenannte Behaviour Gap liegt typisch bei 1 bis 2 Prozentpunkten pro Jahr. Ein weiteres Argument für regelbasierte Anlagestrategien.</p>
+  <h2>Renditevergleiche in der Praxis: Was Kennzahlen wirklich sagen</h2>
+  <p>Eine häufige Verwirrungsquelle in der Praxis: Ein Vermögensverwalter publiziert eine Zeitrendite von 8% p.a. Der Anleger, der unglückliches Timing hatte, erzielt aber nur 5% Geldrendite. Beide Zahlen sind korrekt — sie messen verschiedene Dinge. Ein kritischer Anleger kennt den Unterschied und fragt nach der für ihn relevanten Grösse.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>25</span>
+</div>
+</div>
+<!-- PAGE 26 -->
+<div class="page" id="page-26" data-chapter="Kapitel 3">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 3 · Fortsetzung</span>
+  <p>Noch eine wichtige Unterscheidung: Brutto- vs. Nettorendite. Wer einem aktiv verwalteten Fonds 1.5% Jahresgebühr zahlt, dem nützt eine publizierte Bruttorendite von 8% wenig — seine Nettorendite ist 6.5%. Auf 30 Jahre, ausgehend von 100’000 Franken: Nettoportfolio bei 0.1% Kosten (Indexfonds) = 979’000 Franken. Bei 1.5% Kosten = 661’000 Franken. Kostendifferenz: 318’000 Franken. Der Zinseszins arbeitet auch für den Produktanbieter — systematisch und unsichtbar.</p>
+  <p>Beim Lesen von Fondsberichten sollte man immer klären: (1) Zeitrendite oder Geldrendite? (2) Brutto oder netto nach Kosten? (3) Arithmetisches oder geometrisches Mittel? (4) Welcher Benchmark? (5) Welcher Zeitraum? Fünf Fragen, die den Unterschied zwischen einem ehrlichen und einem geschönten Renditevergleich aufdecken.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>26</span>
+</div>
+</div>
+<!-- PAGE 27 -->
+<div class="page" id="page-27" data-chapter="Kapitel 4">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 4</span>
+  <h1>Kapitel 4 — Der Wert des Geldes in der Zeit: Barwert und Diskontierung</h1>
+  <p>Die Zinseszinsformel rechnet vorwärts: Was wird aus 100 Franken in 20 Jahren? Der Barwert rechnet rückwärts: Was ist eine künftige Zahlung heute wert? Das Barwertprinzip ist eine weitere Säule der Finanzwirtschaft — direkt abgeleitet aus der Zinseszinsformel.</p>
+  <button class="video-btn" onclick="playVideo('v37')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 37</span><span class="btn-title">Barwert des Geldes</span></div>
+  </button>
+  <div class="formula">Gegenwartswert PV  =  Zukunftswert in n / (1 + r)<sup>n</sup></div>
+  <p>Konkretes Beispiel: 10’000 Franken in 10 Jahren. Bei 3%: PV = 10’000 / (1.03)<sup>10</sup> = 7’441 Fr. Bei 5%: PV = 10’000 / (1.05)<sup>10</sup> = 6’139 Fr. Ein Zinsanstieg von 2 Prozentpunkten reduziert den heutigen Wert um 1’302 Franken (18%). Und je weiter die Zahlung in der Zukunft liegt, desto grösser der Effekt.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>27</span>
+</div>
+</div>
+<!-- PAGE 28 -->
+<div class="page" id="page-28" data-chapter="Kapitel 4">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 4 · Fortsetzung</span>
+  <p>Das nächste Video entwickelt das Barwertprinzip von Grund auf. Eine Anleihe, eine Aktie, eine Immobilie, ein Pensionskassenanspruch — alle sind Folgen von Zahlungsversprechen in der Zukunft. Ihr fairer heutiger Preis ist der Barwert dieser Versprechen, diskontiert mit einem der Unsicherheit angemessenen Zinssatz.</p>
+  <button class="video-btn" onclick="playVideo('v38')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 38</span><span class="btn-title">Barwert einer Annuität und ewige Rente</span></div>
+  </button>
+  <p>Annuität über T Jahre (geometrische Reihe):</p>
+  <div class="formula">PV  =  (C / r)  ×  [1 − 1/(1+r)<sup>T</sup>]</div>
+  <p>Ewige Rente (T gegen Unendlich):</p>
+  <div class="formula">PV  (ewige Rente)  =  C / r</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>28</span>
+</div>
+</div>
+<!-- PAGE 29 -->
+<div class="page" id="page-29" data-chapter="Kapitel 4">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 4 · Fortsetzung</span>
+  <p>Diese Formel ist das Fundament der Ertragswertmethode in der Unternehmensbewertung. Aktie mit 3 Fr. Dividende, Diskontierungssatz 5%: Preis = 3/0.05 = 60 Fr. Wenn Diskontierungssatz auf 6% steigt: Preis = 3/0.06 = 50 Fr. — Rückgang von 17%, ohne Änderung der Dividende. Das ist der Mechanismus hinter dem Satz: ‘Steigende Zinsen drücken Aktienkurse.’</p>
+  <button class="video-btn" onclick="playVideo('v39')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 39</span><span class="btn-title">Anleihe: Preis und Verfallrendite</span></div>
+  </button>
+  <div class="formula">Preis  =  Σ [C/(1+r)<sup>t</sup>]  +  N/(1+r)<sup>T</sup></div>
+  <p>Numerisches Beispiel: 3%-Kuponanleihe, Nennwert 1’000 Fr., 5 Jahre Restlaufzeit. Bei Marktzins 3%: Preis = 1’000 Fr. (al pari). Bei Marktzins 5%: Preis = 913 Fr. (unter Pari). Bei Marktzins 1%: Preis = 1’097 Fr. (über Pari). Steigende Zinsen — fallende Anleihenpreise. Die Yield to Maturity (YTM) ist der interne Zinsfuss: der Diskontierungssatz, bei dem der Barwert aller Zahlungen dem heutigen Marktpreis entspricht.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>29</span>
+</div>
+</div>
+<!-- PAGE 30 -->
+<div class="page" id="page-30" data-chapter="Kapitel 4">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 4 · Fortsetzung</span>
+  <p>Lassen sie uns die Sache anhand eines weiteren Erklärvideos nochmals zusammenfassen:</p>
+  <button class="video-btn" onclick="playVideo('v8540')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 8540</span><span class="btn-title">Obligation – wie geht das?</span></div>
+  </button>
+  <p>Die jeweils verwendeten Diskontierungssätze r hängen ab von: (1) einer risikofreien Rendite, (2) einer Risikoprämie für die Unsicherheit der Zahlung, (3) dem erwarteten Inflationsniveau. Steigende Marktzinsen erhöhen den Diskontierungssatz für alle Assets. Das erklärt, warum beispielsweise Wachstumsaktien — deren Erträge weit in der Zukunft liegen und relativ unsicher sind — bei steigenden Zinsen besonders stark fallen: Der Nenner (1+r)<sup>n</sup> wächst exponentiell mit n.</p>
+  <p>Das Barwertprinzip erklärt auch, warum Aktien- und Anleihenmärkte sich in normalen Zeiten gegenläufig verhalten. In stabilen Wirtschaftsphasen sind Aktien und Anleihen negativ korreliert — das ist der Grund, warum das 60/40-Portfolio jahrzehntelang gut funktioniert hat. In Zeiten steigender Inflation und Zinsen — wie 2022 — bricht diese Korrelation allerdings zusammen. Sowohl Aktien als auch Anleihen verlieren dann, weil der Diskontierungssatz beider ansteigt.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>30</span>
+</div>
+</div>
+<!-- PAGE 31 -->
+<div class="page" id="page-31" data-chapter="Kapitel 4">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 4 · Fortsetzung</span>
+  <h2>Barwert einer Rente: Pensionskasse und Altersvorsorge</h2>
+  <p>Eine der wichtigsten Anwendungen des Barwertprinzips ist die Bewertung von Rentenansprüchen. Was ist eine lebenslange Rente von 3&#x27;000 Franken pro Monat wert? Das hängt vom Diskontierungssatz und der erwarteten Bezugsdauer ab. Mit einem technischen Zinssatz von 2% und einer erwarteten Bezugsdauer von 20 Jahren ergibt die Annuitätenformel:</p>
+  <p>PV = 3&#x27;000 × 12 × [1 − 1/(1.02)<sup>20</sup>] / 0.02 = 36&#x27;000 × 16.35 = 588&#x27;600 Franken. Das ist der theoretische Barwert dieser Rente — was die Pensionskasse heute anlegen müsste, um die 20 Jahre lang 3&#x27;000 Franken monatlich auszahlen zu können. Dieser Wert ist sensibel auf den technischen Zinssatz: Bei 3% sinkt er auf rund 537&#x27;000 Franken, bei 1% steigt er auf rund 651&#x27;000 Franken.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>31</span>
+</div>
+</div>
+<!-- PAGE 32 -->
+<div class="page" id="page-32" data-chapter="Kapitel 4">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 4 · Fortsetzung</span>
+  <p>Der technische Zinssatz der Pensionskassen ist daher eine politisch heisse Kennzahl. Je tiefer er angesetzt wird, desto höher der Barwert der Verpflichtungen — und desto mehr Kapital muss die Kasse halten. In der Tiefzinsphase 2015 bis 2022 wurden viele Pensionskassen gezwungen, ihre technischen Zinssätze von 4% auf 2% oder tiefer zu senken. Das bedeutete: Die Umwandlungssätze mussten sinken, weil dieselbe angesparte Summe einen tieferen monatlichen Rentenanspruch finanziert. Die Barwertformel steckt im Prinzip hinter jeder Rentenreformdiskussion.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>32</span>
+</div>
+</div>
+<!-- PAGE 33 -->
+<div class="page" id="page-33" data-chapter="Kapitel 5">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 5</span>
+  <h1>Kapitel 5 — Anleihen: Duration und Zinsänderungsrisiko</h1>
+  <p>Anleihen gelten als sichere Anlageklasse. Das Kreditrisiko einer Anleihe der Schweizerischen Eidgenossenschaft (eines «Eidgenosssen») ist gering. Aber das Zinsänderungsrisiko ist real, messbar und bei langen Laufzeiten erheblich. 2022 zeigte es drastisch: Anleihen können zweistellige Verluste einfahren. Die Duration quantifiziert dieses Risiko präzise — und macht aus einem qualitativen Gefühl eine konkrete Zahl.</p>
+  <button class="video-btn" onclick="playVideo('v41')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 41</span><span class="btn-title">Zinsänderungsrisiko — Duration</span></div>
+  </button>
+  <p>Die Macaulay-Duration: gewichteter Durchschnitt der Zeitpunkte aller Zahlungen, gewichtet mit den Barwerten:</p>
+  <div class="formula">D  =  Σ [t × (C<sub>t</sub> / (1+r)<sup>t</sup>) / Preis]</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>33</span>
+</div>
+</div>
+<!-- PAGE 34 -->
+<div class="page" id="page-34" data-chapter="Kapitel 5">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 5 · Fortsetzung</span>
+  <p>Intuition: Duration = Zeithorizont, nach dem man das investierte Kapital inklusive aller Zinsen zurückerhalten hat. Eine Zero-Coupon-Anleihe hat Duration = Laufzeit. Eine Kuponanleihe hat Duration &lt; Laufzeit — regelmässige Kupons ziehen den Zeitschwerpunkt nach vorne. Numerisches Beispiel: 3%-Kuponanleihe, 5 Jahre, Marktzins 3%, Preis 1’000 Fr. Die Macaulay-Duration dieser Anleihe beträgt 4.72 Jahre.</p>
+  <button class="video-btn" onclick="playVideo('v42')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 42</span><span class="btn-title">Modified Duration</span></div>
+  </button>
+  <div class="formula">MD  =  D / (1 + r)</div>
+  <p>Für obiges Beispiel: MD = 4.72 / 1.03 = 4.58. Bei Zinsveränderungen gilt näherungsweise:</p>
+  <div class="formula">Δ-Preis / Preis  =  − MD × Δr</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>34</span>
+</div>
+</div>
+<!-- PAGE 35 -->
+<div class="page" id="page-35" data-chapter="Kapitel 5">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 5 · Fortsetzung</span>
+  <p>Numerisch: Bei Zinsanstieg von 1.5 Prozentpunkten: −4.58 × 0.015 = −6.87%. Eine 10-jährige Bundesanleihe mit MD von rund 8 verliert bei 1.5 Prozentpunkten Zinsanstieg ca. 12%. Genau das passierte 2022: der grösste Zinsanstieg in Jahrzehnten. ‘Sichere’ Anleihen mit langen Laufzeiten machten Verluste, die an einen Aktienbaeremarkt erinnerten.</p>
+  <p>Die Duration ist auch ein Instrument zur aktiven Steuerung des Zinsrisikos. Wer steigende Zinsen erwartet, reduziert die Duration des Portfolios — kauft kürzerlaufende Anleihen. Wer sinkende Zinsen erwartet, erhöht die Duration. In Pensionskassen wird das Duration-Matching eingesetzt: Die Duration der Aktiven (Anleihen) wird an die Duration der Verpflichtungen (Rentenansprüche) angepasst. So wird das Zinsrisiko-Budget präzise gesteuert.</p>
+  <p>Die Modified Duration ist eine lineare Näherung. Bei grossen Zinsveränderungen (mehr als 1 Prozentpunkt) wird sie ungenauer, weil der Preis-Zins-Zusammenhang nicht linear, sondern konvex ist. Die sogenannte Konvexität (Convexity) erlaubt eine genauere Approximation. Für die meisten Praxiszwecke reicht die Modified Duration als erste Näherung vollständig.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>35</span>
+</div>
+</div>
+<!-- PAGE 36 -->
+<div class="page" id="page-36" data-chapter="Kapitel 5">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 5 · Fortsetzung</span>
+  <h2>Duration und Anlagehorizont: Der immunisierte Anleger</h2>
+  <p>Es gibt eine elegante Anwendung der Duration, die über die blosse Risikomessung hinausgeht: die Immunisierung. Wer einen fixen Betrag in genau n Jahren benötigt, wählt ein Anleihenportfolio, dessen Duration exakt n Jahren entspricht. Dann gleichen sich Kurseffekte und Reinvestitionseffekte aus — das Endkapital bleibt annähernd konstant, unabhängig von Zinsveränderungen.</p>
+  <p>Ein Beispiel: Eine Pensionskasse weiss, dass sie in 10 Jahren eine Auszahlung leisten muss. Sie kauft Anleihen mit einer Duration von 10 Jahren. Steigen die Zinsen, sinken die Anleihenpreise — aber die Kupons werden zu höheren Zinsen reinvestiert, was den Preisrückgang genau kompensiert. Das Prinzip funktioniert natürlich nur approximativ, weil Duration und Anlagehorizont im Zeitverlauf unterschiedlich schnell konvergieren. Aber als Grundprinzip ist es sowohl in der Portfolioverwaltung als auch in der Altersvorsorge zentral.</p>
+  <p>Für den Privatanleger gibt die Duration eine direkte Handlungsempfehlung: Wer sein Geld in 3 Jahren braucht, sollte keine Anleihen mit Duration von 10 Jahren halten. Wer einen langen Anlagehorizont hat, kann höhere Duration in Kauf nehmen — und erhält dafür in der Regel auch eine höhere Rendite (Laufzeitenprämie). Die Duration macht diesen Abwägungsprozess quantifizierbar.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>36</span>
+</div>
+</div>
+<!-- PAGE 37 -->
+<div class="page" id="page-37" data-chapter="Kapitel 6">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 6</span>
+  <h1>Kapitel 6 — Risiko messen: Volatilität, Normalverteilung, Fat Tails</h1>
+  <p>In der Alltagssprache ist Risiko ein diffuses Unbehagen. In der Finanzwirtschaft ist es eine Zahl. Das am weitesten verbreitete Risikomass ist die Volatilität — die Standardabweichung der Renditen. Sie hat Stärken, aber auch fundamentale Schwächen. Beides zu kennen ist wichtiger als die Formel selbst.</p>
+  <button class="video-btn" onclick="playVideo('v47')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 47</span><span class="btn-title">Risikomass Volatilität</span></div>
+  </button>
+  <div class="formula">σ  =  √ [ (1/(n-1)) × Σ(r<sub>i</sub> − r̅)<sup>2</sup>]</div>
+  <p>Annualisierung (aus der Additivität der Varianzen bei unabhängigen Renditen):</p>
+  <div class="formula">σ<sub>ann</sub>  =  σ<sub>tägl</sub>  ×  √250</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>37</span>
+</div>
+</div>
+<!-- PAGE 39 -->
+<div class="page" id="page-38" data-chapter="Kapitel 6">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 6 · Fortsetzung</span>
+  <p>Eine annualisierte Volatilität von 15% bedeutet: Die Jahresrendite lag in zwei Dritteln aller Jahre zwischen Durchschnitt minus 15 und plus 15 Prozentpunkten. In 95% der Jahre zwischen minus 30 und plus 30. Konkret: Tagesvolatilität von 1% entspricht annualisiert 1% × √252 = 15.87%. Der SMI hat historisch eine annualisierte Volatilität von rund 17 bis 20%.</p>
+  <button class="video-btn" onclick="playVideo('v49')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 49</span><span class="btn-title">Häufigkeits- und Normalverteilung</span></div>
+  </button>
+  <p>Die Häufigkeitsverteilung beschreibt, wie oft verschiedene Renditen aufgetreten sind. Die Normalverteilung ist die symmetrische Glockenkurve, die vollständig durch zwei Parameter beschrieben wird: Mittelwert μ (Lage) und Standardabweichung σ (Breite). Wenn Renditen normalverteilt wären, könnte man mit Mittelwert und Volatilität alle Wahrscheinlichkeiten berechnen. Aber Renditen sind nicht normalverteilt.</p>
+  <button class="video-btn" onclick="playVideo('v490')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 490</span><span class="btn-title">Aktienrisiko! — Wie sieht das aus?</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>38</span>
+</div>
+</div>
+<!-- PAGE 40 -->
+<div class="page" id="page-39" data-chapter="Kapitel 6">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 6 · Fortsetzung</span>
+  <p>Risiken am Aktienmarkt kann man auf unterschiedliche Art und Weise darstellen — auch als annähernd Gauss&#x27;sche Kurve, ähnlich wie Noten in der Schule. Das ermöglicht interessante Aussagen über die Wahrscheinlichkeit spezifischer Ereignisse. Dieses Video zeigt Aktienrisiko bildlich: Was bedeutet eine Volatilität von 15% konkret, wenn man sie auf einem Graphen betrachtet? Und wie sieht die tatsächliche Verteilung von Aktienrenditen im Vergleich zur theoretischen Normalverteilung aus?</p>
+  <button class="video-btn" onclick="playVideo('v4490')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 4490</span><span class="btn-title">Ein Bild sagt mehr als 1000 Worte</span></div>
+  </button>
+  <p>Aktienrisiko ist abstrakt — bis man es sieht. Dieses Video zeigt die grafische Darstellung von Renditeverteilungen: Was passiert, wenn man die tatsächlichen Jahresrenditen eines Aktienindex über Jahrzehnte in ein Histogramm einträgt? Das Bild macht greifbar, was die Zahl 15% Volatilität wirklich bedeutet — und wie gross der Spielraum möglicher Ergebnisse tatsächlich ist.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>39</span>
+</div>
+</div>
+<!-- PAGE 41 -->
+<div class="page" id="page-40" data-chapter="Kapitel 6">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 6 · Fortsetzung</span>
+  <button class="video-btn" onclick="playVideo('v4521')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 4521</span><span class="btn-title">Aktienrisiko und Statistik</span></div>
+  </button>
+  <p>Märkte sind nicht immer rational, Geldanlage ist kein Ratespiel — und Aktienrenditen sind nicht normalverteilt. Dieses Video (Update 2023) zeigt die tatsächliche Verteilung von Aktienrenditen im Vergleich zur Normalverteilung: Die Enden sind deutlich dicker als die Theorie voraussagt. Extremereignisse passieren häufiger, als ein Gaussmodell erwartet. Das hat direkte Konsequenzen für jede risikobasierte Anlageentscheidung.</p>
+  <p>Fat tails: Echte Renditeverteilungen haben dickere Enden als die Normalverteilung voraussagt. Der Crash von Oktober 1987 (Dow Jones −22.6% an einem einzigen Tag) wäre laut strikter Normalverteilung ein Ereignis mit einer Wahrscheinlichkeit von weit unter 1 in einer Milliarde Jahre. Er ist trotzdem eingetreten. Gleiches gilt für den Crash von 2008, den Covid-Crash von März 2020 und andere Extremereignisse.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>40</span>
+</div>
+</div>
+<!-- PAGE 42 -->
+<div class="page" id="page-41" data-chapter="Kapitel 6">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 6 · Fortsetzung</span>
+  <p>Statistisch erfasst man das durch Kurtosis (Wölbung) und Skewness (Schiefe). Positive Kurtosis = dickere Enden als Normalverteilung. Negative Schiefe = Verluste sind extremer als Gewinne gleichen Betrags. Beides trifft auf Renditen der meisten Anlageklassen zu. Risikomodelle auf Basis Normalverteilung unterschätzen das Risiko extremer Ereignisse systematisch.</p>
+  <p>Ein kritischer Punkt: Die Verwendung der Volatilität als alleiniges Risikomass schafft Fehlanreize. Wer Portfolios auf Basis annualisierter Standardabweichung optimiert, blendet Schiefe und Kurtosis aus. Strukturierte Produkte können attraktive Volatilitätszahlen aufweisen, aber erhebliche Tail-Risiken verbergen. Das ist der Grund, warum regulatorische Frameworks seit Basel II schrittweise von der reinen Varianz-Messung weg- und zum Expected Shortfall hingegangen sind.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>41</span>
+</div>
+</div>
+<!-- PAGE 43 -->
+<div class="page" id="page-42" data-chapter="Kapitel 6">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 6 · Fortsetzung</span>
+  <h2>Risiko und Zeit: Volatilität skaliert mit der Wurzel der Zeit</h2>
+  <p>Eine wichtige, oft missverstandene Eigenschaft der Volatilität: Sie skaliert mit der Wurzel der Zeit, nicht linear. Tagesvolatilität σ_1 ergibt Monatsvolatilität σ_1 × √22 und Jahresvolatilität σ_1 × √252. Das bedeutet: Über längere Zeiträume wächst das Risiko langsamer als die Rendite. Bei 6% Jahresrendite und 15% Jahresvolatilität gilt nach 10 Jahren: Erwartete Rendite = 79%, Standardabweichung = 15% × √10 = 47.4%.<sup class="fn-ref">1</sup></p>
+  <p>Das hat eine direkte Konsequenz für langfristige Anleger: Das Verhältnis von Rendite zu Risiko (Sharpe Ratio) verbessert sich mit zunehmendem Anlagehorizont. Wer 30 Jahre anlegt, hat eine fundamentale Risikostärke gegenüber dem kurzfristigen Anleger — nicht weil er weniger Volatilität hat, sondern weil die erwartete Rendite linear mit Zeit wächst, während die Streuung nur mit √Zeit wächst. Das ist die mathematische Grundlage der Aussage: &#x27;Langfristig fahren Aktienanleger besser.&#x27; Nota bene: Das gilt für gut diversifizierte Portfolios und schliesst das Sequenzrisiko in der Nähe des Renteneintritts nicht ein.</p>
+</div>
+<div class="page-footnote"><sup class="fn-ref">1</sup> Die √t-Regel für die Volatilität gilt unter der Annahme unabhängiger, identisch verteilter Renditen (i.i.d.). Allerdings ist die Annahme empirisch nicht gesichert. Langfristig gibt es Evidenz für leichte Mean-Reversion bei Aktienrenditen (Fama/French), was die √t-Skalierung nach unten korrigieren würde. In Krisenperioden zeigen Renditen hingegen Clustering — beides bricht die i.i.d.-Annahme.</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>42</span>
+</div>
+</div>
+<!-- PAGE 44 -->
+<div class="page" id="page-43" data-chapter="Kapitel 6">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 6 · Fortsetzung</span>
+  <p>Zum Thema Drawdown: Eine weitere Risikodarstellung neben der Volatilität ist der maximale Drawdown — der grösste kumulierte Verlust vom Höchststand zum tiefsten Punkt. Der SMI hatte im Jahr 2002 einen Drawdown von −46%, im Jahr 2008 von −57%, im März 2020 von −30%. Diese Zahlen sagen etwas, das die annualisierte Volatilität nicht sagt: Was das schlimmste reale Szenario war und wie lang die Erholungszeit betrug. Für einen Anleger, der sein Geld genau im falschen Moment braucht, ist der Drawdown der relevantere Risikoindikator.</p>
+  <p>Das nachfolgende Video gibt Ihnen konkrete Hinweise darauf, wie das konkret ausschauen kann:</p>
+  <button class="video-btn" onclick="playVideo('v6720')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 6720</span><span class="btn-title">Gefühl für Risiko entwickeln</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>43</span>
+</div>
+</div>
+<!-- PAGE 45 -->
+<div class="page" id="page-44" data-chapter="Kapitel 7">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 7</span>
+  <h1>Kapitel 7 — Aktienbewertung: Von PE bis CAPE</h1>
+  <p>Wer eine Aktie kauft, zahlt heute einen Preis für zukünftige Unternehmensgewinne. Die Frage ist immer dieselbe: Ist der heutige Preis angemessen für die erwarteten Gewinne? Die Price-Earnings-Ratio ist der einfachste Annäherungsweg — und einer der am häufigsten missbräuchlich verwendeten Kennzahlen der Finanzwelt.</p>
+  <div class="formula">PE  =  Kurs / Gewinn pro Aktie (EPS)</div>
+  <p>Eine PE von 15: Anleger bezahlen 15 Franken für 1 Franken Jahresgewinn. Die Gewinnrendite (Earnings Yield) = 1/PE = 6.7%. Bei konstantem Gewinn dauert es 15 Jahre, bis der Kaufpreis durch Gewinne verdient ist. Bei einer PE von 30 — wie viele Wachstumsaktien 2021 — dauert es 30 Jahre. Das setzt eine lange, robuste Gewinndynamik voraus.</p>
+  <button class="video-btn" onclick="playVideo('v53')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 53</span><span class="btn-title">PE-Ratio: Begriffe</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>44</span>
+</div>
+</div>
+<!-- PAGE 46 -->
+<div class="page" id="page-45" data-chapter="Kapitel 7">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 7 · Fortsetzung</span>
+  <p>EPS LTM (Last Twelve Months): Vergangene Gewinne, faktenbasiert, möglicherweise durch Sondereffekte verzerrt. EPS NTM (Next Twelve Months): Analysten-Schätzungen, vorwärtsgewandt, aber unsicher. Normierter Gewinn: Konjunkturell bereinigt. Unterschiedliche Gewinnberechnungen können die PE erheblich verändern — und erlauben gezielte Schönrechnung.</p>
+  <button class="video-btn" onclick="playVideo('v54')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 54</span><span class="btn-title">PE-Ratio: Citigroup</span></div>
+  </button>
+  <button class="video-btn" onclick="playVideo('v55')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 55</span><span class="btn-title">PE-Ratio: UBS</span></div>
+  </button>
+  <p>Zwei reale Grossbanken über einen Zehnjahreszeitraum. Die Gegenüberstellung von EPS LTM und EPS NTM macht die Asymmetrie greifbar: Analysten sind im Durchschnitt zu optimistisch, und bei Banken schwanken die Gewinne besonders stark — die PE wird dort zum besonders wackligen Instrument.</p>
+  <button class="video-btn" onclick="playVideo('v56')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 56</span><span class="btn-title">PE-Growth-Ratio (PEG)</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>45</span>
+</div>
+</div>
+<!-- PAGE 47 -->
+<div class="page" id="page-46" data-chapter="Kapitel 7">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 7 · Fortsetzung</span>
+  <p>Eine PE von 30 kann günstig sein bei 30% Gewinnwachstum; eine PE von 10 kann teuer sein bei stagnierendem Gewinn. Der PEG-Ratio setzt beides in Relation:</p>
+  <div class="formula">PEG  =  PE / Gewinnwachstum (in %)</div>
+  <p>PEG nahe 1 = faire Bewertung. PEG unter 1 = möglicherweise günstig. PEG über 1 = Wachstum muss sich erst realisieren. Die Qualität hängt stark davon ab, welches Gewinnwachstum verwendet wird — historisch oder prognostiziert.</p>
+  <h2>Das Gordon-Growth-Modell</h2>
+  <p>Wenn eine Aktie eine Dividende D<sub>0</sub> zahlt, die dauerhaft mit einer Rate von g wächst, ist ihr fairer Preis die ewige Rente einer wachsenden Zahlung:</p>
+  <div class="formula">Preis  =  D<sub>1</sub> / (r − g)  =  D<sub>0</sub> × (1+g) / (r − g)</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>46</span>
+</div>
+</div>
+<!-- PAGE 48 -->
+<div class="page" id="page-47" data-chapter="Kapitel 7">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 7 · Fortsetzung</span>
+  <p>Beispiel: Dividende 3 Fr., Wachstum g = 4%, geforderte Rendite r = 8%. Preis = 3 × 1.04 / (0.08−0.04) = 78 Fr. Wenn r auf 10% steigt: Preis = 3.12 / 0.06 = 52 Fr. — ein Rückgang von 33%, obwohl die Dividende unverändeert blieb. Wachstumsaktien mit kleinem Nenner r−g sind besonders sensitiv auf Zinsveränderungen.</p>
+  <h2>Die Shiller PE-Ratio (CAPE)</h2>
+  <p>Problem der einfachen PE-Ratio: Gewinne schwanken konjunkturell. In einer Rezession sind sie niedrig — die PE erscheint hoch, obwohl der Markt günstig sein könnte. Robert Shiller löst das durch den 10-Jahres-Durchschnitt inflationsbereinigter Gewinne:</p>
+  <div class="formula">CAPE  =  Kurs / Ø (inflationsbereinigte Gewinne, 10 Jahre)</div>
+  <button class="video-btn" onclick="playVideo('v57')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 57</span><span class="btn-title">Shiller-PE — Teil 1</span></div>
+  </button>
+  <button class="video-btn" onclick="playVideo('v58')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 58</span><span class="btn-title">Shiller-PE — Teil 2</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>47</span>
+</div>
+</div>
+<!-- PAGE 49 -->
+<div class="page" id="page-48" data-chapter="Kapitel 7">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 7 · Fortsetzung</span>
+  <p>Teil 1 zeigt Herleitung und historische Entwicklung des CAPE seit 1881 (140 Jahre). Historisches Mittel: rund 17. Werte über 25 galten als erhöhte Bewertung. 2021/22 notierte das US-CAPE zeitweise über 35. Teil 2 zeigt: Ein hohes CAPE impliziert tiefere langfristige Renditeerwartungen — statistisch robust über 10 bis 20 Jahre, aber kein kurzfristiges Timing-Signal. </p>
+  <p>Das nachfolgende Video gibt Ihnen einen Hinweis darauf, wie die Sachen angewendet werden können und wie die Situation zum Beispiel im Sommer 2025 ausgeschaut hat.</p>
+  <button class="video-btn" onclick="playVideo('v8585')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 8585</span><span class="btn-title">Was sagen die Kennzahlen?</span></div>
+  </button>
+  <p>Die entscheidende Aussage zu diesem Kapital: Price is what you pay, Value is what you get. Aber leider kennen wir keine immerzu verlässige Kennzahl, die uns die «richtige» Bewertung liefert.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>48</span>
+</div>
+</div>
+<!-- PAGE 50 -->
+<div class="page" id="page-49" data-chapter="Kapitel 8">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 8</span>
+  <h1>Kapitel 8 — Portfoliotheorie, CAPM und Kapitalmarktlinie</h1>
+  <p>Die moderne Portfoliotheorie (Markowitz, 1952) hat mathematisch bewiesen: Diversifikation ist das einzige echte Free Lunch der Finanzwirtschaft. Man kann Risiko reduzieren, ohne proportional Rendite aufzugeben. Das ist keine Meinung. Das ist ein algebraischer Beweis.</p>
+  <h2>Zwei Anlagen: Das Diversifikationsprinzip</h2>
+  <button class="video-btn" onclick="playVideo('v61')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 61</span><span class="btn-title">Portfoliotheorie: Grundlagen — Teil 1</span></div>
+  </button>
+  <div class="formula">E(R<sub>P</sub>)  =  w × E(R<sub>1</sub>) + (1−w) × E(R<sub>2</sub>)</div>
+  <div class="formula">σ<sub>P</sub>  =  √[w<sup>2</sup>σ<sup>2</sup><sub>1</sub> + (1−w)<sup>2</sup>σ<sup>2</sup><sub>2</sub> + 2w(1−w)ρσ<sub>1</sub>σ<sub>2</sub>]</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>49</span>
+</div>
+</div>
+<!-- PAGE 51 -->
+<div class="page" id="page-50" data-chapter="Kapitel 8">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 8 · Fortsetzung</span>
+  <p>Wenn ρ &lt; 1, ist das Portfoliorisiko kleiner als das gewichtete Mittel der Einzelrisiken. Das ist die Mathematik der Diversifikation. Numerisches Beispiel: Aktien (σ = 20%, E(R) = 8%), Anleihen (σ = 5%, E(R) = 3%), ρ = 0.2. Portfolio 60%/40%: E(R<sub>P</sub>) = 6.0%. σ<sub>P</sub> = 12.55%. Gewichtetes Mittel der Risiken: 14.0%. Diversifikationsgewinn: 1.45 Prozentpunkte ohne Renditeabgabe.</p>
+  <h2>Effizienzlinie, CAPM und Kapitalmarktlinie</h2>
+  <button class="video-btn" onclick="playVideo('v62_63')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 62 / 63</span><span class="btn-title">Portfoliotheorie — Teil 2 und 3</span></div>
+  </button>
+  <p>Mit zunehmender Anzahl Titel sinkt das Portfoliorisiko bis auf ein Minimum: das systematische Risiko. Bei n gleich gewichteten Titeln:</p>
+  <div class="formula">σ<sup>2</sup><sub>P</sub>  =  σ̅<sup>2</sup>/n  +  (1 − 1/n) × Cov̅</div>
+  <p>Für grosse n: Spezifisches Risiko verschwindet, systematisches Risiko (Marktrisiko) bleibt. Das CAPM sagt: Anleger erhalten nur für das systematische Risiko (Beta) eine Risikoprämie:</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>50</span>
+</div>
+</div>
+<!-- PAGE 52 -->
+<div class="page" id="page-51" data-chapter="Kapitel 8">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 8 · Fortsetzung</span>
+  <div class="formula">E(R<sub>i</sub>)  =  R<sub>f</sub>  +  β<sub>i</sub>  ×  [E(R<sub>M</sub>)  −  R<sub>f</sub>]</div>
+  <div class="formula">β  =  Cov(R<sub>i</sub>, R<sub>M</sub>) / Var(R<sub>M</sub>)</div>
+  <p>Beta = 1: Anlage bewegt sich wie der Markt. Beta = 1.5: +15% bei +10% Markt, −15% bei −10% Markt. Beta = 0.5: Hälfte der Marktbewegung. Defensive Sektoren (Versorger, Pharma) haben Beta &lt; 1, zyklische Sektoren (Technologie, Energie) Beta &gt; 1.</p>
+  <p>Die Kapitalmarktlinie (CML) beschreibt alle effizienten Portfolios aus Marktportfolio und risikofreier Anlage. Ihre Steigung — der Sharpe Ratio des Marktportfolios — ist der maximale Sharpe Ratio für alle Anleger:</p>
+  <div class="formula">SR  =  (E(R<sub>P</sub>) − R<sub>f</sub>) / σ<sub>P</sub></div>
+  <p>Alpha = Rendite über das CAPM hinaus. Empirische Evidenz aus Jahrzehnten der Finanzmarktforschung zeigt, dass die allermeisten aktiv verwalteten Fonds keine oder sogar eine negative Alpha erzielen.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>51</span>
+</div>
+</div>
+<!-- PAGE 53 -->
+<div class="page" id="page-52" data-chapter="Abschluss">
+<div class="page-body">
+  <span class="chapter-label">Abschluss</span>
+  <h1>Abschluss: Was die Formeln leisten — und was nicht</h1>
+  <p>Acht Kapitel, ein roter Faden. Alle grossen Bewertungskonzepte der Finanzwelt — Barwert, Anleihenpreis, Duration, Gordon-Growth-Modell, CAPE — sind direkte oder indirekte Variationen dieser einen Gleichung:</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Wer das verinnerlicht hat, sieht die Finanzwelt anders — präziser, kritischer, weniger anfällig für sprachliche Vernebelung. Nicht weil er jede Gleichung auswendig kennt. Sondern weil er weiss, was hinter den Zahlen steckt.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>52</span>
+</div>
+</div>
+<!-- PAGE 54 -->
+<div class="page" id="page-53" data-chapter="Abschluss">
+<div class="page-body">
+  <span class="chapter-label">Abschluss · Fortsetzung</span>
+  <p>Was die Formeln leisten: Sie reduzieren Komplexität auf das Wesentliche. Sie machen Annahmen explizit und damit kritisierbar. Wer eine PE-Ratio hinschreibt, macht implizit eine Annahme über Wachstum und Risiko. Wer eine Duration berechnet, macht eine Aussage über Zinsempfindlichkeit. Wer Volatilität angibt, macht eine Aussage über Renditestreuung — aber auch eine starke Annahme über die Verteilung. Formeln zwingen zur Klarheit.</p>
+  <p>Was die Formeln nicht leisten: Sie erfassen die Realität nicht vollständig. Volatilität unterschätzt Fat Tails. Das CAPM erklärt Renditeunterschiede nur partiell. PE und CAPE sind Bewertungsmassstäbe, keine Handelssignale. Duration ist eine lineare Näherung, die bei grossen Zinsschwankungen ungenau wird. Alle Modelle sind Vereinfachungen. Manche sind trotzdem nützlich — wenn man ihre Grenzen kennt.</p>
+  <p>Mit anderen Worten: Die Formeln helfen. Aber sie ersetzen das Nachdenken nicht. Wer das verstanden hat, ist gut aufgestellt — für die Lektüre von Geschäftsberichten, für Gespräche mit Bankberatern, für eigene Anlageentscheide. Das, am Ende, ist der eigentliche Zweck dieses Buchs.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>53</span>
+</div>
+</div>
+<!-- PAGE 55 -->
+<div class="page" id="page-54" data-chapter="Formelreferenz">
+<div class="page-body">
+  <span class="chapter-label">Formelreferenz</span>
+  <h1>Formelreferenz: Die wichtigsten Gleichungen im Überblick</h1>
+  <p>Dieses Kapitel fasst alle zentralen Formeln des Buchs auf einen Blick zusammen. Es ist kein Lernkapitel, sondern ein Nachschlagewerk — zum Wiederfinden, zum Vergleichen, zum schnellen Überprüfen von Berechnungen. Alle Formeln wurden in den vorangehenden Kapiteln hergeleitet und mit Zahlen erklärt.</p>
+  <h2>Kapitel 1: Zinseszins und Sparplan</h2>
+  <p>Zinseszinsformel (Grundformel):</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Annualisierte Rendite (Auflösung nach r):</p>
+  <div class="formula">r  =  (K<sub>n</sub> / K<sub>0</sub>)<sup>1/n</sup>  −  1</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>54</span>
+</div>
+</div>
+<!-- PAGE 56 -->
+<div class="page" id="page-55" data-chapter="Formelreferenz">
+<div class="page-body">
+  <span class="chapter-label">Formelreferenz · Fortsetzung</span>
+  <p>Verdoppelungszeit (72er-Regel):</p>
+  <div class="formula">t  =  72 / r%</div>
+  <p>Reale Rendite (Fisher-Gleichung):</p>
+  <div class="formula">r_real  ≈  r_nominal  −  π</div>
+  <p>Sparplan (Endkapital bei regelmässigen Einzahlungen):</p>
+  <div class="formula">FV  =  C  ×  [(1 + r)<sup>n</sup> − 1]  /  r</div>
+  <h2>Kapitel 3: Renditemessung</h2>
+  <p>Diskrete Rendite:</p>
+  <div class="formula">r<sub>d</sub>  =  (K<sub>t</sub> − K<sub>t-1</sub>) / K<sub>t-1</sub></div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>55</span>
+</div>
+</div>
+<!-- PAGE 57 -->
+<div class="page" id="page-56" data-chapter="Formelreferenz">
+<div class="page-body">
+  <span class="chapter-label">Formelreferenz · Fortsetzung</span>
+  <p>Stetige (logarithmische) Rendite:</p>
+  <div class="formula">r<sub>s</sub>  =  ln(K<sub>t</sub> / K<sub>t-1</sub>)</div>
+  <p>Geometrisches Mittel (Näherung):</p>
+  <div class="formula">g  ≈  μ  −  σ<sup>2</sup> / 2</div>
+  <h2>Kapitel 4: Barwert</h2>
+  <p>Barwert einer einmaligen Zahlung:</p>
+  <div class="formula">PV  =  C / (1 + r)<sup>n</sup></div>
+  <p>Barwert einer Annuität:</p>
+  <div class="formula">PV  =  (C / r)  ×  [1 − 1/(1+r)<sup>T</sup>]</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>56</span>
+</div>
+</div>
+<!-- PAGE 58 -->
+<div class="page" id="page-57" data-chapter="Formelreferenz">
+<div class="page-body">
+  <span class="chapter-label">Formelreferenz · Fortsetzung</span>
+  <p>Ewige Rente:</p>
+  <div class="formula">PV  =  C / r</div>
+  <h2>Kapitel 5: Duration</h2>
+  <p>Modified Duration und Preisänderung:</p>
+  <div class="formula">MD  =  D / (1 + r)</div>
+  <div class="formula">Δ Preis / Preis  =  − MD × Δr</div>
+  <h2>Kapitel 6: Risiko</h2>
+  <p>Standardabweichung (Volatilität):</p>
+  <div class="formula">σ  =  √ [ (1/(n-1)) × Σ(r<sub>i</sub> − r̅)<sup>2</sup>]</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>57</span>
+</div>
+</div>
+<!-- PAGE 59 -->
+<div class="page" id="page-58" data-chapter="Formelreferenz">
+<div class="page-body">
+  <span class="chapter-label">Formelreferenz · Fortsetzung</span>
+  <p>Annualisierung der Volatilität:</p>
+  <div class="formula">σ<sub>ann</sub>  =  σ<sub>tägl</sub>  ×  √252</div>
+  <h2>Kapitel 7: Aktienbewertung</h2>
+  <p>Gordon-Growth-Modell:</p>
+  <div class="formula">Preis  =  D<sub>1</sub> / (r − g)</div>
+  <p>CAPE (Shiller PE):</p>
+  <div class="formula">CAPE  =  Kurs / Ø (inflationsber. Gewinne, 10 J.)</div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>58</span>
+</div>
+</div>
+<!-- PAGE 60 -->
+<div class="page" id="page-59" data-chapter="Formelreferenz">
+<div class="page-body">
+  <span class="chapter-label">Formelreferenz · Fortsetzung</span>
+  <h2>Kapitel 8: Portfoliotheorie und CAPM</h2>
+  <p>Portfoliorendite:</p>
+  <div class="formula">E(R<sub>P</sub>)  =  w × E(R<sub>1</sub>) + (1−w) × E(R<sub>2</sub>)</div>
+  <p>Portfoliorisiko (zwei Anlagen):</p>
+  <div class="formula">σ<sub>P</sub>  =  √[w<sup>2</sup>σ<sup>2</sup><sub>1</sub> + (1−w)<sup>2</sup>σ<sup>2</sup><sub>2</sub> + 2w(1−w)ρσ<sub>1</sub>σ<sub>2</sub>]</div>
+  <p>CAPM:</p>
+  <div class="formula">E(R<sub>i</sub>)  =  R<sub>f</sub>  +  β<sub>i</sub>  ×  [E(R<sub>M</sub>)  −  R<sub>f</sub>]</div>
+  <p>Sharpe Ratio:</p>
+  <div class="formula">SR  =  (E(R<sub>P</sub>) − R<sub>f</sub>) / σ<sub>P</sub></div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>59</span>
+</div>
+</div>
+</div>
+<div id="nav">
+  <button id="btn-first" onclick="goToPage(0)" disabled title="Zum Anfang">⏮</button>
+  <button id="btn-prev" onclick="changePage(-1)" disabled>◀ Zurück</button>
+  <span id="page-indicator"></span>
+  <button id="btn-next" onclick="changePage(1)">Weiter ▶</button>
+</div>
+<div id="video-modal">
+  <div id="modal-backdrop" onclick="closeVideo()"></div>
+  <div id="modal-box">
+    <div id="modal-head">
+      <span id="modal-title">Video</span>
+      <button id="modal-close" onclick="closeVideo()">✕</button>
+    </div>
+    <video id="video-player" controls></video>
+    <iframe id="video-frame" allowfullscreen allow="autoplay; fullscreen"></iframe>
+  </div>
+</div>
+<script>
+const VIDEO_URLS = {
+  v31:      'https://www.dropbox.com/scl/fi/krefk28mfgyox0ywlct1u/0031-T-Zineszins-Grundgedanken.mp4?rlkey=gpb4vaxf9062yap8xokueto3a&st=lo3tpkhb&raw=1',   // Zinseszinsformel: Grundgedanke
+  v32:      'https://www.dropbox.com/scl/fi/9hglj9g1cov88aibgvzqr/0032-T-Zinseszinsformel-Aufl-sung-nach-Zins.mp4?rlkey=99fhti3x2kjt1lvn5kswrjaay&st=ph8v28f2&raw=1',   // Zinseszinsformel: Auflösung nach r
+  v2201:    'https://www.dropbox.com/scl/fi/9fzby2st236md9wr8wj0p/2201-Raucher-oder-Million-r.mp4?rlkey=g6m0af97am1l7tvabfp1abqlp&st=pckh7rig&raw=1', // Vom Raucher zum Millionär
+  v35:      'https://www.dropbox.com/scl/fi/b3q74ygm7x8j14zuc5xz1/Die-72er-Regel-Herleitung.mp4?rlkey=vgzqowj1ask2ehzm2tevx5bn3&st=03rcdheb&raw=1',  // Die 72er-Regel: Herleitung
+  v29_8500: 'https://www.dropbox.com/scl/fi/ho9blezgmavkmmqq0tejv/8500-Verm-gen-verdopplen-wie-bitte.mp4?rlkey=jjz04kfljbwn1jq5ozgwdgghd&st=rnicmzkn&raw=1',// Die 72er-Regel — Praxis und aktuelle Daten
+  v33:      'https://www.dropbox.com/scl/fi/x468h1cgud0o4yojhjd93/33.mp4?rlkey=0wkwhmj5ga3n78gajra834k3w&st=w3qki1q3&raw=1',  // Logarithmische vs. Lineare Skala — Teil 1
+  v34:      'https://www.dropbox.com/scl/fi/ymnf78pzblo9l8mjm7q36/34.mp4?rlkey=4a14vahblzpuybqx4ltod6tzp&st=n001vg8e&raw=1',  // Logarithmische vs. Lineare Skala — Teil 2
+  v5460:    'https://www.dropbox.com/scl/fi/ytew9oxt5ybvrpt60m4sh/5460-Platzt-die-Blase-bald.mp4?rlkey=t00fd2qui74g4bvi8jha4rnxe&st=l2jk052c&raw=1',// Platzt die Blase bald?
+  v48:      'https://www.dropbox.com/scl/fi/9ve6k7ku9gz2ovvnun8o9/0048-T-Rendite-diskret-vs-stetig.mp4?rlkey=p2nzkpg49i2bnnh8sy4ekqndc&st=irlxpki4&raw=1',  // Rendite: Diskret vs. Stetig
+  v51:      'https://www.dropbox.com/scl/fi/esxlr099jhx2fl66w029p/51-Zeit-und-Geldrendite-1-2-Aktualisierte-Version-Juli-25.mp4?rlkey=h04u74yk8mo70pt9gy7aiwwzu&st=5qdtldk5&raw=1',  // Zeit- und Geldrendite
+  v37:      'https://www.dropbox.com/scl/fi/ihrwylzgpeub9wpvkl82x/0037-Barwert-des-Geldes.mp4?rlkey=iaqervgs13gzll6dh3hdiza8x&st=hq7doks1&raw=1',  // Barwert des Geldes
+  v38:      'https://www.dropbox.com/scl/fi/j0pc3rm4urf4fyoh61hk1/0038-T-Barwert-Annuit-t.mp4?rlkey=flihu2gct9ucf1wuuzinvz6oy&st=ci9ha3cl&raw=1',  // Barwert einer Annuität und ewige Rente
+  v39:      'https://www.dropbox.com/scl/fi/1ix624a1d9xsya1a4sle1/0039-T-Anleihe-Preis-und-Verfallrendite.mp4?rlkey=hht6xk8sokaye4yr4fb7vghq0&st=qjbwm26y&raw=1',  // Anleihe: Preis und Verfallrendite
+  v41:      'https://www.dropbox.com/scl/fi/oxzf6d7zhqc49ojyq86h7/0041-T-Zins-nderungsrisiko-Duration.mp4?rlkey=9gj02atlxzjje70pp1uxus0fn&st=q626r48m&raw=1',  // Zinsänderungsrisiko — Duration
+  v42:      'https://www.dropbox.com/scl/fi/6yiy1srcw6sa2ykq2x0z8/0042-T-Zins-nderungsrisiko-Modified-Duration.mp4?rlkey=xtvcdzgxmrxkhgcmwgu90xxig&st=pny2974w&raw=1',  // Modified Duration
+  v47:      'https://www.dropbox.com/scl/fi/77zlmhzlhnhyj07dtnbgd/0047-T-Risikomass-Volatilit-t.mp4?rlkey=sqorc0ff4z9uzgl3z8couwbl2&st=0pn7qci9&raw=1',  // Risikomass Volatilität
+  v49:      'https://www.dropbox.com/scl/fi/ihmkeb4yqb8v6t8nmka1f/0049-T-H-ufigkeits-und-Normalverteilung-1.mp4?rlkey=mgckih0hsqgt36uniqgbmu8br&st=2s558oxf&raw=1', // Häufigkeits- und Normalverteilung (HTML)
+  v490:     'https://www.dropbox.com/scl/fi/fb5p3k8tws99hm1tbbanh/0490-Aktienrisiko-wie-sieht-das-aus.mp4?rlkey=i35chaa11zgrok25bupsvgcsy&st=4tbdzoov&raw=1', // Aktienrisiko! — Wie sieht das aus?
+  v4490:    'https://www.dropbox.com/scl/fi/x87t22rxt8yvex9q45p32/4490-Aktienrisiko-Bildlich.mp4?rlkey=ycu1m1jct3x326x3cqvilgtme&st=jmh6cb10&raw=1', // Ein Bild sagt mehr als 1000 Worte
+  v4521:    'https://www.dropbox.com/scl/fi/y1agi974x9h7x3gf3bhxl/4521-Aktienrisiko-und-Statistik.mp4?rlkey=97vtnl4fcxaew73bzlpx9t7vy&st=b42r6yc2&raw=1',// Aktienrisiko und Statistik
+  v8540:    'https://www.dropbox.com/scl/fi/6jvl3n4mi9x34twafp07v/8540-Eine-Obligation-wie-geht-das.mp4?rlkey=akne4je49asigd85yuk1co8jx&st=9bdv8ncf&raw=1',  // Obligation – wie geht das?
+  v6720:    'https://www.dropbox.com/scl/fi/1rut5o7odhf0erad4fvwm/6720-Aktien-Gefuehle-fuer-Risiko-2.mp4?rlkey=18yi8l2zgq8j2493r4nap10yv&st=lpqmhifv&raw=1',  // Gefühl für Risiko entwickeln
+  v8585:    'https://www.dropbox.com/scl/fi/gixrwxzz3o6doyws8aj0r/8585-Was-sagen-die-Kennzahlen.mp4?rlkey=ofawiof7wz2a3i4pv7swe9ncv&st=cbibs5t3&raw=1',  // Was sagen die Kennzahlen?
+  v53:      'https://www.dropbox.com/scl/fi/2bjmf070ext62jad3u0pz/0053-T-Die-PE-Ratio-Begriffe.mp4?rlkey=mum8r2jeimugw6ekq2ksngz0e&st=zywtmjlh&raw=1',  // PE-Ratio: Begriffe
+  v54:      'https://www.dropbox.com/scl/fi/3yog55vwx8cpr2oz5la1o/0054-T-Die-PE-Ratio-Beispiel-Citigroup.mp4?rlkey=89jsshzcxlapa0ujxicit39sv&st=1a293se8&raw=1',  // PE-Ratio: Citigroup
+  v55:      'https://www.dropbox.com/scl/fi/04jp7rgo1p4uur1uyq69h/0055-T-Die-PE-Ratio-Beispiel-UBS.mp4?rlkey=lb8sg0yqk1r02095emiyw7aqg&st=ewpmntd7&raw=1',  // PE-Ratio: UBS
+  v56:      'https://www.dropbox.com/scl/fi/h0dj61538ililnvwhhaze/0056-T-Die-PE-Growth-Ratio-PEGY.mp4?rlkey=h4y7sb3s6x6fyx2hberr9e4t3&st=murzkbsx&raw=1',  // PE-Growth-Ratio (PEG)
+  v57:      'https://www.dropbox.com/scl/fi/q5ujulx9ib2267tih1kzr/0057-T-Die-Shiller-PE-Ratio-I.mp4?rlkey=ef6ko1bwzf4qcsa45n2n55gr2&st=q74taxnv&raw=1',  // Shiller-PE — Teil 1
+  v58:      'https://www.dropbox.com/scl/fi/k0ef45qs5o98rsua538tu/0058-T-Die-Shiller-PE-Ratio-II.mp4?rlkey=8x8pysw8pqaw52gfgxpqw98qi&st=l7dd8ee6&raw=1',  // Shiller-PE — Teil 2
+  v61:      'https://www.dropbox.com/scl/fi/3eoidvq8j0olyzufbjuvq/0061-T-Portfoliotheorie-I.mp4?rlkey=gsv634elxrmlzplwxdp3c1ac5&st=0t16ju17&raw=1',  // Portfoliotheorie: Grundlagen — Teil 1
+  v62_63:   'https://www.dropbox.com/scl/fi/yr2gxfryprlbd8rjm9kog/0062-T-Portfoliotheorie-II-kurz.mp4?rlkey=kb18s4ju7xoyx1luxpeytnxx2&st=d555bxrz&raw=1',  // Portfoliotheorie — Teil 2 (video_63.mp4 = Teil 3 ebenfalls vorhanden)
+};
+const VIDEO_TITLES = {
+  v31:      'Zinseszinsformel: Grundgedanke',
+  v32:      'Zinseszinsformel: Auflösung nach r',
+  v2201:    'Vom Raucher zum Millionär',
+  v35:      'Die 72er-Regel: Herleitung',
+  v29_8500: 'Die 72er-Regel — Praxis und aktuelle Daten',
+  v33:      'Logarithmische vs. Lineare Skala — Teil 1',
+  v34:      'Logarithmische vs. Lineare Skala — Teil 2',
+  v5460:    'Platzt die Blase bald?',
+  v48:      'Rendite: Diskret vs. Stetig',
+  v51:      'Zeit- und Geldrendite',
+  v37:      'Barwert des Geldes',
+  v38:      'Barwert einer Annuität und ewige Rente',
+  v39:      'Anleihe: Preis und Verfallrendite',
+  v41:      'Zinsänderungsrisiko — Duration',
+  v42:      'Modified Duration',
+  v47:      'Risikomass Volatilität',
+  v49:      'Häufigkeits- und Normalverteilung',
+  v490:     'Aktienrisiko — Wie sieht das aus?',
+  v4490:    'Ein Bild sagt mehr als 1000 Worte',
+  v4521:    'Aktienrisiko und Statistik',
+  v8540:    'Obligation – wie geht das?',
+  v6720:    'Gefühl für Risiko entwickeln',
+  v8585:    'Was sagen die Kennzahlen?',
+  v53:      'PE-Ratio: Begriffe',
+  v54:      'PE-Ratio: Citigroup',
+  v55:      'PE-Ratio: UBS',
+  v56:      'PE-Growth-Ratio (PEG)',
+  v57:      'Shiller-PE — Teil 1',
+  v58:      'Shiller-PE — Teil 2',
+  v61:      'Portfoliotheorie: Grundlagen — Teil 1',
+  v62_63:   'Portfoliotheorie — Teil 2 & 3',
+};
+const pages = Array.from(document.querySelectorAll('.page'));
+const total = pages.length;
+let current = 0, savedScroll = 0;
+function updateUI() {
+  const ch = pages[current].dataset.chapter || '';
+  document.getElementById('header-chapter').textContent = ch;
+  document.getElementById('page-indicator').textContent =
+    ch + (ch ? '  ·  ' : '') + 'Seite ' + (current+1) + ' / ' + total;
+  document.getElementById('btn-first').disabled = current===0;
+  document.getElementById('btn-prev').disabled = current===0;
+  document.getElementById('btn-next').disabled = current===total-1;
+}
+function showPage(idx, dir) {
+  pages[current].classList.remove('active');
+  current=idx;
+  const p=pages[current];
+  p.classList.remove('anim-forward','anim-back');
+  void p.offsetWidth;
+  p.classList.add('active', dir>0?'anim-forward':'anim-back');
+  updateUI();
+}
+function changePage(dir){ const n=current+dir; if(n>=0&&n<total) showPage(n,dir); }
+function goToPage(idx){ if(idx!==current) showPage(idx,idx>current?1:-1); }
+document.addEventListener('keydown', e=>{
+  if(document.getElementById('video-modal').classList.contains('open')){
+    if(e.key==='Escape') closeVideo(); return;
+  }
+  if(e.key==='ArrowRight'||e.key==='PageDown') changePage(1);
+  if(e.key==='ArrowLeft' ||e.key==='PageUp')   changePage(-1);
+});
+function playVideo(key){
+  const url=VIDEO_URLS[key], title=VIDEO_TITLES[key]||key;
+  if(!url){alert('Video-URL fehlt: '+title);return;}
+  savedScroll=pages[current].scrollTop;
+  const isPage=url.startsWith('http')&&!url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i);
+  const player=document.getElementById('video-player');
+  const frame=document.getElementById('video-frame');
+  document.getElementById('modal-title').textContent=title;
+  if(isPage){player.style.display='none';frame.style.display='block';frame.src=url;}
+  else{frame.style.display='none';player.style.display='block';
+        player.src=url;player.load();player.play();player.onended=closeVideo;}
+  document.getElementById('video-modal').classList.add('open');
+}
+function closeVideo(){
+  const player=document.getElementById('video-player');
+  const frame=document.getElementById('video-frame');
+  document.getElementById('video-modal').classList.remove('open');
+  player.pause();player.src='';frame.src='';
+  setTimeout(()=>{pages[current].scrollTop=savedScroll;},60);
+}
+updateUI();
+</script>
+</body>
+</html>
