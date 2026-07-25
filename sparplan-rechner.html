@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sparplan-Rechner | Fintool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark:  #2C3E7A;
+    --blue-mid:   #3D5498;
+    --blue-light: #5B73B8;
+    --blue-bg:    #EEF1FA;
+    --red:        #C0392B;
+    --red-light:  #E8A09A;
+    --aktien:     #1A6B3A;
+    --aktien-bg:  #E8F5EE;
+    --oblig:      #2C3E7A;
+    --oblig-bg:   #EEF1FA;
+    --cash:       #B8860B;
+    --cash-bg:    #FBF3E1;
+    --lev:        #6B3A8A;
+    --lev-bg:     #F2EBF9;
+    --grey-50:    #F8F9FB;
+    --grey-100:   #ECEEF2;
+    --grey-300:   #C4C8D0;
+    --grey-500:   #7A8090;
+    --grey-800:   #1A1D24;
+    --white:      #FFFFFF;
+    --radius:     14px;
+    --radius-sm:  8px;
+    --shadow:     0 4px 24px rgba(44,62,122,0.10);
+    --shadow-sm:  0 2px 8px rgba(44,62,122,0.08);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--grey-50);
+    color: var(--grey-800);
+    min-height: 100vh;
+  }
+
+  /* ── SPLASH SCREEN ── */
+  #splash {
+    min-height: 100vh;
+    padding: 40px 16px 60px;
+    background: var(--grey-50);
+  }
+  .splash-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 8px 8px;
+  }
+  .splash-hero .btn-primary { margin: 8px auto 0; }
+  .intro-text p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--grey-800);
+    margin-bottom: 14px;
+  }
+  .intro-text p:last-child { margin-bottom: 0; }
+
+  /* ── CTA-KACHEL "Direkt zum Rechner" ── */
+  .section.cta-tile {
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+    border: none;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .section.cta-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(44,62,122,0.30); }
+  .section.cta-tile:active { transform: translateY(0); }
+  .cta-tile-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 22px 20px;
+  }
+  .cta-tile-title { color: var(--white); font-size: 17px; font-weight: 700; }
+  .cta-tile-sub { color: rgba(255,255,255,0.75); font-size: 12px; margin-top: 4px; }
+  .cta-tile-arrow { color: var(--white); font-size: 26px; font-weight: 700; flex-shrink: 0; transition: transform .2s; }
+
+  .tile-click .cta-tile-inner { padding: 18px 20px; cursor: pointer; transition: background .15s; }
+  .tile-click .cta-tile-inner:hover { background: var(--grey-50); }
+  .tile-click.open .cta-tile-arrow { transform: rotate(180deg); }
+
+  .splash-eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--blue-mid);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .splash-eyebrow span { opacity: 0.4; margin: 0 8px; }
+
+  .splash-title {
+    font-size: clamp(32px, 8vw, 52px);
+    font-weight: 300;
+    color: var(--grey-800);
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+  }
+  .splash-title strong { font-weight: 800; }
+
+  .splash-sub {
+    font-size: clamp(15px, 3vw, 18px);
+    color: var(--grey-500);
+    line-height: 1.55;
+    max-width: 440px;
+    margin-bottom: 40px;
+  }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 420px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+    color: var(--white);
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(44,62,122,0.25);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(44,62,122,0.30); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .splash-or { font-size: 13px; color: var(--grey-300); margin: 4px 0 16px; }
+
+  .btn-outline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+    padding: 16px 24px;
+    background: var(--white);
+    color: var(--blue-mid);
+    border: 1.5px solid var(--blue-light);
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-outline:hover { background: var(--blue-bg); }
+
+  /* ── APP SCREEN ── */
+  #app { display: none; }
+
+  .app-header {
+    background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-header-left { display: flex; align-items: center; gap: 12px; }
+  .app-logo {
+    width: 36px; height: 36px;
+    background: var(--white);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .app-logo svg { width: 22px; height: 22px; }
+  .app-title { color: var(--white); font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .app-sub { color: rgba(255,255,255,0.65); font-size: 11px; margin-top: 1px; }
+  .btn-back {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+  .red-bar { background: var(--red); height: 4px; }
+
+  /* ── SECTIONS ── */
+  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .section {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--grey-100);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header-icon { font-size: 16px; }
+  .section-header-title { font-size: 13px; font-weight: 700; color: var(--grey-800); }
+  .section-header-sub { font-size: 11px; color: var(--grey-500); margin-top: 1px; }
+
+  .section-body { padding: 16px 18px; }
+
+  /* ── FIELDS ── */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--grey-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .field-row.two { grid-template-columns: 1fr 1fr; }
+  .field-col label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--grey-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--grey-50);
+    border: 1.5px solid var(--grey-100);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .input-wrap:focus-within { border-color: var(--blue-mid); }
+  .input-wrap input {
+    flex: 1; border: none; background: transparent;
+    padding: 9px 10px; font-size: 14px; font-weight: 700;
+    color: var(--blue-dark); outline: none; min-width: 0;
+  }
+  .input-unit { padding: 0 10px; font-size: 12px; color: var(--grey-500); font-weight: 500; flex-shrink: 0; }
+
+  .output-val {
+    background: var(--grey-50);
+    border: 1.5px solid var(--grey-100);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px;
+    font-size: 14px; font-weight: 700;
+    color: var(--grey-800);
+  }
+
+  .divider { height: 1px; background: var(--grey-100); margin: 14px 0; }
+  .hint { font-size: 11px; color: var(--grey-500); line-height: 1.5; margin-top: 8px; }
+  .warn { color: var(--red); font-weight: 700; }
+
+  /* ── ASSUMPTIONS ── */
+  .assump-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (min-width: 480px) { .assump-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .assump-label { font-size: 10px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+
+  /* ── SEGMENTED CONTROL (Rhythmus / Rebalancing) ── */
+  .segmented {
+    display: flex;
+    background: var(--grey-50);
+    border: 1.5px solid var(--grey-100);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    gap: 4px;
+  }
+  .segmented button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 9px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--grey-500);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .segmented button.active { background: var(--blue-dark); color: var(--white); box-shadow: var(--shadow-sm); }
+
+  /* ── PERIOD ── */
+  .period-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .period-label { font-size: 12px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  input[type=range] { flex: 1; min-width: 120px; accent-color: var(--blue-dark); height: 4px; }
+  .period-val { font-size: 22px; font-weight: 800; color: var(--blue-dark); min-width: 70px; text-align: center; }
+  .period-sub { font-size: 11px; color: var(--grey-500); width: 100%; text-align: right; margin-top: 2px; }
+
+  /* ── RESULTS ── */
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 620px) { .result-grid { grid-template-columns: 1fr; } }
+
+  .result-card { border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .result-card-hdr { padding: 10px 12px; font-size: 11px; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 5px; }
+  .rc-pess .result-card-hdr { background: var(--red); }
+  .rc-neutral .result-card-hdr { background: var(--blue-dark); }
+  .rc-opt .result-card-hdr { background: var(--aktien); }
+
+  .result-card-body { background: var(--white); padding: 12px; }
+  .result-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 5px 0; border-bottom: 1px solid var(--grey-100); }
+  .result-row:last-child { border-bottom: none; }
+  .result-lbl { font-size: 11px; color: var(--grey-500); flex: 1; }
+  .result-val { font-size: 13px; font-weight: 700; color: var(--grey-800); text-align: right; flex-shrink: 0; }
+  .result-row.hl .result-lbl { color: var(--grey-800); font-weight: 600; font-size: 12px; }
+  .result-row.hl .result-val { font-size: 16px; }
+  .rc-pess .result-row.hl .result-val { color: var(--red); }
+  .rc-neutral .result-row.hl .result-val { color: var(--blue-dark); }
+  .rc-opt .result-row.hl .result-val { color: var(--aktien); }
+
+  /* ── BAR CHART ── */
+  .chart-bars { display: flex; gap: 12px; align-items: flex-start; padding: 0 8px 4px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .bar-track { width: 100%; height: 130px; display: flex; align-items: flex-end; }
+  .bar { width: 100%; border-radius: 5px 5px 0 0; min-height: 4px; transition: height .4s cubic-bezier(.4,0,.2,1); }
+  .bar-val { font-size: 16px; font-weight: 800; color: var(--grey-800); }
+  .bar-lbl { font-size: 11px; color: var(--grey-500); text-align: center; line-height: 1.3; }
+
+  /* ── AREA CHART ── */
+  .area-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 0 4px 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--grey-500); font-weight: 600; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .legend-dash { width: 16px; height: 0; border-top: 2px dashed var(--grey-800); flex-shrink: 0; }
+  .scenario-block { margin-bottom: 22px; }
+  .scenario-block:last-child { margin-bottom: 0; }
+  .scenario-block-hdr { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--grey-800); margin-bottom: 8px; }
+  .scenario-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  .app-footer { text-align: center; font-size: 11px; color: var(--grey-300); margin-top: 8px; padding-bottom: 20px; }
+  .app-footer a { color: var(--blue-light); text-decoration: none; }
+  .app-footer strong { color: var(--grey-500); }
+
+  .tag {
+    display: inline-block;
+    background: var(--blue-bg);
+    color: var(--blue-mid);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 3px 8px; border-radius: 20px;
+    margin-left: 6px;
+  }
+  .tag-red { background: #FEF0EE; color: var(--red); }
+  .tag-green { background: var(--aktien-bg); color: var(--aktien); }
+
+  /* ── RENDITE-TABELLE ── */
+  .rate-table-wrap { overflow-x: auto; margin-top: 18px; }
+  .rate-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 480px; }
+  .rate-table caption { caption-side: top; text-align: left; font-size: 11px; color: var(--grey-500); line-height: 1.5; padding-bottom: 10px; }
+  .rate-table th, .rate-table td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--grey-100); white-space: nowrap; }
+  .rate-table th:first-child, .rate-table td:first-child { text-align: left; }
+  .rate-table thead th { font-size: 11px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.4px; }
+  .rate-table thead th:first-child { background: var(--grey-800); }
+  .rate-table thead th.th-pess { background: var(--red); }
+  .rate-table thead th.th-neutral { background: var(--blue-dark); }
+  .rate-table thead th.th-opt { background: var(--aktien); }
+  .rate-table tbody th { text-align: left; font-weight: 600; color: var(--grey-500); font-size: 11px; }
+  .rate-table tbody tr.grp td, .rate-table tbody tr.grp th { padding-top: 14px; }
+  .rate-table tbody tr.hl td { font-weight: 800; color: var(--grey-800); background: var(--grey-50); }
+  .rate-table tbody tr.hl th { font-weight: 800; color: var(--grey-800); background: var(--grey-50); }
+</style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+  <div class="page">
+    <div class="splash-hero" style="padding-bottom:0;">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABN4AAAFkCAYAAAD/mPaSAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA/xpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMS1jMDAxIDc5LjE0NjI4OTk3NzcsIDIwMjMvMDYvMjUtMjM6NTc6MTQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0idXVpZDo1RDIwODkyNDkzQkZEQjExOTE0QTg1OTBEMzE1MDhDOCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpCQzdCOUYwNDhEMzcxMUVFQjBFREZBRjI4MTkxMjUzQiIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpCQzdCOUYwMzhEMzcxMUVFQjBFREZBRjI4MTkxMjUzQiIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBJbGx1c3RyYXRvciBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODIyQUVDNjc0MkE2QzU1NyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDow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" alt="Fintool" style="width:180px; height:auto; margin-bottom:20px;">
+      <p class="splash-eyebrow">Sparen <span>·</span> Vorsorge</p>
+      <h1 class="splash-title" style="font-size:clamp(28px,6vw,42px); margin-bottom:8px;">Sparplan<strong>rechner</strong></h1>
+      <p style="font-size:19px; color:var(--grey-500); font-weight:600; margin-top:14px; margin-bottom:24px;">Prof. Dr. Erwin W. Heri</p>
+    </div>
+
+    <div class="section tile-click">
+      <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
+        <div>
+          <div class="cta-tile-title" style="color:var(--grey-800);">Warum dieser Rechner</div>
+          <div class="cta-tile-sub" style="color:var(--grey-500);">Renditeversprechen, Annahmen und was am Ende real übrig bleibt</div>
+        </div>
+        <div class="cta-tile-arrow" id="intro_chevron" style="color:var(--blue-dark);">⌄</div>
+      </div>
+      <div class="section-body intro-text" id="intro_body" style="display:none; padding-top:0;">
+        <p>Wer einen Sparplan aufbaut, orientiert sich meist an einer einzigen Renditeangabe – „Aktien bringen langfristig 7 % pro Jahr“. Selten wird dabei präzisiert, worauf sich diese Zahl bezieht: nominal oder real, vor oder nach Anlagekosten, vor oder nach Steuern, mit oder ohne reinvestierte Dividende. Über kurze Zeiträume fällt der Unterschied kaum auf. Über zehn, zwanzig oder dreissig Jahre summieren sich diese Effekte durch Zinseszins jedoch zu einer erheblichen Differenz im tatsächlichen Endkapital.</p>
+        <p>Ein Rechner, der diese Grössen einzeln sichtbar und veränderbar macht, erlaubt es, den Effekt jeder Annahme – Allokation, Renditeerwartung, Kosten, Inflation, Steuern, Dividendenverwendung – für sich nachzuvollziehen, statt sich auf eine pauschale Kennzahl zu verlassen.</p>
+        <p>Mein Sparplan-Rechner liefert keine Verheissung, sondern macht jede Annahme sichtbar und veränderbar.</p>
+        <p>Man legt Sparbeitrag, Rhythmus (monatlich oder jährlich), Laufzeit und ein allfälliges Anfangskapital fest. Dazu die Mittelallokation auf Aktien, Obligationen und Cash – mit historischen Richtwerten (7 % / 4 % / 1 % p.a.) als Ausgangspunkt, aber frei anpassbar, inklusive der Frage, ob jährlich auf die Zielgewichte rebalanciert wird.</p>
+        <p>Dann kommen die Posten, die in den meisten Renditeversprechen schlicht fehlen: Anlagekosten, Inflation – und Steuern. Bei Dividenden und Zinsen wird der Grenzsteuersatz fällig, bei Kursgewinnen in der Schweiz normalerweise nicht. Wer die Dividende reinvestiert statt konsumiert, bekommt das auch zu spüren: der Unterschied wird explizit ausgewiesen, nicht nur behauptet.</p>
+        <p>Statt einer einzigen Zahl gibt es drei Szenarien – pessimistisch, neutral, optimistisch –, mit klar benannten Abweichungen bei den Renditeannahmen. Und die Grafik zeigt schonungslos zwei Linien nebeneinander: die nominale Bruttorendite vor Kosten und Steuern, mit der man gerne wirbt, und die reale Rendite nach Kosten und Steuern, die effektiv im Portemonnaie ankommt.</p>
+        <p>Der Rechner behauptet nichts. Er rechnet nach – transparent, mit allen Annahmen offen auf dem Tisch.</p>
+      </div>
+    </div>
+
+    <div class="section cta-tile" onclick="showApp()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showApp()">
+      <div class="cta-tile-inner">
+        <div>
+          <div class="cta-tile-title">Direkt zum Rechner</div>
+          <div class="cta-tile-sub">Sparbeitrag, Allokation, Kosten &amp; Steuern selbst eingeben</div>
+        </div>
+        <div class="cta-tile-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 18L9 12L13 15L18 8" stroke="#2C3E7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="6" r="2" fill="#C0392B"/>
+        </svg>
+      </div>
+      <div>
+        <div class="app-title">Sparplan-Rechner</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+
+  <div class="page">
+
+    <!-- Einzahlungen -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">💰</span>
+        <div>
+          <div class="section-header-title">Einzahlungen</div>
+          <div class="section-header-sub">Rhythmus, Sparbeitrag und Laufzeit Ihres Sparplans</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <div class="field-label">Rhythmus</div>
+          <div class="segmented">
+            <button id="btn_monatlich" class="active" onclick="setRhythmus('monatlich')">Monatlich</button>
+            <button id="btn_jaehrlich" onclick="setRhythmus('jaehrlich')">Jährlich</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label"><span id="lbl_sparbetrag_txt">Sparbeitrag pro Monat</span></div>
+          <div class="input-wrap"><input type="number" id="i_sparbetrag" value="500" min="0" step="50" oninput="compute()"><span class="input-unit">CHF</span></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Anfangskapital (Startkapital)</div>
+          <div class="input-wrap"><input type="number" id="i_start" value="0" min="0" step="1000" oninput="compute()"><span class="input-unit">CHF</span></div>
+        </div>
+        <div class="divider"></div>
+        <div class="period-row">
+          <span class="period-label">Laufzeit</span>
+          <input type="range" id="slider_laufzeit" min="1" max="40" value="20" step="1">
+          <span class="period-val"><span id="lbl_laufzeit">20</span> J.</span>
+          <span class="period-sub"><span id="lbl_laufzeit_monate">240</span> Monate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mittelallokation -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">📊</span>
+        <div>
+          <div class="section-header-title">Mittelallokation <span class="tag">Veränderbar</span></div>
+          <div class="section-header-sub">Aufteilung des Sparbetrags auf die drei Anlagekategorien</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="assump-grid">
+          <div>
+            <div class="assump-label">📈 Aktien</div>
+            <div class="input-wrap"><input type="number" id="i_alloc_aktien" value="60" min="0" max="100" step="5" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">📄 Obligationen</div>
+            <div class="input-wrap"><input type="number" id="i_alloc_oblig" value="30" min="0" max="100" step="5" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">💵 Cash</div>
+            <div class="input-wrap"><input type="number" id="i_alloc_cash" value="10" min="0" max="100" step="5" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+        <div class="hint">Summe Allokation: <span id="o_alloc_sum">100</span>% <span id="o_alloc_warn"></span></div>
+        <div class="divider"></div>
+        <div class="field">
+          <div class="field-label">Jährliches Rebalancing auf Zielgewichte</div>
+          <div class="segmented">
+            <button id="btn_reb_ja" class="active" onclick="setRebalancing(true)">Ja</button>
+            <button id="btn_reb_nein" onclick="setRebalancing(false)">Nein</button>
+          </div>
+          <div class="hint">Bei "Ja" wird das Portfolio jedes Jahresende auf die Zielgewichte zurückgesetzt. Bei "Nein" darf die Gewichtung mit der Wertentwicklung frei driften (Buy &amp; Hold).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Renditeannahmen -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">⚙</span>
+        <div>
+          <div class="section-header-title">Rendite pro Anlagekategorie <span class="tag">Veränderbar</span></div>
+          <div class="section-header-sub">Vorschlag basiert auf historischen Langfrist-Renditen</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="assump-grid">
+          <div>
+            <div class="assump-label">Aktien p.a.</div>
+            <div class="input-wrap"><input type="number" id="i_rend_aktien" value="7.0" min="-10" max="15" step="0.1" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">Obligationen p.a.</div>
+            <div class="input-wrap"><input type="number" id="i_rend_oblig" value="4.0" min="-5" max="10" step="0.1" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">Cash p.a.</div>
+            <div class="input-wrap"><input type="number" id="i_rend_cash" value="1.0" min="-3" max="5" step="0.1" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+        <div class="hint">Die Szenarien "Pessimistisch" und "Optimistisch" weichen von diesen Annahmen ab (Aktien ±3.0 %-Pkt., Obligationen ±1.0 %-Pkt., Cash ±0.25 %-Pkt.). Die Aktienrendite versteht sich als Gesamtrendite <strong>inkl. reinvestierter Dividende</strong> (Standardannahme) — die Aufteilung in Dividende und Kursgewinn sowie die Wahl "Reinvestieren/Verkonsumieren" erfolgt unten unter "Kosten, Inflation &amp; Steuern".</div>
+      </div>
+    </div>
+
+    <!-- Kosten, Inflation, Steuern -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">🧮</span>
+        <div>
+          <div class="section-header-title">Kosten, Inflation &amp; Steuern</div>
+          <div class="section-header-sub">Wirkt sich direkt auf Netto- und Realrendite aus</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="assump-grid">
+          <div>
+            <div class="assump-label">Anlagekosten p.a.</div>
+            <div class="input-wrap"><input type="number" id="i_kosten" value="0.5" min="0" max="3" step="0.05" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">Inflation p.a.</div>
+            <div class="input-wrap"><input type="number" id="i_inflation" value="1.5" min="-2" max="8" step="0.1" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">Dividendenrendite Aktien</div>
+            <div class="input-wrap"><input type="number" id="i_div_aktien" value="2.5" min="0" max="10" step="0.1" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">Einkommenssteuer (Div./Zins)</div>
+            <div class="input-wrap"><input type="number" id="i_steuersatz_eink" value="30" min="0" max="50" step="1" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+          <div>
+            <div class="assump-label">Kapitalgewinnsteuer</div>
+            <div class="input-wrap"><input type="number" id="i_steuersatz_kapital" value="0" min="0" max="50" step="1" oninput="compute()"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+        <div class="hint">In der Schweiz unterliegen Dividenden (Aktien) und Zinsen (Obligationen, Cash) der Einkommenssteuer zum <strong>Grenzsteuersatz</strong> (Vorschlag 30 %). Kursgewinne sind bei Privatpersonen dagegen i.d.R. steuerfrei — Kapitalgewinnsteuer deshalb standardmässig 0 %. Bei Aktien wird die Gesamtrendite in Dividende (steuerbar) und Kursgewinn (steuerfrei) aufgeteilt; Obligationen und Cash gelten vollständig als steuerbarer Zinsertrag.</div>
+        <div class="divider"></div>
+        <div class="field">
+          <div class="field-label">Dividende Aktien</div>
+          <div class="segmented">
+            <button id="btn_div_reinvest" class="active" onclick="setDivMode(true)">Reinvestieren</button>
+            <button id="btn_div_konsum" onclick="setDivMode(false)">Verkonsumieren</button>
+          </div>
+          <div class="hint">"Reinvestieren" ist die Standardannahme: der Aktien-Renditevorschlag oben (z.B. 7 %) enthält die Dividende bereits als reinvestierten Bestandteil. Bei "Verkonsumieren" wird die Dividendenrendite von der Aktienrendite abgezogen — nur der verbleibende Kursgewinn wächst im Sparplan weiter, die (versteuerte) Dividende wird als Einkommen entnommen und nicht angelegt.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultate -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">🎯</span>
+        <div>
+          <div class="section-header-title">Szenarien-Vergleich</div>
+          <div class="section-header-sub">Gleicher Sparplan, unterschiedliche Renditeannahmen</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="hint" id="scenario_alloc_info" style="margin-top:0; margin-bottom:14px; padding:10px 12px; background:var(--grey-50); border:1.5px solid var(--grey-100); border-radius:var(--radius-sm);"></div>
+        <div class="result-grid">
+          <div class="result-card rc-pess">
+            <div class="result-card-hdr">⚠ Pessimistisch</div>
+            <div class="result-card-body">
+              <div class="result-row"><span class="result-lbl">Anfangskapital</span><span class="result-val" id="p_start">—</span></div>
+              <div class="result-row"><span class="result-lbl">Sparbeiträge total</span><span class="result-val" id="p_einzahlungen">—</span></div>
+              <div class="result-row"><span class="result-lbl">Kapitalertrag (netto)</span><span class="result-val" id="p_ertrag">—</span></div>
+              <div class="result-row"><span class="result-lbl">Steuern Div./Zins (kum.)</span><span class="result-val" id="p_steuern">—</span></div>
+              <div class="result-row"><span class="result-lbl">Konsumierte Div. netto (kum.)</span><span class="result-val" id="p_konsum">—</span></div>
+              <div class="result-row"><span class="result-lbl">Endkapital nominal</span><span class="result-val" id="p_nominal">—</span></div>
+              <div class="result-row hl"><span class="result-lbl">Endkapital real</span><span class="result-val" id="p_real">—</span></div>
+            </div>
+          </div>
+          <div class="result-card rc-neutral">
+            <div class="result-card-hdr">◆ Neutral</div>
+            <div class="result-card-body">
+              <div class="result-row"><span class="result-lbl">Anfangskapital</span><span class="result-val" id="n_start">—</span></div>
+              <div class="result-row"><span class="result-lbl">Sparbeiträge total</span><span class="result-val" id="n_einzahlungen">—</span></div>
+              <div class="result-row"><span class="result-lbl">Kapitalertrag (netto)</span><span class="result-val" id="n_ertrag">—</span></div>
+              <div class="result-row"><span class="result-lbl">Steuern Div./Zins (kum.)</span><span class="result-val" id="n_steuern">—</span></div>
+              <div class="result-row"><span class="result-lbl">Konsumierte Div. netto (kum.)</span><span class="result-val" id="n_konsum">—</span></div>
+              <div class="result-row"><span class="result-lbl">Endkapital nominal</span><span class="result-val" id="n_nominal">—</span></div>
+              <div class="result-row hl"><span class="result-lbl">Endkapital real</span><span class="result-val" id="n_real">—</span></div>
+            </div>
+          </div>
+          <div class="result-card rc-opt">
+            <div class="result-card-hdr">✓ Optimistisch</div>
+            <div class="result-card-body">
+              <div class="result-row"><span class="result-lbl">Anfangskapital</span><span class="result-val" id="o_start">—</span></div>
+              <div class="result-row"><span class="result-lbl">Sparbeiträge total</span><span class="result-val" id="o_einzahlungen">—</span></div>
+              <div class="result-row"><span class="result-lbl">Kapitalertrag (netto)</span><span class="result-val" id="o_ertrag">—</span></div>
+              <div class="result-row"><span class="result-lbl">Steuern Div./Zins (kum.)</span><span class="result-val" id="o_steuern">—</span></div>
+              <div class="result-row"><span class="result-lbl">Konsumierte Div. netto (kum.)</span><span class="result-val" id="o_konsum">—</span></div>
+              <div class="result-row"><span class="result-lbl">Endkapital nominal</span><span class="result-val" id="o_nominal">—</span></div>
+              <div class="result-row hl"><span class="result-lbl">Endkapital real</span><span class="result-val" id="o_real">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-bars">
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vP">—</div>
+            <div class="bar-track"><div class="bar" id="bc_bP" style="background:var(--red);"></div></div>
+            <div class="bar-lbl">Pessi-<br>mistisch</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vN">—</div>
+            <div class="bar-track"><div class="bar" id="bc_bN" style="background:var(--blue-dark);"></div></div>
+            <div class="bar-lbl">Neutral</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vO">—</div>
+            <div class="bar-track"><div class="bar" id="bc_bO" style="background:var(--aktien);"></div></div>
+            <div class="bar-lbl">Optimis-<br>tisch</div>
+          </div>
+        </div>
+        <div class="hint" style="text-align:center;">Endkapital nominal je Szenario, in CHF</div>
+
+        <div class="rate-table-wrap">
+          <table class="rate-table">
+            <caption id="rate_table_caption"></caption>
+            <thead>
+              <tr>
+                <th></th>
+                <th class="th-pess">Pessimistisch</th>
+                <th class="th-neutral">Neutral</th>
+                <th class="th-opt">Optimistisch</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="grp"><th>Aktien-Rendite p.a. (Annahme)</th><td id="rt_p_ra">—</td><td id="rt_n_ra">—</td><td id="rt_o_ra">—</td></tr>
+              <tr><th>Obligationen-Rendite p.a. (Annahme)</th><td id="rt_p_ro">—</td><td id="rt_n_ro">—</td><td id="rt_o_ro">—</td></tr>
+              <tr><th>Cash-Rendite p.a. (Annahme)</th><td id="rt_p_rc">—</td><td id="rt_n_rc">—</td><td id="rt_o_rc">—</td></tr>
+              <tr class="grp"><th>Portfolio nominal p.a., inkl. Div-Reinvestition (ohne Kosten/Steuern)</th><td id="rt_p_nomRe">—</td><td id="rt_n_nomRe">—</td><td id="rt_o_nomRe">—</td></tr>
+              <tr><th>Portfolio nominal p.a., ohne Div-Reinvestition (ohne Kosten/Steuern)</th><td id="rt_p_nomKo">—</td><td id="rt_n_nomKo">—</td><td id="rt_o_nomKo">—</td></tr>
+              <tr class="grp"><th>Portfolio real p.a., inkl. Div-Reinvestition (ohne Kosten/Steuern)</th><td id="rt_p_realRe">—</td><td id="rt_n_realRe">—</td><td id="rt_o_realRe">—</td></tr>
+              <tr><th>Portfolio real p.a., ohne Div-Reinvestition (ohne Kosten/Steuern)</th><td id="rt_p_realKo">—</td><td id="rt_n_realKo">—</td><td id="rt_o_realKo">—</td></tr>
+              <tr class="hl grp"><th>Portfolio real p.a., inkl. Kosten &amp; Steuern (gewählter Div-Modus)</th><td id="rt_p_realNet">—</td><td id="rt_n_realNet">—</td><td id="rt_o_realNet">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wertentwicklung -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">📈</span>
+        <div>
+          <div class="section-header-title">Wertentwicklung über die Laufzeit</div>
+          <div class="section-header-sub">Nominal/real, vor Kosten &amp; Steuern, sowie real nach Kosten &amp; Steuern</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="area-legend" style="align-items:center;">
+          <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#5B73B8" stroke-width="2.4"/></svg>Nominal inkl. Dividende (vor Kosten &amp; Steuern)</div>
+          <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#7A8090" stroke-width="2.4" stroke-dasharray="9,3"/></svg>Nominal ohne Dividende (vor Kosten &amp; Steuern)</div>
+          <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#7A8090" stroke-width="2" stroke-dasharray="2,3"/></svg>Real ohne Dividende (vor Kosten &amp; Steuern)</div>
+          <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#1A1D24" stroke-width="3"/></svg>Real inkl. Kosten &amp; Steuern (aktueller Div-Modus)</div>
+        </div>
+
+        <div class="scenario-block">
+          <div class="scenario-block-hdr"><span class="scenario-dot" style="background:var(--red);"></span>⚠ Pessimistisch</div>
+          <div id="area_chart_pess"></div>
+        </div>
+        <div class="scenario-block">
+          <div class="scenario-block-hdr"><span class="scenario-dot" style="background:var(--blue-dark);"></span>◆ Neutral</div>
+          <div id="area_chart_neutral"></div>
+        </div>
+        <div class="scenario-block">
+          <div class="scenario-block-hdr"><span class="scenario-dot" style="background:var(--aktien);"></span>✓ Optimistisch</div>
+          <div id="area_chart_opt"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-footer">
+      Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin Heri</a>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /app -->
+
+<script>
+function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; compute(); }
+function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='flex'; }
+
+function toggleIntro() {
+  const body = document.getElementById('intro_body');
+  const tile = body.closest('.tile-click');
+  const isOpen = body.style.display === 'block';
+  body.style.display = isOpen ? 'none' : 'block';
+  tile.classList.toggle('open', !isOpen);
+}
+
+function fmt(v)    { return Math.round(v).toLocaleString('de-CH'); }
+function fmtCHF(v) { return fmt(v)+' CHF'; }
+function fmtP(v)   { return (v*100).toFixed(2)+'%'; }
+function val(id)   { return parseFloat(document.getElementById(id).value)||0; }
+function set(id,t) { document.getElementById(id).textContent=t; }
+function fmtAxis(v) {
+  const sign = v<0 ? '-' : '';
+  const av = Math.abs(v);
+  if (av >= 1000000) return sign + (av/1000000).toFixed(2) + ' Mio';
+  return sign + fmt(av/1000) + 'k';
+}
+
+var state = { rhythmus: 'monatlich', rebalancing: true, divReinvest: true };
+
+function setDivMode(reinvest) {
+  state.divReinvest = reinvest;
+  document.getElementById('btn_div_reinvest').classList.toggle('active', reinvest);
+  document.getElementById('btn_div_konsum').classList.toggle('active', !reinvest);
+  compute();
+}
+
+function setRhythmus(r) {
+  state.rhythmus = r;
+  document.getElementById('btn_monatlich').classList.toggle('active', r==='monatlich');
+  document.getElementById('btn_jaehrlich').classList.toggle('active', r==='jaehrlich');
+  document.getElementById('lbl_sparbetrag_txt').textContent = 'Sparbeitrag pro ' + (r==='monatlich' ? 'Monat' : 'Jahr');
+  compute();
+}
+
+function setRebalancing(on) {
+  state.rebalancing = on;
+  document.getElementById('btn_reb_ja').classList.toggle('active', on);
+  document.getElementById('btn_reb_nein').classList.toggle('active', !on);
+  compute();
+}
+
+document.getElementById('slider_laufzeit').addEventListener('input', function(){
+  document.getElementById('lbl_laufzeit').textContent = this.value;
+  document.getElementById('lbl_laufzeit_monate').textContent = fmt(this.value*12);
+  compute();
+});
+
+// ── SIMULATION ──
+// deltaMult: -1 = pessimistisch, 0 = neutral, +1 = optimistisch
+// divReinvest: true = Aktien-Dividende wird reinvestiert, false = konsumiert (entnommen)
+// applyCostTax: true = Anlagekosten & Steuern werden abgezogen, false = "vor Kosten & Steuern"
+// Steuerlogik (CH-Annahme): Dividenden (Aktien) und Zinsen (Obligationen, Cash) sind
+// steuerbares Einkommen (Grenzsteuersatz). Kursgewinne bei Aktien sind i.d.R. steuerfrei
+// (Kapitalgewinnsteuer separat einstellbar, Standard 0%). Obligationen & Cash gelten
+// vollständig als steuerbarer Zinsertrag.
+function simulate(deltaMult, divReinvest, applyCostTax) {
+  const years = val('slider_laufzeit');
+  const T = Math.round(years*12);
+  const rhythmMonthly = state.rhythmus === 'monatlich';
+  const betrag = val('i_sparbetrag');
+  const startCapital = val('i_start');
+
+  let wA = val('i_alloc_aktien')/100, wO = val('i_alloc_oblig')/100, wC = val('i_alloc_cash')/100;
+  const wSum = wA+wO+wC;
+  if (wSum > 0) { wA/=wSum; wO/=wSum; wC/=wSum; }
+
+  const baseA = val('i_rend_aktien')/100, baseO = val('i_rend_oblig')/100, baseC = val('i_rend_cash')/100;
+  const dA = 0.03, dO = 0.01, dC = 0.0025;
+  const rA = Math.max(baseA + deltaMult*dA, -0.95);
+  const rO = Math.max(baseO + deltaMult*dO, -0.95);
+  const rC = Math.max(baseC + deltaMult*dC, -0.95);
+
+  const inflation = val('i_inflation')/100;
+  const divAktien = val('i_div_aktien')/100;
+  const kosten     = applyCostTax ? val('i_kosten')/100 : 0;
+  const taxEink    = applyCostTax ? val('i_steuersatz_eink')/100 : 0;
+  const taxKapital = applyCostTax ? val('i_steuersatz_kapital')/100 : 0;
+
+  // Renditen nach Kosten, aufgeteilt in steuerbaren (Dividende/Zins) und steuerfreien (Kursgewinn) Anteil
+  const rA_cost = rA - kosten;
+  const appAktien = rA_cost - divAktien;               // Kursgewinn-Anteil Aktien (unabhängig vom Div-Modus)
+  const netAktienAnnual = appAktien*(1-taxKapital) + divAktien*(1-taxEink); // bei Reinvestition
+
+  const rO_cost = rO - kosten;
+  const netObligAnnual = rO_cost*(1-taxEink);           // vollständig Zinsertrag
+
+  const rC_cost = rC - kosten;
+  const netCashAnnual = rC_cost*(1-taxEink);            // vollständig Zinsertrag
+
+  // Aktien: je nach Div-Modus unterschiedliche Wachstumsrate der Bilanz
+  const mA_gross = Math.pow(1+rA_cost, 1/12)-1;         // Bruttorate Aktien (Gesamtrendite, nach Kosten)
+  const mA_reinvest = Math.pow(1+netAktienAnnual, 1/12)-1;         // netto bei Reinvestition
+  const mA_price_gross = Math.pow(1+appAktien, 1/12)-1;             // nur Kursgewinn, brutto
+  const mA_price_net = Math.pow(1+appAktien*(1-taxKapital), 1/12)-1; // nur Kursgewinn, netto (bei Konsum)
+  const mDivA_gross = Math.pow(1+divAktien, 1/12)-1;                // Dividendenrate, brutto
+
+  const mA = divReinvest ? mA_reinvest : mA_price_net;  // tatsächliche Wachstumsrate der Aktien-Bilanz
+  const mO = Math.pow(1+netObligAnnual, 1/12)-1;
+  const mC = Math.pow(1+netCashAnnual, 1/12)-1;
+  const mO_gross = Math.pow(1+rO_cost, 1/12)-1;
+  const mC_gross = Math.pow(1+rC_cost, 1/12)-1;
+
+  let balA=startCapital*wA, balO=startCapital*wO, balC=startCapital*wC;
+  let contributions=0, taxPaid=0, divConsumed=0;
+  const series = [{ year: 0, aktien: balA, oblig: balO, cash: balC, total: balA+balO+balC, real: balA+balO+balC }];
+
+  for (let m=1; m<=T; m++) {
+    if (divReinvest) {
+      // Steuer auf das Wachstum dieses Monats (Aktien: Dividende + Kursgewinn, beide reinvestiert)
+      taxPaid += balA*(mA_gross-mA);
+      balA *= (1+mA);
+    } else {
+      // Dividende wird als Einkommen entnommen (versteuert, nicht reinvestiert)
+      const divGrossAmt = balA * mDivA_gross;
+      const divNetAmt = divGrossAmt*(1-taxEink);
+      taxPaid += divGrossAmt - divNetAmt;
+      divConsumed += divNetAmt;
+      // nur der Kursgewinn-Anteil bleibt im Sparplan und wächst weiter
+      taxPaid += balA*(mA_price_gross-mA_price_net);
+      balA *= (1+mA_price_net);
+    }
+    taxPaid += balO*(mO_gross-mO) + balC*(mC_gross-mC);
+    balO *= (1+mO); balC *= (1+mC);
+
+    // Einzahlung
+    let contribThisMonth = 0;
+    if (rhythmMonthly) {
+      contribThisMonth = betrag;
+    } else if ((m-1) % 12 === 0) {
+      contribThisMonth = betrag;
+    }
+    if (contribThisMonth > 0) {
+      balA += contribThisMonth*wA;
+      balO += contribThisMonth*wO;
+      balC += contribThisMonth*wC;
+      contributions += contribThisMonth;
+    }
+
+    // Rebalancing am Jahresende
+    if (m % 12 === 0 && state.rebalancing) {
+      const total = balA+balO+balC;
+      balA = total*wA; balO = total*wO; balC = total*wC;
+    }
+
+    // Jahresend-Datenpunkt für Chart
+    if (m % 12 === 0) {
+      const yearIdx = m/12;
+      const total = balA+balO+balC;
+      const real = total / Math.pow(1+inflation, yearIdx);
+      series.push({ year: yearIdx, aktien: balA, oblig: balO, cash: balC, total: total, real: real });
+    }
+  }
+
+  // Falls Laufzeit kein Vielfaches von 12 Monaten: letzten Punkt ergänzen
+  if (T % 12 !== 0) {
+    const total = balA+balO+balC;
+    const real = total / Math.pow(1+inflation, T/12);
+    series.push({ year: T/12, aktien: balA, oblig: balO, cash: balC, total: total, real: real });
+  }
+
+  const nominal = balA+balO+balC; // bereits netto nach laufender Steuer auf Dividenden/Zinsen (falls applyCostTax)
+  const real = nominal / Math.pow(1+inflation, years);
+  const totalInvested = startCapital + contributions;
+  const gain = nominal - totalInvested;
+
+  return { nominal, real, startCapital, contributions, totalInvested, gain, taxPaid, divConsumed, series };
+}
+
+// Das im Szenarienvergleich tatsächlich verwendete Szenario: aktueller Div-Modus, inkl. Kosten & Steuern
+function runScenario(deltaMult) {
+  return simulate(deltaMult, state.divReinvest, true);
+}
+
+// Die 4 Linien für die Wertentwicklungs-Grafik:
+// 1) Nominal inkl. Div-Reinvestition, vor Kosten & Steuern
+// 2) Nominal ohne Div-Reinvestition (konsumiert), vor Kosten & Steuern
+// 3) Real ohne Div-Reinvestition (konsumiert), vor Kosten & Steuern
+// 4) Real inkl. Kosten & Steuern, gemäss aktuell gewähltem Div-Modus (die "reale" Ziellinie)
+function buildChartBundle(deltaMult) {
+  const reinvestNoCT = simulate(deltaMult, true,  false).series;
+  const konsumNoCT   = simulate(deltaMult, false, false).series;
+  const actualCT      = simulate(deltaMult, state.divReinvest, true).series;
+  return {
+    nomInklDiv:  reinvestNoCT.map(p => ({ year: p.year, v: p.total })),
+    nomOhneDiv:  konsumNoCT.map(p => ({ year: p.year, v: p.total })),
+    realOhneDiv: konsumNoCT.map(p => ({ year: p.year, v: p.real })),
+    realNetto:   actualCT.map(p => ({ year: p.year, v: p.real })),
+  };
+}
+
+// ── p.a.-Renditen für die Tabelle (gewichteter Portfolio-Durchschnitt, keine Verzinsungssimulation) ──
+function scenarioRates(deltaMult) {
+  let wA = val('i_alloc_aktien')/100, wO = val('i_alloc_oblig')/100, wC = val('i_alloc_cash')/100;
+  const wSum = wA+wO+wC;
+  if (wSum > 0) { wA/=wSum; wO/=wSum; wC/=wSum; }
+
+  const baseA = val('i_rend_aktien')/100, baseO = val('i_rend_oblig')/100, baseC = val('i_rend_cash')/100;
+  const dA = 0.03, dO = 0.01, dC = 0.0025;
+  const rA = Math.max(baseA + deltaMult*dA, -0.95);
+  const rO = Math.max(baseO + deltaMult*dO, -0.95);
+  const rC = Math.max(baseC + deltaMult*dC, -0.95);
+
+  const kosten = val('i_kosten')/100;
+  const inflation = val('i_inflation')/100;
+  const divAktien = val('i_div_aktien')/100;
+  const taxEink = val('i_steuersatz_eink')/100;
+  const taxKapital = val('i_steuersatz_kapital')/100;
+
+  // Nominal, ohne Kosten/Steuern
+  const nomReinvest = wA*rA + wO*rO + wC*rC;                    // inkl. Div-Reinvestition
+  const nomKonsum   = wA*(rA-divAktien) + wO*rO + wC*rC;        // Aktien-Dividende konsumiert (nicht Teil der Portfolio-Rendite)
+
+  // Real, ohne Kosten/Steuern
+  const realReinvest = (1+nomReinvest)/(1+inflation)-1;
+  const realKonsum   = (1+nomKonsum)/(1+inflation)-1;
+
+  // Real, inkl. Kosten & Steuern, gemäss aktuell gewähltem Div-Modus
+  const rA_cost = rA - kosten, rO_cost = rO - kosten, rC_cost = rC - kosten;
+  const appAktien = rA_cost - divAktien;
+  const netAktienReinvest = appAktien*(1-taxKapital) + divAktien*(1-taxEink);
+  const netAktienKonsum   = appAktien*(1-taxKapital); // Dividende fliesst nicht in Portfolio-Rendite
+  const netOblig = rO_cost*(1-taxEink);
+  const netCash  = rC_cost*(1-taxEink);
+  const netAktien = state.divReinvest ? netAktienReinvest : netAktienKonsum;
+  const nomNet = wA*netAktien + wO*netOblig + wC*netCash;
+  const realNet = (1+nomNet)/(1+inflation)-1;
+
+  return { rA, rO, rC, nomReinvest, nomKonsum, realReinvest, realKonsum, realNet };
+}
+
+// Zeichnet die 4 Linien: Nominal inkl. Div, Nominal ohne Div, Real ohne Div (alle vor Kosten&Steuern),
+// sowie Real inkl. Kosten & Steuern (aktueller Div-Modus, farbig in Szenariofarbe hervorgehoben)
+function drawMultiLineChart(containerId, bundle, colorScenario) {
+  const container = document.getElementById(containerId);
+  const W = 640, H = 300, padL = 66, padR = 66, padT = 14, padB = 32;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  const n = bundle.nomInklDiv.length;
+  let maxVal = 1;
+  [bundle.nomInklDiv, bundle.nomOhneDiv, bundle.realOhneDiv, bundle.realNetto].forEach(s => s.forEach(p => { if (p.v > maxVal) maxVal = p.v; }));
+
+  function x(i) { return padL + (n<=1 ? 0 : (i/(n-1))*plotW); }
+  function y(v) { return padT + plotH - (v/maxVal)*plotH; }
+
+  function linePath(series) {
+    let d = '';
+    for (let i=0;i<series.length;i++) d += (i===0?'M':'L') + x(i) + ',' + y(series[i].v) + ' ';
+    return d;
+  }
+
+  const lines = [
+    { s: bundle.nomInklDiv,  color: 'var(--blue-light)', width: 2.4, dash: '',      opacity: 0.9 },
+    { s: bundle.nomOhneDiv,  color: 'var(--grey-500)',   width: 2.4, dash: '9,3',   opacity: 0.9 },
+    { s: bundle.realOhneDiv, color: 'var(--grey-500)',   width: 2,   dash: '2,3',   opacity: 0.9 },
+    { s: bundle.realNetto,   color: colorScenario,       width: 3,   dash: '',      opacity: 1   },
+  ];
+  const linesSvg = lines.map(l => `<path d="${linePath(l.s)}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-dasharray="${l.dash}" stroke-opacity="${l.opacity}"/>`).join('');
+
+  // Gridlines + Y labels auf BEIDEN Achsen (links & rechts), 4 Schritte
+  let gridSvg = '';
+  const steps = 4;
+  for (let s=0; s<=steps; s++) {
+    const v = maxVal*s/steps;
+    const yy = y(v);
+    gridSvg += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#ECEEF2" stroke-width="1"/>`;
+    gridSvg += `<text x="${padL-10}" y="${yy+4}" font-size="13" font-weight="700" fill="#1A1D24" text-anchor="end">${fmtAxis(v)}</text>`;
+    gridSvg += `<text x="${W-padR+10}" y="${yy+4}" font-size="13" font-weight="700" fill="#1A1D24" text-anchor="start">${fmtAxis(v)}</text>`;
+  }
+
+  // X labels (ca. alle 5 Jahre, plus letzter Punkt)
+  const series0 = bundle.nomInklDiv;
+  let xLabels = '';
+  const step = Math.max(1, Math.round(n/6));
+  for (let i=0;i<n;i+=step) {
+    xLabels += `<text x="${x(i)}" y="${H-8}" font-size="12" font-weight="600" fill="#7A8090" text-anchor="middle">J${series0[i].year}</text>`;
+  }
+  xLabels += `<text x="${x(n-1)}" y="${H-8}" font-size="12" font-weight="600" fill="#7A8090" text-anchor="middle">J${series0[n-1].year}</text>`;
+
+  const svg = `
+  <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;">
+    ${gridSvg}
+    ${linesSvg}
+    ${xLabels}
+  </svg>`;
+  container.innerHTML = svg;
+}
+
+function compute() {
+  // Allokations-Summe prüfen
+  const aRaw = val('i_alloc_aktien'), oRaw = val('i_alloc_oblig'), cRaw = val('i_alloc_cash');
+  const sum = aRaw+oRaw+cRaw;
+  set('o_alloc_sum', sum.toFixed(0));
+  document.getElementById('o_alloc_warn').textContent = Math.abs(sum-100) > 0.5 ? '⚠ wird automatisch auf 100% normiert' : '✓';
+  document.getElementById('o_alloc_warn').className = Math.abs(sum-100) > 0.5 ? 'warn' : '';
+
+  const pess = runScenario(-1);
+  const neutral = runScenario(0);
+  const opt = runScenario(1);
+
+  // Gemeinsame Allokation/Rebalancing-Info für alle drei Szenarien
+  let wA = aRaw, wO = oRaw, wC = cRaw;
+  const wSum = wA+wO+wC;
+  if (wSum > 0) { wA = wA/wSum*100; wO = wO/wSum*100; wC = wC/wSum*100; }
+  const rebTxt = state.rebalancing ? 'Ja (jährlich auf Zielgewichte zurückgesetzt)' : 'Nein (freies Driften, Buy & Hold)';
+  set('scenario_alloc_info',
+    `Alle drei Szenarien verwenden dieselbe Ziel-Allokation: ${wA.toFixed(0)}% Aktien / ${wO.toFixed(0)}% Obligationen / ${wC.toFixed(0)}% Cash · Rebalancing: ${rebTxt}. Nur die Renditeannahmen unterscheiden sich zwischen den Szenarien.`);
+
+  function fillCard(prefix, r) {
+    set(prefix+'_start', fmtCHF(r.startCapital));
+    set(prefix+'_einzahlungen', fmtCHF(r.contributions));
+    set(prefix+'_ertrag', fmtCHF(r.gain));
+    set(prefix+'_steuern', fmtCHF(r.taxPaid));
+    set(prefix+'_konsum', fmtCHF(r.divConsumed));
+    set(prefix+'_nominal', fmtCHF(r.nominal));
+    set(prefix+'_real', fmtCHF(r.real));
+  }
+  fillCard('p', pess);
+  fillCard('n', neutral);
+  fillCard('o', opt);
+
+  // Bar chart Vergleich (Endkapital nominal)
+  const mx = Math.max(pess.nominal, neutral.nominal, opt.nominal, 1);
+  const mxH = 130;
+  function bh(v){ return Math.max(4, Math.round(Math.max(v,0)/mx*mxH))+'px'; }
+  set('bc_vP', fmtCHF(pess.nominal));
+  set('bc_vN', fmtCHF(neutral.nominal));
+  set('bc_vO', fmtCHF(opt.nominal));
+  document.getElementById('bc_bP').style.height = bh(pess.nominal);
+  document.getElementById('bc_bN').style.height = bh(neutral.nominal);
+  document.getElementById('bc_bO').style.height = bh(opt.nominal);
+
+  drawMultiLineChart('area_chart_pess', buildChartBundle(-1), 'var(--red)');
+  drawMultiLineChart('area_chart_neutral', buildChartBundle(0), 'var(--blue-dark)');
+  drawMultiLineChart('area_chart_opt', buildChartBundle(1), 'var(--aktien)');
+
+  // p.a.-Renditetabelle
+  const rtP = scenarioRates(-1), rtN = scenarioRates(0), rtO = scenarioRates(1);
+  const divModeTxt = state.divReinvest ? 'Dividende reinvestiert' : 'Dividende verkonsumiert (entnommen)';
+  set('rate_table_caption',
+    `Annahmen: Kosten ${val('i_kosten').toFixed(2)}% p.a. · Inflation ${val('i_inflation').toFixed(1)}% p.a. · Dividendenrendite Aktien ${val('i_div_aktien').toFixed(1)}% (${divModeTxt}) · Einkommenssteuer auf Dividenden/Zinsen ${val('i_steuersatz_eink').toFixed(0)}% · Kapitalgewinnsteuer ${val('i_steuersatz_kapital').toFixed(0)}%. Portfolio-Renditen sind gewichtete Durchschnitte gemäss Ziel-Allokation.`);
+
+  function fillRateCol(prefix, r) {
+    set('rt_'+prefix+'_ra', fmtP(r.rA));
+    set('rt_'+prefix+'_ro', fmtP(r.rO));
+    set('rt_'+prefix+'_rc', fmtP(r.rC));
+    set('rt_'+prefix+'_nomRe', fmtP(r.nomReinvest));
+    set('rt_'+prefix+'_nomKo', fmtP(r.nomKonsum));
+    set('rt_'+prefix+'_realRe', fmtP(r.realReinvest));
+    set('rt_'+prefix+'_realKo', fmtP(r.realKonsum));
+    set('rt_'+prefix+'_realNet', fmtP(r.realNet));
+  }
+  fillRateCol('p', rtP);
+  fillRateCol('n', rtN);
+  fillRateCol('o', rtO);
+}
+
+document.querySelectorAll('input[type=number]').forEach(el => el.addEventListener('input', compute));
+compute();
+</script>
+</body>
+</html>
