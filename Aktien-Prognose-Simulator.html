@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aktien-Prognose Simulator | Fintool</title>
+<style>
+  :root{
+    --bg:#eef0f3; --panel:#ffffff; --panel2:#f4f5f7; --border:#e5e8ed;
+    --text:#16213a; --muted:#7c8494; --navy:#1c3f73; --blue:#2f5fa8; --blue-dark:#1c3f73;
+    --accent:#2f5fa8; --accent-dark:#1c3f73; --accent-soft:#e7edf7;
+    --red:#c0392b; --red-soft:#fbeae8; --amber:#c98a1a; --amber-soft:#fbf1de;
+    --green:#1a6b3a; --green-soft:#e8f5ee; --purple:#6b3a8a; --purple-soft:#f2ebf9;
+    --c-spi:#1a6b3a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text);
+  }
+  .topbar{background:#ffffff; border-bottom:1px solid var(--border);}
+  .topbar-inner{max-width:1240px; margin:0 auto; padding:18px 28px; display:flex; align-items:center; justify-content:space-between;}
+  .topbar-title{font-size:26px; font-weight:800; letter-spacing:-.01em; color:var(--text); line-height:1.25;}
+  .topbar-author{font-size:13.5px; font-weight:600; letter-spacing:0; color:var(--muted); margin-top:2px; text-align:center;}
+  .logo{display:inline-flex; align-items:flex-end; font-family:Georgia,"Times New Roman",serif; font-size:21px; font-weight:700; letter-spacing:.02em; color:var(--blue);}
+  .logo svg{width:24px; height:31px; margin:0 1px; overflow:visible;}
+  .page{max-width:1240px; margin:0 auto; padding:28px;}
+  .subtitle{color:var(--muted); font-size:14.5px; margin:0 0 24px 0; max-width:900px; line-height:1.6;}
+  .layout{display:grid; grid-template-columns:340px 1fr; gap:22px; align-items:start;}
+  @media (max-width:980px){.layout{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:0 1px 3px rgba(20,30,60,0.05);}
+  .card + .card{margin-top:16px;}
+  .prose{font-size:14.5px; line-height:1.75; color:var(--text);}
+  .prose p{margin:0 0 14px 0;}
+  .prose p:last-child{margin-bottom:0;}
+  .prose strong{color:var(--blue-dark);}
+  .section-title{font-size:11.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:700; margin:0 0 14px 0;}
+  .section-title.big{font-size:17px; text-transform:none; letter-spacing:0; color:var(--text); font-weight:700; font-family:Georgia,"Times New Roman",serif;}
+  .section-title.phase{font-size:28px; text-transform:none; letter-spacing:-.01em; color:var(--navy); font-weight:800; font-family:Georgia,"Times New Roman",serif; margin:0 0 18px 0;}
+  @media (max-width:640px){ .section-title.phase{font-size:22px;} }
+  label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px; margin-top:16px; font-weight:600;}
+  label:first-of-type{margin-top:0;}
+  .row{display:flex; gap:10px;}
+  .row > div{flex:1;}
+  .bignum{font-size:22px; font-weight:800; color:var(--text); margin-bottom:8px; letter-spacing:-.01em;}
+  input[type=number], select{
+    width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    padding:9px 11px; border-radius:9px; font-size:14px;
+  }
+  input[type=number]:focus, select:focus{outline:2px solid var(--blue); outline-offset:1px;}
+  input[type=range]{
+    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:999px;
+    background:#e4e6eb; outline:none; cursor:pointer; margin:6px 0 4px 0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#fff;
+    border:2.5px solid var(--blue); box-shadow:0 1px 3px rgba(20,30,60,.25); cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%; background:#fff; border:2.5px solid var(--blue); cursor:pointer;
+  }
+  .rangebounds{display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:2px;}
+  .rangeval{float:right; color:var(--blue-dark); font-weight:700; font-size:12.5px;}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.5;}
+  .toggle-group{display:flex; gap:8px; flex-wrap:wrap;}
+  .toggle-group button{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text); padding:9px 16px;
+    font-size:12.5px; cursor:pointer; font-weight:700; border-radius:999px;
+  }
+  .toggle-group button.active{background:var(--blue); color:#ffffff; border-color:var(--blue);}
+  .toggle-group.idxpick button.active{background:var(--idx-color,var(--blue)); border-color:var(--idx-color,var(--blue));}
+  .checkbox-row{display:flex; align-items:center; gap:8px; margin-top:14px;}
+  .checkbox-row input{width:auto; accent-color:var(--blue);}
+  .checkbox-row label{margin:0; font-weight:600; color:var(--text);}
+  button.primary{
+    width:100%; margin-top:20px; background:var(--blue); color:#ffffff; border:none;
+    padding:14px; border-radius:11px; font-weight:700; font-size:15px; cursor:pointer;
+  }
+  button.primary:hover{background:var(--blue-dark);}
+  .kpis{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;}
+  .kpi{background:var(--panel2); border:1px solid var(--border); border-radius:14px; padding:16px;}
+  .kpi .label{font-size:11.5px; color:var(--muted); letter-spacing:.02em; font-weight:600;}
+  .kpi .value{font-size:26px; font-weight:800; margin-top:6px; letter-spacing:-.01em;}
+  .kpi .value.green{color:#2a7d4f;} .kpi .value.red{color:var(--red);} .kpi .value.neutral{color:var(--text);}
+  .kpi .subtext{font-size:12px; color:var(--muted); margin-top:3px; line-height:1.4;}
+  .chart-wrap{position:relative; height:380px;}
+  .chart-wrap.small{height:260px;}
+  .chart-wrap.big{height:420px;}
+  .chart-wrap svg text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--muted);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .legend i{width:11px; height:11px; border-radius:3px; display:inline-block;}
+  .histstats{display:grid; grid-template-columns:repeat(auto-fit, minmax(155px,1fr)); gap:12px; margin-top:14px;}
+  .histstat{background:var(--panel2); border:1px solid var(--border); border-radius:14px; padding:14px 16px;}
+  .histstat-label{font-size:11.5px; color:var(--muted); letter-spacing:.02em; font-weight:600; line-height:1.4;}
+  .histstat-val{font-size:22px; font-weight:800; margin-top:6px; letter-spacing:-.01em;}
+  .histstat-sub{font-size:12.5px; color:var(--muted); margin-top:3px; font-weight:600;}
+  @media (max-width:640px){ .histstats{grid-template-columns:1fr;} }
+  .disclaimer{font-size:12px; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); margin-top:18px; padding-top:14px;}
+  .statstable{width:100%; border-collapse:collapse; font-size:13px; margin-top:14px;}
+  .statstable th, .statstable td{text-align:right; padding:8px 10px; border-bottom:1px solid var(--border);}
+  .statstable th:first-child, .statstable td:first-child{text-align:left;}
+  .statstable th{color:var(--muted); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.04em;}
+  .statstable td.name{font-weight:700;}
+  .swatch{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:7px;}
+  .inherit-note{background:var(--accent-soft); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; color:var(--blue-dark); margin-bottom:14px; line-height:1.5;}
+
+  /* ---------- Splash / App-Startbildschirm ---------- */
+  .splash{
+    position:fixed; inset:0; background:#ffffff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:22px; z-index:100; padding:24px;
+  }
+  .tile{
+    width:300px; max-width:80vw; border-radius:44px; overflow:hidden; cursor:pointer;
+    box-shadow:0 18px 50px rgba(20,30,60,.18); display:flex; flex-direction:column;
+    border:none; background:none; padding:0; font:inherit; text-align:left;
+  }
+  .tile-top{
+    background:var(--navy); padding:38px 20px 30px 20px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:26px;
+  }
+  .tile-logo{display:inline-flex; align-items:flex-end; font-family:Georgia,"Times New Roman",serif; font-weight:700; font-size:34px; color:#ffffff; letter-spacing:.01em;}
+  .tile-logo svg{width:40px; height:52px; margin:0 1px; overflow:visible;}
+  .tile-play{
+    width:88px; height:88px; border-radius:18px; background:#3f6fb0; display:flex;
+    align-items:center; justify-content:center; transition:filter .15s;
+  }
+  .tile:hover .tile-play{filter:brightness(1.08);}
+  .tile-play svg{width:34px; height:34px; margin-left:5px;}
+  .tile-bottom{background:var(--red); padding:20px 16px; text-align:center;}
+  .tile-bottom-text{color:#ffffff; font-weight:800; font-size:16px; letter-spacing:.04em;}
+  .splash-hint{color:var(--muted); font-size:13px; max-width:320px; text-align:center; line-height:1.5;}
+  .app.hidden{display:none;}
+  .back-btn{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text); font-weight:700;
+    font-size:13px; padding:8px 16px 8px 12px; border-radius:999px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .back-btn:hover{background:var(--border);}
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash">
+  <button class="tile" id="tileEnter" aria-label="Aktien-Prognose Simulator starten">
+    <div class="tile-top">
+      <div class="tile-logo">FI<svg viewBox="0 0 130 170" fill="none"><polyline points="14,132 34,112 52,138" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/><polyline points="5,158 48,58 64,132 114,4" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>TOOL</div>
+      <div class="tile-play"><svg viewBox="0 0 24 24"><polygon points="4,2 22,12 4,22" fill="#1c3f73"/></svg></div>
+    </div>
+    <div class="tile-bottom"><div class="tile-bottom-text">AKTIEN-PROGNOSE</div></div>
+  </button>
+  <div class="splash-hint">Klicken Sie auf das Symbol, um den Aktien-Prognose Simulator zu starten.</div>
+</div>
+
+<div class="app hidden" id="app">
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="back-btn" id="backBtn">&#8592; Startseite</button>
+    <div class="topbar-title">Aktien-Prognose Simulator<div class="topbar-author">Prof. Dr. Erwin W. Heri</div></div>
+    <div class="logo">FI<svg viewBox="0 0 130 170" fill="none"><polyline points="14,132 34,112 52,138" stroke="#a9adb3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><polyline points="5,158 48,58 64,132 114,4" stroke="#e2231c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>TOOL</div>
+  </div>
+</header>
+
+<div class="page">
+<p class="subtitle">Wie haben sich Schweizer Aktien (SPI) entwickelt &mdash; und welche Bandbreite an Ergebnissen ist für die Zukunft realistisch? Dieses Tool arbeitet mit <strong>echten historischen Monatswerten</strong> (keine geglätteten Jahreswerte) durchgehend von Januar 1990 bis Juni 2026. Es zeigt die historische Entwicklung von Total-Return- und Kursindex separat und simuliert mit einer Monte-Carlo-Simulation (10'000 Läufe) mögliche künftige Verläufe &mdash; wahlweise mit einer normalverteilten oder einer <strong>fat-tailed (leptokurtischen)</strong> Verteilung der Jahresrenditen.</p>
+
+<div class="card">
+  <div class="section-title phase">Über dieses Tool</div>
+  <div class="prose">
+    <p>Der Simulator arbeitet mit echten monatlichen Indexständen des <strong>SPI</strong> (Swiss Performance Index, Schweizer Aktien, CHF) &mdash; keine Interpolation, keine Schätzung. Durchgehende Tagesdaten liegen von Januar 1990 bis Juni 2026 vor, aus denen die effektiven Monatsendstände berechnet wurden (Quelle: Datenportal der Schweizerischen Nationalbank). Der reine Kursindex (ohne Dividenden) wird rechnerisch aus der echten Total-Return-Reihe abgeleitet, da keine unabhängig verifizierbare, frei zugängliche Monats-Kursindex-Reihe beschafft werden konnte. Details siehe unten unter "Methodik &amp; Quellen".</p>
+    <p>Zusätzlich lässt sich zwischen <strong>mit/ohne Dividendenreinvestition</strong> und zwischen einer <strong>nominalen</strong> und einer um die Schweizer Inflation bereinigten <strong>realen</strong> Betrachtung wechseln. Im unteren Teil können Sie eine <strong>Monte-Carlo-Simulation</strong> mit 10'000 zufällig gewürfelten Zukunftsverläufen durchführen &mdash; wahlweise mit einer normalverteilten oder einer <strong>fat-tailed (leptokurtischen)</strong> Verteilung der jährlichen Renditen. Letztere bildet ab, dass extreme Börsenjahre (starke Einbrüche wie auch starke Kursgewinne) in der Realität häufiger vorkommen, als eine Normalverteilung annehmen würde &mdash; siehe den technischen Anhang weiter unten. Die Basisannahmen für erwartete Rendite und Volatilität werden direkt aus den echten Monatsrenditen des SPI berechnet, lassen sich aber frei anpassen.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-title phase">Historische Darstellung</div>
+  <div class="hint">Die Grafik unten zeigt Total Return und Kursindex des SPI jeweils nominal und real (inflationsbereinigt mit der Schweizer Konsumentenpreisinflation LIK). Die Wahl nominal/real für die künftige Simulation erfolgt weiter unten bei der Aktienprognose.</div>
+</div>
+
+<div class="card">
+  <div class="section-title phase">SPI &mdash; historische Entwicklung, effektive Indexstände</div>
+  <div class="chart-wrap big"><div id="historyChartSpi" style="width:100%;height:100%;"></div></div>
+  <div class="legend" id="historyLegendSpi"></div>
+  <div class="histstats" id="historyStatsSpi"></div>
+  <div class="hint" id="historyHintSpi"></div>
+</div>
+
+<div class="layout">
+  <!-- LEFT: CONTROLS -->
+  <div>
+    <div class="card">
+      <div class="section-title phase">Aktienprognose (Monte-Carlo-Simulation)</div>
+
+      <label>Dividenden</label>
+      <div class="toggle-group" id="divToggle">
+        <button data-val="mit" class="active">Mit Reinvestition (Total Return)</button>
+        <button data-val="ohne">Ohne Reinvestition (Kursindex)</button>
+      </div>
+      <div class="hint">Bestimmt, ob die Simulation auf der echten Total-Return-Reihe (mit reinvestierten Dividenden) oder auf dem daraus abgeleiteten Kursindex (ohne Dividenden) basiert &mdash; und damit, welche historische Rendite und Volatilität als Basiswert vorgeschlagen wird.</div>
+
+      <div class="inherit-note" id="inheritNote"></div>
+
+      <label>Startkapital</label>
+      <div class="bignum" id="startCapitalBig">100'000</div>
+      <input type="range" id="startCapital" min="10000" max="2000000" step="10000" value="100000">
+      <div class="rangebounds"><span>10k</span><span>2 Mio.</span></div>
+
+      <label>Anlagehorizont <span class="rangeval" id="horizonVal">20 Jahre</span></label>
+      <input type="range" id="horizon" min="1" max="40" step="1" value="20">
+
+      <label id="retLabel">Erwartete Rendite p.a.</label>
+      <div class="row">
+        <div><input type="number" id="expReturn" value="8.0" step="0.1"></div>
+      </div>
+
+      <label>Dividendenrendite p.a.</label>
+      <div class="row">
+        <div><input type="number" id="divYield" value="2.0" step="0.1"></div>
+      </div>
+
+      <label>Volatilität p.a.</label>
+      <div class="row">
+        <div><input type="number" id="vol" value="18.0" step="0.5"></div>
+      </div>
+
+      <label>Ergebnisdarstellung</label>
+      <div class="toggle-group" id="simRealToggle">
+        <button data-val="nominal" class="active">Nominal</button>
+        <button data-val="real">Real (inflationsbereinigt)</button>
+      </div>
+      <div class="hint">Bestimmt, ob die simulierten künftigen Kapitalwerte (Grafiken, Kennzahlen) in effektiven (nominalen) Franken oder in heutiger Kaufkraft (real) gezeigt werden. Unabhängig von der Betrachtung bei "Historische Darstellung" oben.</div>
+
+      <label>Erwartete Inflation p.a.</label>
+      <div class="row">
+        <div><input type="number" id="simInflation" value="2.0" step="0.1"></div>
+      </div>
+      <div class="hint" id="simInflationHint">Nur bei realer Darstellung verwendet: Künftige Kapitalwerte werden mit dieser angenommenen Inflationsrate auf die Kaufkraft von heute abgezinst.</div>
+
+      <label>Verteilung der Jahresrenditen</label>
+      <div class="toggle-group" id="distToggle">
+        <button data-val="normal" class="active">Normal</button>
+        <button data-val="fat">Fat Tails (leptokurtisch)</button>
+      </div>
+      <div class="hint">Normal: klassische Glockenkurve. Fat Tails: gleiche erwartete Rendite und Volatilität, aber extreme Jahre (starke Verluste wie starke Gewinne) kommen häufiger vor &mdash; siehe technischer Anhang unten.</div>
+
+      <div class="hint" id="defaultsHint" style="margin-top:10px;">Basiswerte berechnet aus den echten historischen Monatsrenditen des SPI. Frei anpassbar.</div>
+
+      <button class="primary" id="runBtn">Simulation starten</button>
+      <div class="hint" style="margin-top:10px; text-align:center;">Jeder Lauf rechnet 10'000 zufällige Zukunftsszenarien durch.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Median-Endwert</div><div class="value neutral" id="kpiMedian">&ndash;</div><div class="subtext" id="kpiMedianSub">nach gewähltem Anlagehorizont</div></div>
+      <div class="kpi"><div class="label">Bandbreite 10&ndash;90%</div><div class="value neutral" id="kpiRange">&ndash;</div><div class="subtext">80% aller Simulationsläufe enden in dieser Spanne</div></div>
+      <div class="kpi"><div class="label">Median-Rendite p.a.</div><div class="value green" id="kpiCagr">&ndash;</div><div class="subtext">annualisiert, über den ganzen Horizont</div></div>
+      <div class="kpi"><div class="label">Verlustwahrscheinlichkeit</div><div class="value red" id="kpiLoss">&ndash;</div><div class="subtext">Endwert liegt unter dem Startkapital</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title phase">Kapitalverlauf &ndash; Bandbreite über alle Simulationsläufe</div>
+      <div class="inherit-note" id="simRealBadge"></div>
+      <div class="chart-wrap big"><div id="fanChart" style="width:100%;height:100%;"></div></div>
+      <div class="legend">
+        <span><i style="background:rgba(47,95,168,0.15)"></i>10&ndash;90% Bandbreite</span>
+        <span><i style="background:rgba(47,95,168,0.32)"></i>25&ndash;75% Bandbreite</span>
+        <span><i style="background:var(--blue)"></i>Median</span>
+      </div>
+      <div class="hint" id="fanHint">Linke Achse: Kapitalwert (K = Tausend, Mio. = Million), logarithmische Skala &mdash; gleich grosse Abstände entsprechen gleichen prozentualen Veränderungen. Rechts: Endwerte der Perzentile am Ende des Anlagehorizonts.</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title phase">Verteilung der Endwerte nach {N} Jahren</div>
+      <div class="chart-wrap small"><div id="histChart" style="width:100%;height:100%;"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title phase">Was Ihr Ergebnis bedeutet</div>
+      <div class="prose" id="explanation"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-title phase">Methodik &amp; Quellen</div>
+  <div class="prose">
+    <p><strong>SPI &mdash; echte Monatsdaten Januar 1990 bis Juni 2026.</strong> Quelle: Datenportal der Schweizerischen Nationalbank (data.snb.ch), Kennzahl "SPI Swiss Performance Index, Gesamtindex inkl. reinvestierter Dividenden" (Cube capchstocki, Serie GDR). Die SNB veröffentlicht durchgehende Tagesschlusskurse seit Januar 1990; daraus wurden die effektiven Monatsendstände (letzter Handelstag je Kalendermonat) extrahiert &mdash; 438 echte Monatswerte, keine Interpolation. Der SPI wird in der Schweiz konventionsgemäss als Total-Return-Index geführt; eine frei zugängliche, separat publizierte Kursindex-Reihe (ohne Dividenden) existiert dafür nicht.</p>
+    <p><strong>Kursindex-Ableitung.</strong> Der Kursindex (ohne Dividenden) wird rechnerisch aus der echten Total-Return-Reihe abgeleitet, indem eine konstante monatliche Dividendenrendite von 3,0% p.a. (langjähriger Schweizer Marktdurchschnitt) herausgerechnet wird. Diese Vereinfachung betrifft ausschliesslich die "ohne Dividende"-Ansicht; die Total-Return-Reihe ist vollständig echt.</p>
+    <p><strong>Historische Kennzahlen.</strong> Erwartete Rendite (geometrisch) und Volatilität werden direkt aus den echten monatlichen Renditen der gewählten Reihe berechnet: die Rendite p.a. als Zinseszins-Wachstumsrate über den gesamten verfügbaren Zeitraum (36,5 Jahre), die Volatilität p.a. als Standardabweichung der Monatsrenditen, hochgerechnet mit der Wurzel aus 12.</p>
+    <p><strong>Inflation.</strong> Jährliche Veränderungsrate des Schweizer Landesindex der Konsumentenpreise (LIK), 1990&ndash;2025. Für die reale Reihe wird die jährliche Inflationsrate geometrisch gleichmässig auf 12 Monatsschritte verteilt und der nominale Indexstand durch den kumulierten Preisindex geteilt. Für die noch nicht abgeschlossenen Monate 2026 wird näherungsweise die Inflationsrate von 2025 fortgeschrieben, da die effektive Jahresrate für 2026 noch nicht feststeht. Die Grafik bei "Historische Darstellung" zeigt nominale und reale Reihe stets gleichzeitig (grün/orange); die vorgeschlagenen Rendite-/Volatilitätswerte der Simulation basieren stets auf der nominalen Reihe. Die reale (kaufkraftbereinigte) Sicht auf das simulierte Ergebnis lässt sich stattdessen bei der Aktienprognose selbst wählen, mit einer dort frei einstellbaren künftigen Inflationsannahme.</p>
+    <p><strong>Monte-Carlo-Simulation.</strong> Für jeden der 10'000 Läufe wird pro Jahr eine Zufallsrendite R = &mu; + &sigma;&middot;Z gezogen, mit &mu; und &sigma; gemäss den gewählten Eingabewerten für erwartete Rendite und Volatilität. Bei der Verteilungsannahme <strong>Normal</strong> ist Z standardnormalverteilt (Box-Muller-Transformation). Bei der Verteilungsannahme <strong>Fat Tails</strong> ist Z eine auf Einheitsvarianz skalierte Student-t-verteilte Zufallsvariable mit 3 Freiheitsgraden &mdash; gleicher Erwartungswert und gleiche Volatilität wie bei der Normalverteilung, aber mit deutlich höherer, bewusst stark ausgeprägter Wahrscheinlichkeit für extreme Jahre. Eine einfache Erklärung dieser beiden Verteilungsannahmen finden Sie im technischen Anhang unten. Die Simulation rechnet in jährlichen Schritten über den gewählten Anlagehorizont; die Basiswerte &mu; und &sigma; stammen aus den echten Monatsdaten des SPI. Alle Parameter sind vollständig überschreibbar. <strong>Ergebnisdarstellung (nominal/real).</strong> Unabhängig von der Betrachtung bei "Historische Darstellung" oben lässt sich die Simulationsausgabe selbst nominal oder real anzeigen: Bei realer Darstellung werden alle künftigen Kapitalwerte mit der im Simulationsteil frei wählbaren erwarteten Inflationsrate p.a. auf die Kaufkraft von heute abgezinst (Division durch (1+Inflation)<sup>Jahr</sup>); die Verlustschwelle bleibt dabei das nominale Startkapital, da dieses zum Zeitpunkt der Anlage bereits "heutiges Geld" ist.</p>
+    <p><strong>Hinweis:</strong> Dieses Tool dient ausschliesslich der Illustration historischer Kapitalmarktentwicklungen und möglicher künftiger Bandbreiten und ersetzt keine individuelle Finanz- oder Anlageberatung. Alle Annahmen sind vereinfacht; Steuern, Transaktionskosten und Quellensteuereffekte sind nicht berücksichtigt. Historische Wertentwicklungen sind kein verlässlicher Indikator für künftige Ergebnisse.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-title phase">Technischer Anhang: Normalverteilung vs. Fat-Tail-Verteilung</div>
+  <div class="prose">
+    <p>Die Monte-Carlo-Simulation zieht für jedes Jahr eine zufällige Rendite. Wie diese Zufallsrendite "gewürfelt" wird, bestimmt die <strong>Verteilungsannahme</strong>. Beide unten wählbaren Varianten verwenden exakt dieselbe erwartete Rendite und dieselbe Volatilität &mdash; der einzige Unterschied liegt darin, wie wahrscheinlich extreme Jahre (sehr gute oder sehr schlechte) sind.</p>
+    <p><strong>Normalverteilung (Glockenkurve).</strong> Die klassische Annahme: Renditen streuen symmetrisch um den Mittelwert, und je weiter ein Wert vom Mittelwert entfernt liegt, desto unwahrscheinlicher wird er &mdash; und zwar sehr schnell. Ein Jahr, das drei Standardabweichungen vom Mittelwert abweicht (z.B. ein Crash von &minus;40%, wenn im Schnitt +8% erwartet werden und die Volatilität 18% beträgt), müsste gemäss Normalverteilung nur etwa alle paar tausend Jahre vorkommen.</p>
+    <p><strong>Fat Tails (leptokurtische Verteilung).</strong> Die Börsengeschichte zeigt, dass solche Extremjahre &mdash; Crashs wie 2008 oder 2022, aber auch aussergewöhnlich starke Erholungsjahre &mdash; deutlich häufiger vorkommen, als die Normalverteilung vorhersagt. Man spricht von "fat tails" ("fetten Rändern"): Die Verteilungskurve hat an ihren äusseren Enden mehr Masse, ist in der Mitte etwas spitzer und insgesamt niedriger als eine Normalverteilung mit derselben Streuung. Das Fachwort dafür ist <strong>leptokurtisch</strong> ("schlank gewölbt") bzw. eine hohe <strong>Kurtosis</strong> (Wölbungsmass: misst, wie stark eine Verteilung zu Extremwerten neigt &mdash; eine Normalverteilung hat per Definition eine Kurtosis von 3). Die hier verwendete Fat-Tail-Verteilung ist bewusst sehr stark leptokurtisch gewählt: Bei so wenigen Freiheitsgraden ist die Kurtosis rechnerisch nicht mehr endlich definiert &mdash; ein anderer Ausdruck dafür, dass extreme Jahre noch deutlich häufiger auftreten als bei einer "gewöhnlichen" Fat-Tail-Verteilung.</p>
+    <p><strong>Technische Umsetzung.</strong> Für die Fat-Tail-Option wird statt einer Normalverteilung eine <strong>Student-t-Verteilung mit 3 Freiheitsgraden</strong> verwendet, auf dieselbe Standardabweichung skaliert (dies ist der kleinste Freiheitsgrad, bei dem die Varianz noch endlich und die Skalierung damit noch sauber definiert ist &mdash; entsprechend ausgeprägt sind die fetten Ränder). Die Grafik unten zeigt beide Kurven im Vergleich: gut sichtbar ist, dass die Fat-Tail-Kurve (rot) in der Mitte deutlich höher, in den Schultern niedriger, aber an den äusseren Rändern (ab ca. &plusmn;2 Standardabweichungen) durchgehend und mit wachsendem Abstand über der Normalverteilung (blau) liegt &mdash; genau dort, wo die grossen Kursgewinne und -verluste passieren.</p>
+    <div class="chart-wrap" style="height:280px;"><div id="distCompareChart" style="width:100%;height:100%;"></div></div>
+    <div class="legend">
+      <span><i style="background:#2f5fa8"></i>Normalverteilung (Kurtosis 3)</span>
+      <span><i style="background:#c0392b"></i>Fat Tails / Student-t, 3 Freiheitsgrade (Kurtosis mathematisch unbegrenzt)</span>
+    </div>
+    <p><strong>Praktische Bedeutung für die Simulation.</strong> Bei gleicher erwarteter Rendite und Volatilität führt die Fat-Tail-Annahme tendenziell zu einer etwas breiteren Bandbreite an den Rändern der Ergebnisverteilung (10%- und 90%-Perzentil) und potenziell zu einer leicht höheren oder tieferen Verlustwahrscheinlichkeit, je nachdem wo Ihr Startkapital relativ zur Verteilung liegt &mdash; probieren Sie beide Varianten mit denselben Eingabewerten aus, um den Unterschied direkt zu sehen.</p>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+// =====================================================================
+// HISTORICAL DATA — REAL monthly index levels (no interpolation)
+// Sources: see "Methodik & Quellen" section above.
+// =====================================================================
+
+// SPI Total Return, month-end levels, Jan 1990 – Jun 2026 (438 points)
+// Source: SNB Datenportal, cube capchstocki, series GDR
+const SPI_LEVELS = [
+1102.3,1096.2,1079.6,1044,1173.6,1199.8,1178.1,1018.8,894.5,925.6,901.3,908.3,
+924.8,1017.9,1059.1,1073.7,1123.4,1091.4,1123.3,1122.5,1078.8,1078.8,1040.2,1052.8,
+1111.5,1149.6,1138.9,1169.6,1203.6,1175,1135.5,1096,1145.8,1152.8,1151.3,1238.6,
+1264.2,1286.8,1343.8,1323.7,1414.1,1493.6,1517.95,1573.66,1562.52,1703.99,1738.63,1867.84,
+2007.47,1850.25,1805.41,1781.13,1789.92,1729.02,1709.83,1750.32,1683.39,1660.83,1708.79,1725.53,
+1661.29,1700.40,1640.85,1697.36,1818.18,1866.53,1871.33,1909.90,1966.95,2009.29,2085.66,2123.43,
+2122.27,2177.74,2325.46,2352.06,2299.26,2407.04,2251.89,2342.99,2393.95,2394.05,2492.21,2511.88,
+2728.33,2851.56,2946.25,3094.65,3195.56,3548.37,3752.66,3378.83,3626.07,3474.77,3634.65,3898.15,
+4078.41,4426.14,4716.64,4657.60,4823.96,4932.36,5146.74,4216.71,3692.44,4143.33,4462.95,4497.12,
+4532.24,4470.42,4539.26,4714.57,4494.29,4530.85,4531.51,4607.21,4570.61,4705.24,4877.50,5022.86,
+4717.22,4750.92,5075.78,5075.61,5269.66,5293.34,5504.14,5681.82,5423.60,5572.90,5533.21,5621.13,
+5564.09,5320.82,4952.28,5064.11,5183.45,5006.54,4732.71,4540.71,4085.51,4137.99,4260.27,4382.94,
+4265.15,4332.86,4561.61,4519.16,4546.05,4146.93,3623.48,3652.39,3336.21,3442.53,3561.69,3245.50,
+3089.68,2907.11,2882.43,3235.31,3310.52,3437.73,3620.38,3674.70,3626.43,3769.49,3842.74,3961.58,
+4152.32,4221.29,4098.05,4252.40,4161.32,4166.47,4098.61,4016.27,4057.34,3987.29,4052.75,4234.56,
+4305.72,4435.52,4456.72,4444.06,4645.39,4752.39,5025.01,4977.17,5271.01,5337.71,5601.68,5742.41,
+5928.95,6012.26,6163.39,6251.53,5924.57,5955.64,6175.15,6357.87,6567.56,6700.40,6663.75,6929.18,
+7241.78,6974.44,7183.53,7620.11,7682.32,7514.07,7271.66,7231.45,7262.53,7372.14,7154.69,6925.44,
+6234.18,6188.55,5961.47,6294.68,6333.55,5855.52,5964.48,6061.78,5563.93,5044.85,4780.29,4567.57,
+4375.72,3929.92,4137.35,4487.52,4615.16,4662.64,5109.40,5346.17,5461.31,5402.58,5388.37,5626.40,
+5570.19,5763.27,6007.84,5847.37,5562.49,5407.82,5489.77,5465.25,5594.62,5754.64,5652.48,5790.62,
+5814.95,5952.30,5791.55,6013.04,6023.04,5684.50,5315.45,5049.37,5006.46,5211.91,5131.31,5343.52,
+5412.50,5584.32,5715.79,5697.40,5456.06,5633.27,5915.33,5903.73,6010.92,6088.61,6275.35,6290.52,
+6789.40,7024.53,7243.46,7424.88,7495.05,7247.62,7398.59,7353.92,7611.23,7829.04,7867.29,7838.00,
+7830.51,8160.44,8202.18,8333.70,8557.99,8455.66,8329.69,8566.25,8695.61,8691.83,8992.90,8857.03,
+8262.63,8921.78,9137.24,9208.19,9377.54,8918.62,9559.21,8984.61,8679.82,9133.48,9232.94,9093.97,
+8610.70,8249.38,8316.61,8566.82,8887.41,8660.22,8828.20,8915.79,8883.25,8578.70,8623.48,8965.70,
+9063.32,9367.08,9637.82,9976.11,10248.87,10128.34,10310.53,10177.22,10447.33,10604.40,10674.94,10751.51,
+10737.45,10258.63,10189.89,10524.92,10164.78,10327.29,10898.11,10740.34,10807.82,10635.53,10540.95,9830.06,
+10514.35,10964.46,11241.19,11735.16,11544.54,11977.38,12064.45,12060.92,12233.13,12337.05,12676.11,12837.50,
+12870.99,11897.75,11319.54,11905.85,12246.05,12436.03,12407.39,12658.85,12724.65,11994.43,13003.41,13327.88,
+13192.93,13134.38,14015.01,14179.11,14668.99,15347.05,15578.26,15947.70,15044.61,15613.26,15532.99,16444.52,
+15512.80,15171.55,15538.57,15603.08,14918.98,13834.34,14446.39,14003.70,13166.38,13803.08,14199.52,13734.86,
+14490.30,14303.48,14547.08,15072.98,14788.51,14861.77,14927.07,14664.72,14368.61,13616.23,14236.35,14571.23,
+14774.50,14857.71,15442.86,15066.69,15992.27,15919.28,16356.34,16504.15,16241.87,15711.55,15672.48,15472.33,
+16741.25,17149.95,16800.32,16479.15,16850.29,16534.67,16525.39,16907.81,16748.62,16982.04,17652.88,18219.49,
+18220.41,19255.70,17835.66,18551.09,19157.82,20015.46
+];
+
+// Annual CPI change (%), 1990–2025 — used to build the monthly CPI index grid
+const CPI_ANNUAL = {
+  ch: [5.28,5.23,3.42,2.48,0.42,1.95,0.78,0.39,-0.17,1.67, 1.49,0.33,0.89,0.59,1.33,1.01,0.62,2.00,0.70,0.28, 0.52,-0.71,-0.43,0.07,-0.33,-1.31,-0.01,0.84,0.69,0.16, -0.81,1.53,2.84,1.72,0.63,0.03]
+};
+
+// =====================================================================
+// TIME GRID — global month index 0 = Jan 1990
+// =====================================================================
+function monthIndex(y,m){ return (y-1990)*12 + (m-1); }
+const GLOBAL_N = monthIndex(2026,6) + 1; // 438 (Jan 1990 .. Jun 2026)
+
+function buildCPILevels(annualArr, totalSteps){
+  const levels = [100]; let level = 100; let filled = 0; let yi = 0;
+  while(filled < totalSteps){
+    const rate = annualArr[Math.min(yi, annualArr.length-1)];
+    const mFactor = Math.pow(1+rate/100, 1/12);
+    for(let m=0; m<12 && filled<totalSteps; m++){ level *= mFactor; levels.push(level); filled++; }
+    yi++;
+  }
+  return levels;
+}
+const CPI_LEVELS = {
+  ch: buildCPILevels(CPI_ANNUAL.ch, GLOBAL_N-1)
+};
+
+const IDX = {
+  spi: {
+    key:'spi', name:'SPI', full:'SPI – Swiss Performance Index (Schweizer Aktien, CHF)', currency:'CHF', cpiKey:'ch', color:'var(--c-spi)',
+    startY:1990, startM:1, endY:2026, endM:6,
+    realEndY:2026, realEndM:6,
+    levelsTR: SPI_LEVELS, levelsPrice: null, divYield: 3.0
+  }
+};
+const IDX_ORDER = ['spi'];
+
+function idxN(idx){ return monthIndex(idx.endY, idx.endM) - monthIndex(idx.startY, idx.startM) + 1; }
+function idxStartGlobal(idx){ return monthIndex(idx.startY, idx.startM); }
+
+// Build the requested nominal/real, with/without-dividend series as ABSOLUTE (effektive) index
+// levels — not rebased to 100. CAGR/volatility are scale-invariant so this has no effect on the
+// Monte-Carlo statistics; it only affects how the levels are displayed in the history charts.
+function buildIndexedSeries(idx, withDiv, real){
+  let raw;
+  if(withDiv || !idx.levelsPrice){
+    if(withDiv){
+      raw = idx.levelsTR;
+    } else {
+      // derive price-only from total-return by removing a constant assumed monthly dividend drag
+      const mDiv = Math.pow(1+idx.divYield/100, 1/12);
+      raw = [idx.levelsTR[0]];
+      for(let i=1;i<idx.levelsTR.length;i++){
+        raw.push(raw[i-1] * (idx.levelsTR[i]/idx.levelsTR[i-1]) / mDiv);
+      }
+    }
+  } else {
+    raw = idx.levelsPrice;
+  }
+  let out = raw.slice();
+  if(real){
+    const cpiLevels = CPI_LEVELS[idx.cpiKey];
+    const startGlobal = idxStartGlobal(idx);
+    const cpiBase = cpiLevels[startGlobal];
+    out = out.map((v,i) => v / (cpiLevels[startGlobal+i] / cpiBase));
+  }
+  return out;
+}
+function idxRealN(idx){
+  if(idx.realEndY===undefined) return idxN(idx);
+  return monthIndex(idx.realEndY, idx.realEndM) - monthIndex(idx.startY, idx.startM) + 1;
+}
+
+function monthlyRetsPct(levels){
+  const out = [];
+  for(let i=1;i<levels.length;i++) out.push((levels[i]/levels[i-1]-1)*100);
+  return out;
+}
+function cagrFromLevels(levels){
+  const n = levels.length-1;
+  return (Math.pow(levels[levels.length-1]/levels[0], 12/n)-1)*100;
+}
+
+function currentSeries(idx, withDiv, real){ return buildIndexedSeries(idx, withDiv, real); }
+
+// =====================================================================
+// FORMATTING (Swiss/German style: apostrophe as 1'000s separator)
+// =====================================================================
+function fmtNum(x, digits){
+  digits = digits||0;
+  const neg = x<0; x = Math.abs(x);
+  const parts = x.toFixed(digits).split('.');
+  let intPart = parts[0];
+  let out='';
+  for(let i=0;i<intPart.length;i++){
+    const posFromEnd = intPart.length-i;
+    out += intPart[i];
+    if(posFromEnd>1 && posFromEnd%3===1) out += "'";
+  }
+  if(parts[1]) out += ',' + parts[1];
+  return (neg?'-':'') + out;
+}
+function fmtMoney(x, currency){ return fmtNum(x,0) + ' ' + currency; }
+function fmtPct(x, digits){ digits = digits===undefined?1:digits; return x.toFixed(digits).replace('.',',') + '%'; }
+// Kompakte K/M-Bezeichnung für Achsenbeschriftungen (z.B. 1'250'000 -> "1,25 Mio.", 85'000 -> "85K")
+function fmtCompact(x){
+  const neg = x<0; x = Math.abs(x);
+  let out;
+  if(x>=1000000){
+    out = (x/1000000).toFixed(x>=10000000?1:2).replace(/\.?0+$/,'').replace('.',',') + ' Mio.';
+  } else if(x>=1000){
+    out = (x/1000).toFixed(x>=10000?0:1).replace(/\.0$/,'').replace('.',',') + 'K';
+  } else {
+    out = fmtNum(x,0);
+  }
+  return (neg?'-':'') + out;
+}
+
+// =====================================================================
+// LOGARITHMISCHE ACHSEN mit "runden" Rasterwerten (1-2-5-Muster pro Dekade,
+// bzw. klassische Nice-Numbers bei schmalen Wertebereichen).
+// =====================================================================
+function niceStep(rough){
+  if(!(rough>0)) return 1;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough/mag;
+  let niceNorm;
+  if(norm<1.5) niceNorm=1;
+  else if(norm<3) niceNorm=2;
+  else if(norm<7) niceNorm=5;
+  else niceNorm=10;
+  return niceNorm*mag;
+}
+function linearNiceTicks(minV, maxV, targetCount){
+  const range = Math.max(maxV-minV, 1e-9);
+  const step = niceStep(range/targetCount);
+  const start = Math.ceil(minV/step)*step;
+  const ticks=[];
+  for(let v=start; v<=maxV+step*0.001; v+=step) ticks.push(Math.round(v*1e6)/1e6);
+  return ticks;
+}
+function logDecadeTicks(minV, maxV, targetCount){
+  const mults=[1,2,5];
+  const eStart=Math.floor(Math.log10(minV)), eEnd=Math.ceil(Math.log10(maxV));
+  let ticks=[];
+  for(let e=eStart;e<=eEnd;e++){
+    for(const m of mults){
+      const v=m*Math.pow(10,e);
+      if(v>=minV*0.999 && v<=maxV*1.001) ticks.push(v);
+    }
+  }
+  ticks=[...new Set(ticks)].sort((a,b)=>a-b);
+  while(ticks.length>targetCount+2){
+    const onlyPow10=ticks.filter(v=>{
+      const r=v/Math.pow(10,Math.round(Math.log10(v)));
+      return Math.abs(r-1)<1e-6;
+    });
+    if(onlyPow10.length>=2 && onlyPow10.length<ticks.length) ticks=onlyPow10;
+    else break;
+  }
+  while(ticks.length>targetCount+3) ticks=ticks.filter((v,i)=>i%2===0);
+  return ticks;
+}
+// Liefert "runde" Achsenwerte für eine logarithmische Skala: bei grosser Spannweite
+// im 1-2-5-pro-Dekade-Muster, bei schmaler Spannweite als klassische Nice-Numbers.
+function niceAxisTicks(minV, maxV, targetCount){
+  targetCount = targetCount||6;
+  if(!(maxV>minV)) return [minV];
+  if(minV<=0) minV = Math.max(maxV*1e-6, 1);
+  let ticks;
+  if(maxV/minV >= 8) ticks = logDecadeTicks(minV, maxV, targetCount);
+  else ticks = linearNiceTicks(minV, maxV, targetCount);
+  if(ticks.length<3) ticks = linearNiceTicks(minV, maxV, targetCount);
+  return ticks;
+}
+function fmtPeriod(idx){
+  function mm(m){ return String(m).padStart(2,'0'); }
+  return mm(idx.startM)+'/'+idx.startY+'–'+mm(idx.endM)+'/'+idx.endY;
+}
+function fmtRealPeriod(idx){
+  function mm(m){ return String(m).padStart(2,'0'); }
+  return mm(idx.startM)+'/'+idx.startY+'–'+mm(idx.realEndM)+'/'+idx.realEndY;
+}
+
+function stdev(arr){
+  const n = arr.length;
+  const mean = arr.reduce((a,b)=>a+b,0)/n;
+  const variance = arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/(n-1);
+  return Math.sqrt(variance);
+}
+
+// =====================================================================
+// UI STATE
+// =====================================================================
+let state = { withDiv:true, simIdx:'spi', dist:'normal', simReal:false };
+
+function activeVal(id){ return document.querySelector('#'+id+' button.active').dataset.val; }
+function setupToggle(id, onChange){
+  const el = document.getElementById(id);
+  el.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      el.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(btn.dataset.val);
+    });
+  });
+}
+
+setupToggle('divToggle', v=>{ state.withDiv = (v==='mit'); refreshMcDefaults(); });
+setupToggle('distToggle', v=>{ state.dist = v; });
+setupToggle('simRealToggle', v=>{ state.simReal = (v==='real'); });
+
+// =====================================================================
+// HISTORY CHARTS — one chart per index, absolute (non-indexed) levels,
+// Total-Return and Price plotted as separate lines on the index's own timeline.
+// =====================================================================
+function getComputedColor(cssVar){
+  const name = cssVar.match(/--[a-z0-9-]+/)[0];
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function buildIndexHistorySVG(idx){
+  const W=1000,H=440,padL=96,padR=118,padT=20,padB=44;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const n = idxN(idx);
+  const realN = idxRealN(idx);
+  const trLevels = buildIndexedSeries(idx, true, false);
+  const priceLevels = buildIndexedSeries(idx, false, false);
+  const trLevelsReal = buildIndexedSeries(idx, true, true);
+  const priceLevelsReal = buildIndexedSeries(idx, false, true);
+  const allVals = trLevels.concat(priceLevels, trLevelsReal, priceLevelsReal);
+  const rawMax = Math.max(...allVals), rawMin = Math.min(...allVals.filter(v=>v>0));
+  const yMaxDomain = rawMax*1.08, yMinDomain = Math.max(rawMin/1.15, rawMax*1e-4, 0.01);
+  const x = j => padL + (j/(n-1))*innerW;
+  const y = v => { const vv=Math.max(v, yMinDomain); return padT + innerH - (Math.log(vv/yMinDomain)/Math.log(yMaxDomain/yMinDomain))*innerH; };
+
+  function segPath(levels, fromJ, toJ){
+    let d = 'M'+x(fromJ)+','+y(levels[fromJ]);
+    for(let j=fromJ+1;j<=toJ;j++) d += ' L'+x(j)+','+y(levels[j]);
+    return d;
+  }
+
+  let gridY='', labelsY='';
+  const yTicks = niceAxisTicks(yMinDomain, yMaxDomain, 6);
+  yTicks.forEach(val => {
+    const yy = y(val);
+    gridY += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#e5e8ed" stroke-width="1"/>`;
+    labelsY += `<text x="${padL-12}" y="${yy+6}" text-anchor="end" font-size="16" font-weight="700" fill="#33415c">${fmtNum(val,0)}</text>`;
+  });
+  let gridX='', labelsX='';
+  const spanYears = idx.endY - idx.startY;
+  const step = spanYears>25 ? 5 : (spanYears>12 ? 3 : 2);
+  for(let yr=idx.startY; yr<=idx.endY; yr+=step){
+    const gi = monthIndex(yr, idx.startM) - monthIndex(idx.startY, idx.startM);
+    if(gi<0 || gi>n-1) continue;
+    const xx = x(gi);
+    gridX += `<line x1="${xx}" y1="${padT}" x2="${xx}" y2="${H-padB}" stroke="#e5e8ed" stroke-width="0.5"/>`;
+    labelsX += `<text x="${xx}" y="${H-padB+26}" text-anchor="middle" font-size="15" font-weight="700" fill="#33415c">${yr}</text>`;
+  }
+
+  const nomColor = getComputedColor(idx.color);
+  const realColor = getComputedColor('var(--amber)');
+  const hasEstimate = realN < n;
+
+  function drawSeries(levels, color, width, opacity){
+    let d = `<path d="${segPath(levels, 0, realN-1)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-opacity="${opacity}"/>`;
+    if(hasEstimate) d += `<path d="${segPath(levels, realN-1, n-1)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-opacity="${opacity}" stroke-dasharray="7,5"/>`;
+    return d;
+  }
+  let lines = '';
+  lines += drawSeries(trLevels, nomColor, 3, 1);
+  lines += drawSeries(trLevelsReal, realColor, 3, 1);
+  lines += drawSeries(priceLevels, nomColor, 2.4, 0.5);
+  lines += drawSeries(priceLevelsReal, realColor, 2.4, 0.5);
+
+  let estMarker = '';
+  if(hasEstimate){
+    const ex = x(realN-1);
+    estMarker = `<line x1="${ex}" y1="${padT}" x2="${ex}" y2="${H-padB}" stroke="#7c8494" stroke-width="1" stroke-dasharray="2,3" opacity="0.6"/>`;
+  }
+
+  // Rechte Y-Achse: Endwert je Kurve plus annualisierte (geometrische) Rendite über den echten Zeitraum.
+  const trCagr = cagrFromLevels(trLevels.slice(0,realN));
+  const priceCagr = cagrFromLevels(priceLevels.slice(0,realN));
+  const trCagrR = cagrFromLevels(trLevelsReal.slice(0,realN));
+  const priceCagrR = cagrFromLevels(priceLevelsReal.slice(0,realN));
+  const endPoints = [
+    { val: trLevels[n-1],     cagr: trCagr,    color: nomColor,  opacity: 1   },
+    { val: priceLevels[n-1],  cagr: priceCagr, color: nomColor,  opacity: 0.7 },
+    { val: trLevelsReal[n-1], cagr: trCagrR,   color: realColor, opacity: 1   },
+    { val: priceLevelsReal[n-1], cagr: priceCagrR, color: realColor, opacity: 0.7 },
+  ];
+  endPoints.forEach(p => p.yy = y(p.val));
+  endPoints.sort((a,b)=>a.yy-b.yy);
+  const minGap = 38;
+  for(let i=1;i<endPoints.length;i++){
+    if(endPoints[i].yy - endPoints[i-1].yy < minGap) endPoints[i].yy = endPoints[i-1].yy + minGap;
+  }
+  const rx = W-padR+12;
+  let endLabels = '';
+  endPoints.forEach(p=>{
+    endLabels += `<text x="${rx}" y="${p.yy-4}" text-anchor="start" font-size="14.5" font-weight="800" fill="${p.color}" opacity="${p.opacity}">${fmtNum(p.val,0)}</text>`;
+    endLabels += `<text x="${rx}" y="${p.yy+12}" text-anchor="start" font-size="11.5" font-weight="700" fill="${p.color}" opacity="${p.opacity}">${fmtPct(p.cagr,1)} p.a.</text>`;
+  });
+
+  return {
+    svg: `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;">
+      ${gridY}${gridX}
+      ${estMarker}
+      ${lines}
+      ${labelsY}${labelsX}
+      ${endLabels}
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#c7cdd7"/>
+      <line x1="${W-padR}" y1="${padT}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+      <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+    </svg>`,
+    trLevels, priceLevels, trLevelsReal, priceLevelsReal, realN, n
+  };
+}
+
+function renderIndexHistory(key){
+  const idx = IDX[key];
+  const {svg, trLevels, priceLevels, trLevelsReal, priceLevelsReal, realN, n} = buildIndexHistorySVG(idx);
+  document.getElementById('historyChartSpi').innerHTML = svg;
+
+  const c = getComputedColor(idx.color);
+  const cr = getComputedColor('var(--amber)');
+  const legendEl = document.getElementById('historyLegendSpi');
+  let legendHtml = `<span><i style="background:${c}"></i>Total Return, nominal (mit Dividendenreinvestition)</span>` +
+    `<span><i style="background:${c};opacity:0.5"></i>Kursindex, nominal (ohne Dividendenreinvestition)</span>` +
+    `<span><i style="background:${cr}"></i>Total Return, real (inflationsbereinigt)</span>` +
+    `<span><i style="background:${cr};opacity:0.5"></i>Kursindex, real (inflationsbereinigt)</span>`;
+  if(realN < n) legendHtml += `<span><i style="background:repeating-linear-gradient(90deg, ${c} 0 4px, transparent 4px 8px)"></i>geschätzt (interpoliert)</span>`;
+  legendEl.innerHTML = legendHtml;
+
+  const trCagrReal = cagrFromLevels(trLevels.slice(0,realN));
+  const trVolReal = stdev(monthlyRetsPct(trLevels.slice(0,realN))) * Math.sqrt(12);
+  const priceCagrReal = cagrFromLevels(priceLevels.slice(0,realN));
+  const priceVolReal = stdev(monthlyRetsPct(priceLevels.slice(0,realN))) * Math.sqrt(12);
+  const trCagrDefl = cagrFromLevels(trLevelsReal.slice(0,realN));
+  const priceCagrDefl = cagrFromLevels(priceLevelsReal.slice(0,realN));
+
+  const statsEl = document.getElementById('historyStatsSpi');
+  statsEl.innerHTML =
+    `<div class="histstat">
+      <div class="histstat-label">Anfangswert</div>
+      <div class="histstat-val">${fmtNum(trLevels[0],0)}</div>
+      <div class="histstat-sub">${(function(){function mm(m){return String(m).padStart(2,'0');}return mm(idx.startM)+'/'+idx.startY;})()}</div>
+    </div>
+    <div class="histstat">
+      <div class="histstat-label">Endwert Total Return, nominal</div>
+      <div class="histstat-val" style="color:${c}">${fmtNum(trLevels[n-1],0)}</div>
+      <div class="histstat-sub">${fmtPct(trCagrReal,1)} p.a. (geometrisch)</div>
+    </div>
+    <div class="histstat">
+      <div class="histstat-label">Endwert Kursindex, nominal &mdash; ohne Dividendenreinvestition</div>
+      <div class="histstat-val" style="color:${c};opacity:0.7">${fmtNum(priceLevels[n-1],0)}</div>
+      <div class="histstat-sub">${fmtPct(priceCagrReal,1)} p.a. (geometrisch)</div>
+    </div>
+    <div class="histstat">
+      <div class="histstat-label">Endwert Total Return, real (inflationsbereinigt)</div>
+      <div class="histstat-val" style="color:${cr}">${fmtNum(trLevelsReal[n-1],0)}</div>
+      <div class="histstat-sub">${fmtPct(trCagrDefl,1)} p.a. (geometrisch)</div>
+    </div>
+    <div class="histstat">
+      <div class="histstat-label">Endwert Kursindex, real &mdash; ohne Dividendenreinvestition</div>
+      <div class="histstat-val" style="color:${cr};opacity:0.7">${fmtNum(priceLevelsReal[n-1],0)}</div>
+      <div class="histstat-sub">${fmtPct(priceCagrDefl,1)} p.a. (geometrisch)</div>
+    </div>`;
+
+  const hintEl = document.getElementById('historyHintSpi');
+  let hint = `Logarithmische Skala — gleich grosse Abstände entsprechen gleichen prozentualen Veränderungen. Grün = nominal, orange = real (inflationsbereinigt). Zeitraum echter Monatsdaten: ${(function(){function mm(m){return String(m).padStart(2,'0');}return mm(idx.startM)+'/'+idx.startY+'–'+mm(idx.realEndM)+'/'+idx.realEndY;})()}. ` +
+    `Total Return: ${fmtPct(trCagrReal,1)} p.a. nominal / ${fmtPct(trCagrDefl,1)} p.a. real, Volatilität ${fmtPct(trVolReal,1)}. ` +
+    `Kursindex (abgeleitet): ${fmtPct(priceCagrReal,1)} p.a. nominal / ${fmtPct(priceCagrDefl,1)} p.a. real, Volatilität ${fmtPct(priceVolReal,1)}.`;
+  if(realN < n) hint += ` Ab ${(function(){function mm(m){return String(m).padStart(2,'0');}return mm(idx.realEndM)+'/'+idx.realEndY;})()} (gestrichelt) sind die Werte anhand weniger echter Jahresendstände interpoliert, keine echten Monatsdaten — siehe Methodik.`;
+  hintEl.textContent = hint;
+}
+
+function renderHistory(){
+  renderIndexHistory('spi');
+}
+
+// =====================================================================
+// MONTE CARLO SIMULATION (annual steps; base mu/sigma from real monthly data)
+// =====================================================================
+function randNormal(){
+  let u=0,v=0;
+  while(u===0) u = Math.random();
+  while(v===0) v = Math.random();
+  return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+}
+// Fat-tail (leptokurtic) draw: Student-t with FAT_TAIL_DF degrees of freedom, rescaled to unit
+// variance so it can be plugged into "mean + vol*Z" exactly like the normal case — same mean and
+// volatility, only the shape (tail thickness / kurtosis) differs. See technical appendix.
+const FAT_TAIL_DF = 3;
+function randStudentT(df){
+  let chi2 = 0;
+  for(let i=0;i<df;i++){ const zi = randNormal(); chi2 += zi*zi; }
+  const z0 = randNormal();
+  return z0 / Math.sqrt(chi2/df);
+}
+function randFatTail(){
+  const t = randStudentT(FAT_TAIL_DF);
+  const scale = Math.sqrt(FAT_TAIL_DF/(FAT_TAIL_DF-2)); // Var(t_df) = df/(df-2)
+  return t / scale; // unit variance
+}
+function percentile(arr, p){
+  const sorted = [...arr].sort((a,b)=>a-b);
+  const idx = (sorted.length-1)*p;
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  if(lo===hi) return sorted[lo];
+  return sorted[lo] + (sorted[hi]-sorted[lo])*(idx-lo);
+}
+
+function refreshMcDefaults(){
+  const idx = IDX[state.simIdx];
+
+  // MC-Vorschlagswerte basieren auf den echten NOMINALEN Monatsrenditen (ohne interpolierten
+  // Endabschnitt). Bewusst nominal: die simulierte Rendite/Volatilität wächst als effektives
+  // Kapital; eine reale (kaufkraftbereinigte) Sicht auf das Ergebnis wird erst unten bei der
+  // Aktienprognose über die künftige Inflationsannahme hergestellt — so wird nicht doppelt
+  // für Inflation korrigiert.
+  const realN = idxRealN(idx);
+  const levels = currentSeries(idx, state.withDiv, false).slice(0, realN);
+  const cagr = cagrFromLevels(levels);
+  const vol = stdev(monthlyRetsPct(levels)) * Math.sqrt(12);
+
+  document.getElementById('expReturn').value = cagr.toFixed(1);
+  document.getElementById('vol').value = vol.toFixed(1);
+  document.getElementById('divYield').value = idx.divYield.toFixed(1);
+
+  const basisLabel = state.withDiv ? 'inkl. Dividende, Total Return' : 'exkl. Dividende, Kursrendite';
+  document.getElementById('retLabel').textContent = 'Erwartete Rendite p.a. (' + basisLabel + ')';
+
+  document.getElementById('inheritNote').innerHTML =
+    'Die Basiswerte unten sind aus den echten nominalen Monatsrenditen ' + idx.name + ' (' + fmtRealPeriod(idx) + '), <strong>' + (state.withDiv?'mit':'ohne') + ' Dividendenreinvestition</strong>, berechnet.';
+
+  document.getElementById('defaultsHint').textContent =
+    'Historische Basis (' + idx.name + ', ' + fmtRealPeriod(idx) + ', nominal): ' +
+    'Rendite ' + fmtPct(cagr,1) + ' p.a., Volatilität ' + fmtPct(vol,1) + ' p.a., Dividendenrendite ' + fmtPct(idx.divYield,1) + ' p.a. Alle Werte frei anpassbar.';
+}
+
+function getParams(){
+  const idx = IDX[state.simIdx];
+  return {
+    idx,
+    startCapital: parseFloat(document.getElementById('startCapital').value),
+    horizon: parseInt(document.getElementById('horizon').value),
+    expReturn: parseFloat(document.getElementById('expReturn').value)/100,
+    divYield: parseFloat(document.getElementById('divYield').value)/100,
+    vol: parseFloat(document.getElementById('vol').value)/100,
+    reinvest: state.withDiv,
+    dist: state.dist,
+    simReal: state.simReal,
+    simInflation: parseFloat(document.getElementById('simInflation').value)/100,
+    numSims: 10000
+  };
+}
+
+// Rechnet ein Simulationsergebnis bei Bedarf von nominalen auf reale (heutige Kaufkraft)
+// Kapitalwerte um, indem mit (1+Inflation)^Jahr abgezinst wird. Die Verlustschwelle bleibt
+// das eingesetzte (nominale) Startkapital, da dieses zum Zeitpunkt 0 bereits "heutiges Geld" ist.
+function applyRealDisplay(result, p){
+  if(!p.simReal || !(p.simInflation>0)) return result;
+  const bands = result.bands.map(b=>{
+    const f = Math.pow(1+p.simInflation, b.y);
+    return { y:b.y, p10:b.p10/f, p25:b.p25/f, p50:b.p50/f, p75:b.p75/f, p90:b.p90/f };
+  });
+  const fFinal = Math.pow(1+p.simInflation, p.horizon);
+  const finals = result.finals.map(v=>v/fFinal);
+  const lossCount = finals.filter(f=>f<p.startCapital).length;
+  return {
+    bands, finals,
+    lossProb: lossCount/finals.length,
+    medianFinal: percentile(finals,0.5),
+    p10Final: percentile(finals,0.10),
+    p90Final: percentile(finals,0.90)
+  };
+}
+
+function runSimulation(p){
+  const paths = [];
+  const finals = [];
+  const drawZ = p.dist==='fat' ? randFatTail : randNormal;
+  for(let run=0; run<p.numSims; run++){
+    let capital = p.startCapital;
+    const path = [capital];
+    for(let y=0;y<p.horizon;y++){
+      const z = drawZ();
+      const drawnR = p.expReturn + p.vol*z;
+      capital = Math.max(0, capital*(1+drawnR));
+      path.push(capital);
+    }
+    paths.push(path);
+    finals.push(capital);
+  }
+  const bands = [];
+  for(let y=0;y<=p.horizon;y++){
+    const vals = paths.map(pa=>pa[y]);
+    bands.push({y, p10:percentile(vals,0.10), p25:percentile(vals,0.25), p50:percentile(vals,0.50), p75:percentile(vals,0.75), p90:percentile(vals,0.90)});
+  }
+  const lossCount = finals.filter(f=>f<p.startCapital).length;
+  return {bands, finals, lossProb: lossCount/p.numSims, medianFinal: percentile(finals,0.5), p10Final: percentile(finals,0.10), p90Final: percentile(finals,0.90)};
+}
+
+function buildFanSVG(bands, startCapital, horizon){
+  const W=1000,H=420,padL=90,padR=104,padT=20,padB=44;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const years = bands.map(b=>b.y);
+  const xMin=years[0], xMax=years[years.length-1];
+  const allVals=[]; bands.forEach(b=>allVals.push(b.p10,b.p90,b.p25,b.p75,b.p50));
+  const rawMax = Math.max(...allVals);
+  const positiveVals = allVals.filter(v=>v>0);
+  const rawMinPositive = positiveVals.length ? Math.min(...positiveVals) : rawMax;
+  let yMaxDomain = rawMax*1.08;
+  let yMinDomain = Math.max(rawMinPositive/1.15, rawMax*1e-4, Math.max(startCapital,1)*1e-4, 1);
+  if(yMaxDomain <= yMinDomain*1.05) yMaxDomain = yMinDomain*2;
+  const x = yr => padL + (xMax>xMin ? (yr-xMin)/(xMax-xMin) : 0)*innerW;
+  const y = val => { const v=Math.max(val, yMinDomain); return padT + innerH - (Math.log(v/yMinDomain)/Math.log(yMaxDomain/yMinDomain))*innerH; };
+
+  function pathBand(top,bottom){
+    let d='M'+x(bands[0].y)+','+y(bands[0][top]);
+    for(let i=1;i<bands.length;i++) d+=' L'+x(bands[i].y)+','+y(bands[i][top]);
+    for(let i=bands.length-1;i>=0;i--) d+=' L'+x(bands[i].y)+','+y(bands[i][bottom]);
+    return d+' Z';
+  }
+  function pathLine(key){
+    let d='M'+x(bands[0].y)+','+y(bands[0][key]);
+    for(let i=1;i<bands.length;i++) d+=' L'+x(bands[i].y)+','+y(bands[i][key]);
+    return d;
+  }
+  let gridY='', labelsY='';
+  const yTicksFan = niceAxisTicks(yMinDomain, yMaxDomain, 6);
+  yTicksFan.forEach(val => {
+    const yy = y(val);
+    gridY += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#e5e8ed" stroke-width="1"/>`;
+    labelsY += `<text x="${padL-12}" y="${yy+6}" text-anchor="end" font-size="16" font-weight="700" fill="#33415c">${fmtCompact(val)}</text>`;
+  });
+  labelsY += `<text x="${padL}" y="${padT-8}" text-anchor="start" font-size="12.5" font-weight="700" fill="#7c8494">Kapital</text>`;
+  labelsY += `<text x="${W-padR}" y="${padT-8}" text-anchor="end" font-size="12.5" font-weight="700" fill="#7c8494">Endwerte</text>`;
+
+  // Endwerte der Perzentilbänder am Ende des Anlagehorizonts, rechts an der jeweiligen Linie.
+  const lastBand = bands[bands.length-1];
+  const endPoints = [
+    {val:lastBand.p90, color:'#2f5fa8', opacity:0.55, weight:700},
+    {val:lastBand.p75, color:'#2f5fa8', opacity:0.8,  weight:700},
+    {val:lastBand.p50, color:'#2f5fa8', opacity:1,    weight:800},
+    {val:lastBand.p25, color:'#2f5fa8', opacity:0.8,  weight:700},
+    {val:lastBand.p10, color:'#2f5fa8', opacity:0.55, weight:700},
+  ];
+  endPoints.forEach(p => p.yy = y(p.val));
+  endPoints.sort((a,b)=>a.yy-b.yy);
+  const minGapFan = 17;
+  for(let i=1;i<endPoints.length;i++){
+    if(endPoints[i].yy - endPoints[i-1].yy < minGapFan) endPoints[i].yy = endPoints[i-1].yy + minGapFan;
+  }
+  let endLabelsFan = '';
+  endPoints.forEach(p => {
+    endLabelsFan += `<text x="${W-padR+12}" y="${p.yy+5}" text-anchor="start" font-size="14.5" font-weight="${p.weight}" fill="${p.color}" opacity="${p.opacity}">${fmtCompact(p.val)}</text>`;
+  });
+
+  let gridX='', labelsX='';
+  const step = Math.max(1, Math.round((xMax-xMin)/8));
+  for(let yv=xMin; yv<=xMax; yv+=step){
+    const xx=x(yv);
+    gridX += `<line x1="${xx}" y1="${padT}" x2="${xx}" y2="${H-padB}" stroke="#e5e8ed" stroke-width="0.5"/>`;
+    labelsX += `<text x="${xx}" y="${H-padB+26}" text-anchor="middle" font-size="15" font-weight="700" fill="#33415c">Jahr ${yv}</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;">
+    ${gridY}${gridX}
+    <path d="${pathBand('p90','p10')}" fill="rgba(47,95,168,0.13)" stroke="none"/>
+    <path d="${pathBand('p75','p25')}" fill="rgba(47,95,168,0.28)" stroke="none"/>
+    <path d="${pathLine('p50')}" fill="none" stroke="#2f5fa8" stroke-width="2.5"/>
+    ${labelsY}${labelsX}
+    ${endLabelsFan}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#c7cdd7"/>
+    <line x1="${W-padR}" y1="${padT}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+  </svg>`;
+}
+
+function buildHistSVG(finals, startCapital){
+  const W=1000,H=260,padL=64,padR=64,padT=16,padB=44;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const maxV = Math.max(...finals), minV = Math.min(...finals);
+  const buckets = 30;
+  const bw = (maxV-minV)/buckets || 1;
+  const counts = new Array(buckets).fill(0);
+  finals.forEach(f=>{
+    let b = Math.floor((f-minV)/bw);
+    if(b>=buckets) b=buckets-1; if(b<0) b=0;
+    counts[b]++;
+  });
+  const maxCount = Math.max(...counts);
+  const barW = innerW/buckets;
+  let bars='';
+  for(let i=0;i<buckets;i++){
+    const bh = (counts[i]/maxCount)*innerH;
+    const bx = padL+i*barW, by = padT+innerH-bh;
+    const bucketMid = minV + (i+0.5)*bw;
+    const col = bucketMid < startCapital ? '#c0392b' : '#2f5fa8';
+    bars += `<rect x="${bx+1}" y="${by}" width="${Math.max(1,barW-2)}" height="${bh}" fill="${col}" opacity="0.75" rx="1.5"><title>${fmtNum(bucketMid,0)}: ${counts[i]} Läufe</title></rect>`;
+  }
+  let labelsX='';
+  [0,0.25,0.5,0.75,1].forEach(f=>{
+    const val = minV + f*(maxV-minV);
+    const xx = padL + f*innerW;
+    labelsX += `<text x="${xx}" y="${H-padB+24}" text-anchor="middle" font-size="14.5" font-weight="700" fill="#33415c">${fmtNum(val,0)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;">
+    ${bars}${labelsX}
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+  </svg>`;
+}
+
+// Static illustrative comparison of the two density curves used in the technical appendix.
+// Normal pdf: standard formula. Student-t (df=3) pdf: closed-form constant precomputed for df=3.
+function buildDistCompareSVG(){
+  const W=1000,H=280,padL=60,padR=40,padT=20,padB=44;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const zMin=-4.5, zMax=4.5;
+  function normalPdf(z){ return Math.exp(-z*z/2)/Math.sqrt(2*Math.PI); }
+  const T_CONST = 0.367552; // Gamma(2)/(sqrt(3*pi)*Gamma(1.5)) for df=3
+  function tPdf5(z){ return T_CONST * Math.pow(1+(z*z)/FAT_TAIL_DF, -2); }
+  const yMax = normalPdf(0)*1.12;
+  const x = z => padL + ((z-zMin)/(zMax-zMin))*innerW;
+  const y = v => padT + innerH - (v/yMax)*innerH;
+  const steps = 200;
+  function pathFor(fn){
+    let d='';
+    for(let i=0;i<=steps;i++){
+      const z = zMin + (zMax-zMin)*i/steps;
+      const xx = x(z), yy = y(fn(z));
+      d += (i===0?'M':' L')+xx+','+yy;
+    }
+    return d;
+  }
+  let gridX='', labelsX='';
+  for(let z=zMin; z<=zMax; z+=1){
+    const xx = x(z);
+    gridX += `<line x1="${xx}" y1="${padT}" x2="${xx}" y2="${H-padB}" stroke="#e5e8ed" stroke-width="0.5"/>`;
+    labelsX += `<text x="${xx}" y="${H-padB+22}" text-anchor="middle" font-size="13" font-weight="700" fill="#33415c">${z>0?'+':''}${z}&sigma;</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;">
+    ${gridX}
+    <path d="${pathFor(tPdf5)}" fill="none" stroke="#c0392b" stroke-width="2.8"/>
+    <path d="${pathFor(normalPdf)}" fill="none" stroke="#2f5fa8" stroke-width="2.8"/>
+    ${labelsX}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#c7cdd7"/>
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#c7cdd7"/>
+  </svg>`;
+}
+
+function buildExplanation(result, p){
+  const lossPct = result.lossProb*100;
+  const idx = IDX[state.simIdx];
+  const years = p.horizon;
+  const cagrMedian = (Math.pow(result.medianFinal/p.startCapital, 1/years)-1)*100;
+
+  let lead;
+  if(lossPct < 5) lead = 'Das Verlustrisiko über diesen Anlagehorizont ist gemäss den gewählten Annahmen gering.';
+  else if(lossPct < 20) lead = 'Ein gewisses Verlustrisiko bleibt über diesen Anlagehorizont bestehen, ist aber begrenzt.';
+  else lead = 'Über diesen Anlagehorizont besteht gemäss den gewählten Annahmen ein spürbares Verlustrisiko.';
+
+  const distNote = p.dist==='fat' ? ' unter der Fat-Tail-Verteilungsannahme (siehe technischer Anhang)' : ' unter der Normalverteilungsannahme';
+  const realNote = p.simReal
+    ? ` Alle Kapitalwerte sind <strong>real</strong> dargestellt, d.h. mit einer angenommenen künftigen Inflation von ${fmtPct(p.simInflation*100,1)} p.a. auf die Kaufkraft von heute abgezinst.`
+    : '';
+  const p1 = `Ausgehend von ${fmtMoney(p.startCapital, idx.currency)} und einem Anlagehorizont von <strong>${years} Jahren</strong> wurden ${fmtNum(p.numSims,0)} zufällige Zukunftsszenarien für ${idx.name} durchgerechnet${distNote}, basierend auf einer erwarteten Rendite von ${fmtPct(p.expReturn*100,1)} p.a. und einer Volatilität von ${fmtPct(p.vol*100,1)} p.a. Im mittleren Szenario (Median) wächst das Kapital auf <strong>${fmtMoney(result.medianFinal, idx.currency)}</strong>, was einer annualisierten Rendite von ${fmtPct(cagrMedian,1)} entspricht.${realNote}`;
+
+  const p2 = `In den ungünstigsten 10% der Simulationsläufe liegt der Endwert bei oder unter <strong>${fmtMoney(result.p10Final, idx.currency)}</strong>, in den günstigsten 10% bei oder über <strong>${fmtMoney(result.p90Final, idx.currency)}</strong>. In <strong>${fmtPct(lossPct,1)}</strong> aller Läufe liegt der Endwert unter dem eingesetzten Startkapital von ${fmtMoney(p.startCapital, idx.currency)}. ${lead}`;
+
+  const p3 = `Diese Bandbreite zeigt: Selbst bei einer über Jahrzehnte im Mittel soliden erwarteten Rendite kann das tatsächliche Ergebnis je nach Verlauf der Börsenjahre stark variieren. Je länger der Anlagehorizont, desto mehr gleichen sich gute und schlechte Jahre im Durchschnitt aus &mdash; ein kurzer Horizont bei hoher Volatilität führt dagegen zu einer entsprechend breiteren Ergebnisspanne.`;
+
+  return `<p>${p1}</p><p>${p2}</p><p>${p3}</p>`;
+}
+
+function runSingle(){
+  const p = getParams();
+  const rawResult = runSimulation(p);
+  const result = applyRealDisplay(rawResult, p);
+  const realSuffix = p.simReal ? ' · real (heutige Kaufkraft)' : ' · nominal';
+
+  document.getElementById('kpiMedian').textContent = fmtMoney(result.medianFinal, p.idx.currency);
+  document.getElementById('kpiMedianSub').textContent = 'nach ' + p.horizon + ' Jahren' + realSuffix;
+  document.getElementById('kpiRange').textContent = fmtNum(result.p10Final,0) + ' – ' + fmtMoney(result.p90Final, p.idx.currency);
+  const cagrMedian = (Math.pow(result.medianFinal/p.startCapital, 1/p.horizon)-1)*100;
+  document.getElementById('kpiCagr').textContent = fmtPct(cagrMedian,1);
+  document.getElementById('kpiLoss').textContent = fmtPct(result.lossProb*100,1);
+
+  const histTitleEl = [...document.querySelectorAll('.section-title')].find(el=>el.textContent.indexOf('Verteilung der Endwerte')===0);
+  if(histTitleEl) histTitleEl.textContent = 'Verteilung der Endwerte nach ' + p.horizon + ' Jahren';
+
+  const badgeEl = document.getElementById('simRealBadge');
+  if(badgeEl){
+    badgeEl.innerHTML = p.simReal
+      ? 'Darstellung: <strong>Real</strong> &mdash; künftige Kapitalwerte abgezinst mit angenommener Inflation von ' + fmtPct(p.simInflation*100,1) + ' p.a. (heutige Kaufkraft).'
+      : 'Darstellung: <strong>Nominal</strong> &mdash; künftige Kapitalwerte in effektiven Franken, ohne Abzinsung.';
+  }
+
+  document.getElementById('fanChart').innerHTML = buildFanSVG(result.bands, p.startCapital, p.horizon);
+  document.getElementById('histChart').innerHTML = buildHistSVG(result.finals, p.startCapital);
+  document.getElementById('explanation').innerHTML = buildExplanation(result, p);
+}
+
+// =====================================================================
+// WIRING
+// =====================================================================
+function updateFill(el){
+  const min = parseFloat(el.min), max = parseFloat(el.max), val = parseFloat(el.value);
+  const pct = max>min ? ((val-min)/(max-min))*100 : 0;
+  el.style.background = `linear-gradient(to right, var(--blue) ${pct}%, #e4e6eb ${pct}%)`;
+}
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  updateFill(el);
+  el.addEventListener('input', ()=>updateFill(el));
+});
+document.getElementById('startCapital').addEventListener('input', function(){
+  document.getElementById('startCapitalBig').textContent = fmtNum(Number(this.value),0);
+});
+document.getElementById('horizon').addEventListener('input', function(){
+  document.getElementById('horizonVal').textContent = this.value + ' Jahre';
+});
+
+document.getElementById('runBtn').addEventListener('click', runSingle);
+
+function refreshAll(){
+  renderHistory();
+  refreshMcDefaults();
+}
+
+// ---------- Splash / App-Startbildschirm ----------
+document.getElementById('tileEnter').addEventListener('click', ()=>{
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('app').classList.remove('hidden');
+  init();
+});
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('splash').style.display = 'flex';
+});
+
+let initialized = false;
+function init(){
+  if(initialized) return;
+  initialized = true;
+  refreshAll();
+  runSingle();
+  document.getElementById('distCompareChart').innerHTML = buildDistCompareSVG();
+}
+</script>
+</body>
+</html>
