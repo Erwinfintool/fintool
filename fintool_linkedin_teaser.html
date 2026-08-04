@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fintool — Finanzmathematik Teaser</title>
+  <style>
+    :root { --brand:#c0392b; --brand-dark:#962d22; --paper:#fafaf8; --text:#222; --muted:#666; --border:#e0ddd8; --ui-dark:#111; --formula-bg:#fff5f5; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100vh;background:#1a1a1a;font-family:Georgia,'Times New Roman',serif;overflow:hidden;display:flex;flex-direction:column;}
+    #topbar{background:var(--ui-dark);padding:10px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--brand);flex-shrink:0;}
+    #topbar .brand{font-family:sans-serif;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--brand);font-weight:bold;}
+    #topbar .booktitle{font-size:14px;color:#ddd;}
+    #stage{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 16px 0;overflow:hidden;}
+    .page{display:none;width:780px;max-width:96vw;height:calc(100vh - 118px);background:var(--paper);border-radius:2px;box-shadow:0 8px 40px rgba(0,0,0,.6);padding:40px 64px 28px;flex-direction:column;}
+    .page.active{display:flex;}
+    .page-body{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+    .chapter-label{font-family:sans-serif;font-size:10px;color:var(--brand);text-transform:uppercase;letter-spacing:.2em;margin-bottom:8px;display:block;}
+    h1{font-size:19px;color:#111;font-weight:normal;line-height:1.3;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--brand);}
+    h2{font-size:14px;color:var(--brand);font-weight:bold;margin:22px 0 10px;text-transform:uppercase;letter-spacing:.04em;font-family:sans-serif;}
+    p{font-size:14.5px;line-height:1.75;color:var(--text);margin-bottom:12px;}
+    sup,sub{font-size:75%;line-height:0;position:relative;vertical-align:baseline;}
+    sup{top:-.4em;} sub{bottom:-.25em;}
+    .formula{background:var(--formula-bg);border-left:3px solid var(--brand);padding:10px 16px;margin:12px 0;font-family:'Courier New',monospace;font-size:14px;color:#222;border-radius:0 3px 3px 0;line-height:1.5;}
+    .formula.big{font-size:20px;padding:18px 24px;text-align:center;margin:20px 0;}
+    .video-btn{display:flex;align-items:center;gap:12px;background:var(--brand);color:white;border:none;padding:10px 16px;margin:12px 0;cursor:pointer;border-radius:3px;font-family:Georgia,serif;font-size:14px;transition:background .15s;width:100%;max-width:500px;}
+    .video-btn:hover{background:var(--brand-dark);}
+    .play-icon{width:30px;height:30px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;padding-left:2px;}
+    .btn-text{display:flex;flex-direction:column;text-align:left;}
+    .btn-label{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.12em;font-family:sans-serif;margin-bottom:1px;}
+    .btn-title{font-size:13px;}
+    .page-footer{flex-shrink:0;border-top:1px solid var(--border);padding-top:9px;margin-top:14px;display:flex;justify-content:space-between;font-family:sans-serif;font-size:10px;color:#bbb;}
+    .page-footnote{flex-shrink:0;font-size:10.5px;color:#666;line-height:1.55;border-top:1px solid var(--border);padding-top:7px;margin-top:10px;}
+    .fn-page-ref{color:#222;font-size:11px;vertical-align:super;font-weight:600;}
+    /* Cover */
+    #fp-cover{padding:0;}
+    .cover-inner{height:100%;display:flex;flex-direction:column;justify-content:center;padding:64px 72px;background:#fff;border-left:6px solid var(--brand);}
+    .cover-brand{font-family:sans-serif;font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--brand);margin-bottom:48px;font-weight:bold;}
+    .cover-author{font-size:15px;color:var(--muted);font-style:italic;margin-bottom:12px;}
+    .cover-title{font-size:38px;line-height:1.15;color:#111;margin-bottom:16px;max-width:480px;}
+    .cover-subtitle{font-size:14px;color:var(--muted);font-style:italic;margin-bottom:52px;max-width:380px;line-height:1.6;}
+    .cover-rule{width:48px;height:3px;background:var(--brand);margin-bottom:28px;}
+    .cover-tagline{font-size:13.5px;color:#555;line-height:2;}
+    /* TOC */
+    .toc-entry{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border);}
+    .toc-entry.ch{font-weight:bold;} .toc-entry .toc-name{color:#111;}
+    .toc-arrow{font-size:11px;color:var(--brand);opacity:.5;}
+    /* Promo */
+    .promo-text{font-size:22px;line-height:1.65;color:#111;max-width:560px;margin-bottom:32px;}
+    .promo-detail{font-size:15px;color:#555;font-style:italic;line-height:1.9;}
+    .cta{display:inline-block;margin-top:36px;background:var(--brand);color:white;padding:14px 32px;font-family:sans-serif;font-size:13px;letter-spacing:.08em;border-radius:3px;text-decoration:none;}
+    /* Nav */
+    #nav{background:var(--ui-dark);padding:10px 28px;display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0;border-top:3px solid var(--brand);}
+    #nav button{background:transparent;color:#ccc;border:1px solid #444;padding:6px 20px;cursor:pointer;border-radius:2px;font-size:12px;font-family:sans-serif;min-width:90px;transition:all .15s;}
+    #nav button:hover:not(:disabled){background:var(--brand);border-color:var(--brand);color:white;}
+    #nav button:disabled{opacity:.2;cursor:default;}
+    #slide-label{color:#666;font-family:sans-serif;font-size:11px;min-width:220px;text-align:center;}
+    #progress{position:fixed;top:0;left:0;height:3px;background:var(--brand);transition:width .3s ease;z-index:999;}
+    /* Modal */
+    #video-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;}
+    #video-modal.open{display:flex;}
+    #modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.9);}
+    #modal-box{position:relative;z-index:1;background:#0a0a0a;border-radius:3px;overflow:hidden;width:min(92vw,960px);box-shadow:0 24px 80px rgba(0,0,0,.95);}
+    #modal-head{background:var(--brand);color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
+    #modal-head span{font-size:13px;font-family:sans-serif;}
+    #modal-close{background:none;border:none;color:rgba(255,255,255,.75);font-size:20px;cursor:pointer;padding:0 2px;}
+    #modal-close:hover{color:white;}
+    #video-player{width:100%;display:block;max-height:72vh;background:#000;}
+  </style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="topbar">
+  <div><div class="brand">Fintool · Lehrbuch</div><div class="booktitle">Einführung in die Finanzmathematik für Einsteiger</div></div>
+  <div style="font-family:sans-serif;font-size:10px;color:#555;">Erwin W. Heri</div>
+</div>
+<div id="stage">
+
+  <!-- COVER -->
+  <div class="page" id="fp-cover">
+    <div class="cover-inner">
+      <div class="cover-brand">Fintool · Lehrbuch</div>
+      <div class="cover-author">Erwin W. Heri</div>
+      <div class="cover-title">Einführung in die<br>Finanzmathematik<br>für Einsteiger</div>
+      <div class="cover-subtitle">Die mathematischen Grundlagen der Geldanlage — verständlich erklärt.</div>
+      <div class="cover-rule"></div>
+      <div class="cover-tagline">Zinseszins · Barwert · Anleihen · Risiko<br>Portfoliotheorie · Bewertungskennzahlen</div>
+    </div>
+  </div>
+
+  <!-- PAGES 1-5 FROM FLIPBOOK -->
+  <div class="page" id="fp-1" data-chapter="Inhaltsverzeichnis">
+<div class="page-body">
+  <h1>Inhaltsverzeichnis</h1>
+  <div class="toc-entry ch" onclick="goToPage(2)">
+    <span class="toc-name">Vorwort: Warum Finanzmathematik für alle?</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(4)">
+    <span class="toc-name">Kapitel 1 — Zinseszins: Die Grundformel der Geldanlage</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(14)">
+    <span class="toc-name">Kapitel 2 — Finanzgrafiken richtig lesen: Die logarithmische Skala</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(18)">
+    <span class="toc-name">Kapitel 3 — Rendite messen: Diskret, stetig, zeit- und geldgewichtet</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(27)">
+    <span class="toc-name">Kapitel 4 — Der Wert des Geldes in der Zeit: Barwert und Diskontierung</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(33)">
+    <span class="toc-name">Kapitel 5 — Anleihen: Duration und Zinsänderungsrisiko</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(37)">
+    <span class="toc-name">Kapitel 6 — Risiko messen: Volatilität, Normalverteilung, Fat Tails</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(44)">
+    <span class="toc-name">Kapitel 7 — Aktienbewertung: Von PE bis CAPE</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(49)">
+    <span class="toc-name">Kapitel 8 — Portfoliotheorie, CAPM und Kapitalmarktlinie</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(52)">
+    <span class="toc-name">Abschluss: Was die Formeln leisten — und was nicht</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(54)">
+    <span class="toc-name">Formelreferenz: Die wichtigsten Gleichungen im Überblick</span><span class="toc-arrow">→</span>
+  </div>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>1</span>
+</div>
+</div>
+  <div class="page" id="fp-2" data-chapter="Vorwort">
+<div class="page-body">
+  <span class="chapter-label">Vorwort</span>
+  <h1>Vorwort: Warum Finanzmathematik für alle?</h1>
+  <p>Geldanlage ist keine Geheimwissenschaft. Wer weiss, wie die grundlegenden Formeln funktionieren, hat einen entscheidenden Vorteil: Er kann mitdenken. Er kann Behauptungen prüfen. Er kann erkennen, wenn ihm jemand etwas verkaufen will, das sich nicht rechnet.</p>
+  <p>Dieses Buch, das auf der Grundlage der Wissensplattform fintool.ch entstanden ist, ist für Menschen geschrieben, die keine Mathematiker sind — und es auch nicht werden wollen. Voraussetzung ist lediglich: Grundrechenarten und die Bereitschaft, eine Gleichung nicht als Bedrohung, sondern als abgekürzte Sprache zu betrachten. Eine Formel ist nichts anderes als ein Satz, der in Symbolen statt in Worten geschrieben ist. Einmal verstanden, sagt sie oft mehr als drei Absätze Text.</p>
+  <p>Jedes Kapitel beginnt mit der Frage: Warum ist das wichtig? Dann kommt das Werkzeug — die Formel, mit konkreten Zahlen erklärt. Dann die Verbindung zur realen Welt: Wo begegnet uns das? Was bedeutet es praktisch? Ergänzende Videos vertiefen die Konzepte und zeigen sie in Aktion.<sup class="fn-page-ref">*</sup></p>
+</div>
+<div class="page-footnote"><sup class="fn-page-ref">*</sup> Wenn Sie finden, die Referenten würden in den jeweiligen Videos zu langsam oder zu schnell sprechen, können Sie die Sprechgeschwindigkeit unten rechts verändern.</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>2</span>
+</div>
+</div>
+  <div class="page" id="fp-3" data-chapter="Vorwort">
+<div class="page-body">
+  <span class="chapter-label">Vorwort · Fortsetzung</span>
+  <p>Der rote Faden des Buchs ist eine einzige Gleichung. Wer am Ende diese eine Gleichung wirklich verstanden hat, versteht damit die Hälfte der gesamten Finanzwirtschaft. Alle anderen Konzepte — Barwert, Duration, Aktienbewertung, Portfoliotheorie — sind Variationen und Erweiterungen davon. Die Gleichung lautet:</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Kapital wächst. Zeit schlägt Rendite. Kosten fressen still und leise. Das sind drei der Lektionen der Finanzmathematik. Alle drei folgen direkt aus dieser Formel. Der Rest ist Konsequenz.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>3</span>
+</div>
+</div>
+  <div class="page" id="fp-4" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1</span>
+  <h1>Kapitel 1 — Zinseszins: Die Grundformel der Geldanlage</h1>
+  <p>Stellen wir uns vor, jemand legt 100 Franken an — und erhält jedes Jahr 8% Rendite. Nach einem Jahr hat er 108 Franken. Soweit klar. Aber was passiert im zweiten Jahr? Nicht nur das ursprüngliche Kapital trägt Zins — auch die 8 Franken des ersten Jahres werden verzinst. Das ist der Zinseszins: Zins auf Zins.</p>
+  <p>Die allgemeine Formel: Kapital K<sub>0</sub> wird zu K<sub>n</sub> nach n Jahren bei einer jährlichen Rendite r:</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Konkret: 100 Franken zu 8% wachsen in 10 Jahren auf 100 × 1.08<sup>10</sup> = 215.89 Franken. In 20 Jahren auf 466.10 Franken. In 30 Jahren auf 1’006.27 Franken. In 40 Jahren auf 2’172.45 Franken. Die letzten zehn Jahre bringen mehr als die gesamten ersten 30 zusammen. Das ist der Exponent in Aktion.</p>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>4</span>
+</div>
+</div>
+  <div class="page" id="fp-5" data-chapter="Kapitel 1">
+<div class="page-body">
+  <span class="chapter-label">Kapitel 1 · Fortsetzung</span>
+  <p>Zum Vergleich: Ohne Zinseszins — also nur mit einfachem Zins auf das Startkapital — wären es nach 40 Jahren: 100 + 40 × 8 = 420 Franken. Mit Zinseszins: 2’172 Franken. Der Unterschied ist nicht ein bisschen mehr, er ist ein fundamentaler Unterschied der Grössenordnung. Zeit und Zinseszins sind das mächtigste Duo der Finanzwelt.</p>
+  <p>Der Unterschied zwischen 2% und 8% Jahresrendite nach 40 Jahren: 220 vs. 2’172 Franken — ein Faktor von fast 10. Sechs Prozentpunkte Unterschied im Zinssatz ergeben, über 40 Jahre aufgezinst, einen Faktor von fast 10 im Endvermögen. Das erklärt, warum Kostenunterschiede von 1 bis 2 Prozentpunkten pro Jahr bei Anlageprodukten über lange Zeiträume so bedeutsam sind. Der Zinseszins arbeitet sowohl für den Anleger als auch für den Produktanbieter.</p>
+  <button class="video-btn" onclick="playVideo('v31')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 31</span><span class="btn-title">Zinseszinsformel: Grundgedanke</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Einführung in die Finanzmathematik für Einsteiger</span>
+  <span>5</span>
+</div>
+</div>
+
+  <!-- PROMO -->
+  <div class="page" id="fp-promo">
+    <div class="cover-inner">
+      <div class="cover-brand">Fintool · Premium</div>
+      <div class="promo-text">Leider ist das gesamte Flip-Lehrbuch zur Einführung in die Finanzmathematik nur für Premium Members von Fintool umsonst.</div>
+      <div class="promo-detail">
+        Sie können ein Membership für <strong>CHF 10 pro Monat</strong> erwerben
+        (der erste Monat des Abos ist umsonst und kann nachher jederzeit gekündigt werden).<br>
+        Dann ist es auch für Sie umsonst.<br><br>
+        <strong>60 Seiten · 29 Kurzvideos</strong>
+      </div>
+      <a class="cta" href="https://fintool.ch/registrieren" target="_blank">fintool.ch → Membership</a>
+    </div>
+  </div>
+
+</div>
+<div id="nav">
+  <button id="btn-back" onclick="go(-1)" disabled>← Zurück</button>
+  <span id="slide-label"></span>
+  <button id="btn-fwd" onclick="go(1)">Weiter →</button>
+</div>
+<div id="video-modal">
+  <div id="modal-backdrop" onclick="closeVideo()"></div>
+  <div id="modal-box">
+    <div id="modal-head"><span id="modal-title">Video</span><button id="modal-close" onclick="closeVideo()">✕</button></div>
+    <video id="video-player" controls playsinline></video>
+  </div>
+</div>
+<script>
+  const VIDEO_URLS = { v31: 'https://www.dropbox.com/scl/fi/krefk28mfgyox0ywlct1u/0031-T-Zineszins-Grundgedanken.mp4?rlkey=gpb4vaxf9062yap8xokueto3a&st=lo3tpkhb&raw=1' };
+  const VIDEO_TITLES = { v31: 'Zinseszinsformel: Grundgedanke' };
+  const slides = ['fp-cover','fp-1','fp-2','fp-3','fp-4','fp-5','fp-promo'].map(id=>document.getElementById(id));
+  const labels = ['Cover','Inhaltsverzeichnis','Vorwort','Vorwort · Fortsetzung','Kapitel 1','Kapitel 1 · Fortsetzung','● Fintool Membership'];
+  let cur = 0;
+  function show(i){
+    slides.forEach(s=>s.classList.remove('active'));
+    slides[i].classList.add('active'); cur=i;
+    document.getElementById('progress').style.width=(i/(slides.length-1)*100)+'%';
+    document.getElementById('slide-label').textContent=labels[i];
+    document.getElementById('btn-back').disabled=(i===0);
+    document.getElementById('btn-fwd').textContent=i<slides.length-1?'Weiter →':'↺ Neustart';
+  }
+  function go(dir){const n=cur+dir;if(n>=0&&n<slides.length)show(n);else if(n>=slides.length)show(0);}
+  document.addEventListener('keydown',e=>{
+    if(e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();go(1);}
+    if(e.code==='ArrowLeft')go(-1);
+    if(e.code==='Escape')closeVideo();
+  });
+  function playVideo(key){
+    const url=VIDEO_URLS[key],title=VIDEO_TITLES[key]||key;
+    if(!url)return;
+    document.getElementById('modal-title').textContent=title;
+    const p=document.getElementById('video-player');
+    p.src=url;p.load();
+    document.getElementById('video-modal').classList.add('open');
+  }
+  function closeVideo(){
+    const p=document.getElementById('video-player');
+    p.pause();p.src='';
+    document.getElementById('video-modal').classList.remove('open');
+  }
+  show(0);
+</script>
+</body>
+</html>
