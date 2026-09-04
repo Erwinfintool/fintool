@@ -1,1 +1,685 @@
-cat ~/Downloads/inflationsrechner.html | pbcopy
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inflationsrechner | Fintool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark:  #2C3E7A;
+    --blue-mid:   #3D5498;
+    --blue-light: #5B73B8;
+    --blue-bg:    #EEF1FA;
+    --red:        #C0392B;
+    --red-light:  #E8A09A;
+    --aktien:     #1A6B3A;
+    --aktien-bg:  #E8F5EE;
+    --grey-50:    #F8F9FB;
+    --grey-100:   #ECEEF2;
+    --grey-300:   #C4C8D0;
+    --grey-500:   #7A8090;
+    --grey-800:   #1A1D24;
+    --white:      #FFFFFF;
+    --radius:     14px;
+    --radius-sm:  8px;
+    --shadow:     0 4px 24px rgba(44,62,122,0.10);
+    --shadow-sm:  0 2px 8px rgba(44,62,122,0.08);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--grey-50);
+    color: var(--grey-800);
+    min-height: 100vh;
+  }
+
+  /* ── SPLASH SCREEN ── */
+  #splash { min-height: 100vh; padding: 40px 16px 60px; background: var(--grey-50); }
+  .splash-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 8px 8px; }
+  .intro-text p { font-size: 14px; line-height: 1.65; color: var(--grey-800); margin-bottom: 14px; }
+  .intro-text p:last-child { margin-bottom: 0; }
+
+  .section.cta-tile { cursor: pointer; background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid)); border: none; transition: transform .15s, box-shadow .15s; }
+  .section.cta-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(44,62,122,0.30); }
+  .section.cta-tile:active { transform: translateY(0); }
+  .cta-tile-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 20px; }
+  .cta-tile-title { color: var(--white); font-size: 17px; font-weight: 700; }
+  .cta-tile-sub { color: rgba(255,255,255,0.75); font-size: 12px; margin-top: 4px; }
+  .cta-tile-arrow { color: var(--white); font-size: 26px; font-weight: 700; flex-shrink: 0; transition: transform .2s; }
+
+  .tile-click .cta-tile-inner { padding: 18px 20px; cursor: pointer; transition: background .15s; }
+  .tile-click .cta-tile-inner:hover { background: var(--grey-50); }
+  .tile-click.open .cta-tile-arrow { transform: rotate(180deg); }
+
+  .splash-eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--blue-mid); text-transform: uppercase; margin-bottom: 20px; }
+  .splash-eyebrow span { opacity: 0.4; margin: 0 8px; }
+
+  .splash-title { font-size: clamp(28px, 6vw, 42px); font-weight: 300; color: var(--grey-800); line-height: 1.1; margin-bottom: 8px; letter-spacing: -1px; }
+  .splash-title strong { font-weight: 800; }
+
+  /* ── APP SCREEN ── */
+  #app { display: none; }
+  .app-header { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%); padding: 16px 20px 14px; display: flex; align-items: center; justify-content: space-between; }
+  .app-header-left { display: flex; align-items: center; gap: 12px; }
+  .app-logo { width: 36px; height: 36px; background: var(--white); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .app-logo svg { width: 22px; height: 22px; }
+  .app-title { color: var(--white); font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .app-sub { color: rgba(255,255,255,0.65); font-size: 11px; margin-top: 1px; }
+  .btn-back { background: rgba(255,255,255,0.15); border: none; color: var(--white); font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: background .15s; }
+  .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+  .red-bar { background: var(--red); height: 4px; }
+
+  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden; }
+  .section-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--grey-100); display: flex; align-items: center; gap: 10px; }
+  .section-header-icon { font-size: 16px; }
+  .section-header-title { font-size: 13px; font-weight: 700; color: var(--grey-800); }
+  .section-header-sub { font-size: 11px; color: var(--grey-500); margin-top: 1px; }
+  .section-body { padding: 16px 18px; }
+
+  /* ── PART SWITCH ── */
+  .part-switch-wrap { padding: 6px; }
+  .part-switch { display: flex; background: var(--grey-50); border: 1.5px solid var(--grey-100); border-radius: var(--radius-sm); padding: 4px; gap: 4px; }
+  .part-switch button { flex: 1; border: none; background: transparent; padding: 13px 10px; font-size: 13px; font-weight: 700; color: var(--grey-500); border-radius: 7px; cursor: pointer; transition: all .15s; text-align: left; }
+  .part-switch button .ps-num { display: block; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.7; margin-bottom: 2px; }
+  .part-switch button.active { background: var(--blue-dark); color: var(--white); box-shadow: var(--shadow-sm); }
+
+  /* ── FIELDS ── */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { font-size: 11px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+  .input-wrap { display: flex; align-items: center; background: var(--grey-50); border: 1.5px solid var(--grey-100); border-radius: var(--radius-sm); overflow: hidden; transition: border-color .15s; }
+  .input-wrap:focus-within { border-color: var(--blue-mid); }
+  .input-wrap input { flex: 1; border: none; background: transparent; padding: 9px 10px; font-size: 14px; font-weight: 700; color: var(--blue-dark); outline: none; min-width: 0; }
+  .input-unit { padding: 0 10px; font-size: 12px; color: var(--grey-500); font-weight: 500; flex-shrink: 0; }
+
+  .divider { height: 1px; background: var(--grey-100); margin: 14px 0; }
+  .hint { font-size: 11px; color: var(--grey-500); line-height: 1.5; margin-top: 8px; }
+
+  /* ── SEGMENTED CONTROL (Rhythmus) ── */
+  .segmented { display: flex; background: var(--grey-50); border: 1.5px solid var(--grey-100); border-radius: var(--radius-sm); padding: 3px; gap: 4px; flex-wrap: wrap; }
+  .segmented button { flex: 1 1 40%; min-width: 90px; border: none; background: transparent; padding: 9px 8px; font-size: 12px; font-weight: 700; color: var(--grey-500); border-radius: 6px; cursor: pointer; transition: all .15s; }
+  .segmented button.active { background: var(--blue-dark); color: var(--white); box-shadow: var(--shadow-sm); }
+
+  /* ── PERIOD SLIDER ── */
+  .period-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .period-label { font-size: 12px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  input[type=range] { flex: 1; min-width: 120px; accent-color: var(--blue-dark); height: 4px; }
+  .period-val { font-size: 22px; font-weight: 800; color: var(--blue-dark); min-width: 70px; text-align: center; }
+  .period-sub { font-size: 11px; color: var(--grey-500); width: 100%; text-align: right; margin-top: 2px; }
+
+  /* ── NARRATIVE BOX ── */
+  .narrative { font-size: 13px; line-height: 1.6; color: var(--grey-800); background: var(--blue-bg); border: 1.5px solid var(--blue-light); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; }
+  .narrative strong { color: var(--blue-dark); }
+
+  /* ── RESULTS ── */
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 620px) { .result-grid { grid-template-columns: 1fr; } }
+
+  .result-card { border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .result-card-hdr { padding: 10px 12px; font-size: 11px; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 5px; }
+  .rc-pess .result-card-hdr { background: var(--red); }
+  .rc-neutral .result-card-hdr { background: var(--blue-dark); }
+  .rc-opt .result-card-hdr { background: var(--aktien); }
+
+  .result-card-body { background: var(--white); padding: 12px; }
+  .result-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 5px 0; border-bottom: 1px solid var(--grey-100); }
+  .result-row:last-child { border-bottom: none; }
+  .result-lbl { font-size: 11px; color: var(--grey-500); flex: 1; }
+  .result-val { font-size: 13px; font-weight: 700; color: var(--grey-800); text-align: right; flex-shrink: 0; }
+  .result-row.hl .result-lbl { color: var(--grey-800); font-weight: 600; font-size: 12px; }
+  .result-row.hl .result-val { font-size: 16px; }
+  .rc-pess .result-row.hl .result-val { color: var(--red); }
+  .rc-neutral .result-row.hl .result-val { color: var(--blue-dark); }
+  .rc-opt .result-row.hl .result-val { color: var(--aktien); }
+
+  /* ── CHART ── */
+  .area-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 0 4px 12px; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--grey-500); font-weight: 600; }
+
+  /* ── TABLE ── */
+  .rate-table-wrap { overflow-x: auto; margin-top: 18px; }
+  .rate-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .rate-table caption { caption-side: top; text-align: left; font-size: 11px; color: var(--grey-500); line-height: 1.5; padding-bottom: 10px; }
+  .rate-table th, .rate-table td { padding: 8px 8px; text-align: right; border-bottom: 1px solid var(--grey-100); white-space: nowrap; }
+  .rate-table th:first-child, .rate-table td:first-child { text-align: left; white-space: normal; line-height: 1.35; }
+  .rate-table thead th { font-size: 11px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.4px; background: var(--blue-dark); }
+  .rate-table thead th:first-child { background: var(--grey-800); }
+  .rate-table tbody th { text-align: left; font-weight: 600; color: var(--grey-500); font-size: 11px; }
+  .rate-table tbody tr.hl td, .rate-table tbody tr.hl th { font-weight: 800; color: var(--grey-800); background: var(--grey-50); }
+
+  /* ── FOOTER ── */
+  .app-footer { text-align: center; font-size: 11px; color: var(--grey-300); margin-top: 8px; padding-bottom: 20px; }
+  .app-footer a { color: var(--blue-light); text-decoration: none; }
+  .app-footer strong { color: var(--grey-500); }
+
+  .part-panel { display: none; }
+  .part-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+  <div class="page">
+    <div class="splash-hero" style="padding-bottom:0;">
+      <p class="splash-eyebrow">Inflation <span>·</span> Kaufkraft</p>
+      <h1 class="splash-title">Inflations<strong>rechner</strong></h1>
+      <p style="font-size:19px; color:var(--grey-500); font-weight:600; margin-top:14px; margin-bottom:24px;">Prof. Dr. Erwin W. Heri</p>
+    </div>
+
+    <div class="section tile-click">
+      <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
+        <div>
+          <div class="cta-tile-title" style="color:var(--grey-800);">Warum dieser Rechner</div>
+          <div class="cta-tile-sub" style="color:var(--grey-500);">Was Inflation mit einem Betrag und mit einem Sparplan macht</div>
+        </div>
+        <div class="cta-tile-arrow" id="intro_chevron" style="color:var(--blue-dark);">⌄</div>
+      </div>
+      <div class="section-body intro-text" id="intro_body" style="display:none; padding-top:0;">
+        <p>Inflation wird meist als abstrakte Prozentzahl wahrgenommen – 1, 2 oder 3 Prozent pro Jahr klingen harmlos. Über lange Zeiträume summiert sich dieser scheinbar kleine Effekt jedoch durch Zinseszins zu einem erheblichen Kaufkraftverlust. CHF 100'000 verlieren bei 2 % Inflation in 20 Jahren rund einen Drittel ihrer Kaufkraft, in 40 Jahren mehr als die Hälfte.</p>
+        <p>Dieser Rechner macht diesen Effekt an zwei konkreten Situationen sichtbar. <strong>Teil 1</strong> zeigt, was mit einem einmaligen Betrag geschieht, wenn er über eine bestimmte Zeit lediglich liegen bleibt: Wie viel ist er real, also gemessen in heutiger Kaufkraft, in der Zukunft noch wert – und welcher nominale Betrag wäre dannzumal nötig, um dieselbe Kaufkraft wie heute zu haben?</p>
+        <p><strong>Teil 2</strong> überträgt dieselbe Logik auf einen Anlage- resp. Sparplan mit regelmässigen Einzahlungen – monatlich, quartalsweise, halbjährlich oder jährlich. Auch hier gilt: Jede einzelne Einzahlung wird zum Zeitpunkt der Einzahlung durch die Inflation bis zum Ende der Laufzeit entwertet. Der Rechner zeigt, wie stark die Summe Ihrer nominalen Einzahlungen von deren realem Gegenwert – gemessen in heutigen Franken – abweicht.</p>
+        <p>Beide Teile arbeiten bewusst ohne Anlagerendite – es geht hier nicht um Aktien, Obligationen oder Kapitalerträge (dafür gibt es den Sparplan- und den Rendite-Rechner), sondern einzig und allein um den Effekt der Teuerung selbst.</p>
+        <p>Alle Annahmen – Betrag, Inflationsrate, Rhythmus und Zeitraum – sind frei wählbar. Zusätzlich zeigt der Rechner zu jeder Annahme eine Bandbreite mit einem Prozentpunkt tieferer und höherer Inflation, damit die Sensitivität der Ergebnisse sichtbar wird.</p>
+      </div>
+    </div>
+
+    <div class="section cta-tile" onclick="showApp()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showApp()">
+      <div class="cta-tile-inner">
+        <div>
+          <div class="cta-tile-title">Direkt zum Rechner</div>
+          <div class="cta-tile-sub">Betrag, Sparplan &amp; Inflation selbst eingeben</div>
+        </div>
+        <div class="cta-tile-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 18L9 12L13 15L18 8" stroke="#2C3E7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="6" r="2" fill="#C0392B"/>
+        </svg>
+      </div>
+      <div>
+        <div class="app-title">Inflationsrechner</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+
+  <div class="page">
+
+    <!-- Teil-Umschalter -->
+    <div class="section part-switch-wrap">
+      <div class="part-switch">
+        <button id="btn_part_teil1" class="active" onclick="setPart('teil1')"><span class="ps-num">Teil 1</span>Einmalbetrag</button>
+        <button id="btn_part_teil2" onclick="setPart('teil2')"><span class="ps-num">Teil 2</span>Sparplan</button>
+      </div>
+    </div>
+
+    <!-- ══════════ TEIL 1 ══════════ -->
+    <div class="part-panel active" id="panel_teil1">
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-icon">💶</span>
+          <div>
+            <div class="section-header-title">Betrag &amp; Zeitraum</div>
+            <div class="section-header-sub">Was passiert mit einem einmaligen Betrag unter Inflation</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="field">
+            <div class="field-label">Betrag heute</div>
+            <div class="input-wrap"><input type="number" id="t1_betrag" value="100000" min="0" step="1000" oninput="compute1()"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Inflationsrate p.a.</div>
+            <div class="input-wrap"><input type="number" id="t1_inflation" value="2.0" min="-5" max="25" step="0.1" oninput="compute1()"><span class="input-unit">%</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="period-row">
+            <span class="period-label">Zeitraum</span>
+            <input type="range" id="t1_slider_jahre" min="1" max="100" value="20" step="1">
+            <span class="period-val"><span id="t1_lbl_jahre">20</span> J.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-icon">📊</span>
+          <div>
+            <div class="section-header-title">Kaufkraftverlust</div>
+            <div class="section-header-sub">Ihre Annahme sowie ±1 Prozentpunkt Sensitivität</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="narrative" id="t1_narrative"></div>
+          <div class="result-grid">
+            <div class="result-card rc-pess">
+              <div class="result-card-hdr">⚠ Höhere Inflation</div>
+              <div class="result-card-body">
+                <div class="result-row"><span class="result-lbl" id="p1_inflabel">—</span><span class="result-val"></span></div>
+                <div class="result-row"><span class="result-lbl">Nötiger Betrag dannzumal</span><span class="result-val" id="p1_notwendig">—</span></div>
+                <div class="result-row hl"><span class="result-lbl">Kaufkraft in Zukunft</span><span class="result-val" id="p1_kaufkraft">—</span></div>
+                <div class="result-row"><span class="result-lbl">Kaufkraftverlust</span><span class="result-val" id="p1_verlust">—</span></div>
+              </div>
+            </div>
+            <div class="result-card rc-neutral">
+              <div class="result-card-hdr">◆ Ihre Annahme</div>
+              <div class="result-card-body">
+                <div class="result-row"><span class="result-lbl" id="n1_inflabel">—</span><span class="result-val"></span></div>
+                <div class="result-row"><span class="result-lbl">Nötiger Betrag dannzumal</span><span class="result-val" id="n1_notwendig">—</span></div>
+                <div class="result-row hl"><span class="result-lbl">Kaufkraft in Zukunft</span><span class="result-val" id="n1_kaufkraft">—</span></div>
+                <div class="result-row"><span class="result-lbl">Kaufkraftverlust</span><span class="result-val" id="n1_verlust">—</span></div>
+              </div>
+            </div>
+            <div class="result-card rc-opt">
+              <div class="result-card-hdr">✓ Tiefere Inflation</div>
+              <div class="result-card-body">
+                <div class="result-row"><span class="result-lbl" id="o1_inflabel">—</span><span class="result-val"></span></div>
+                <div class="result-row"><span class="result-lbl">Nötiger Betrag dannzumal</span><span class="result-val" id="o1_notwendig">—</span></div>
+                <div class="result-row hl"><span class="result-lbl">Kaufkraft in Zukunft</span><span class="result-val" id="o1_kaufkraft">—</span></div>
+                <div class="result-row"><span class="result-lbl">Kaufkraftverlust</span><span class="result-val" id="o1_verlust">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-icon">📈</span>
+          <div>
+            <div class="section-header-title">Nominal- und Realwert über die Zeit</div>
+            <div class="section-header-sub">Gemäss Ihrer Annahme, Betrag konstant CHF vs. Kaufkraft dieses Betrags</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="area-legend">
+            <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#7A8090" stroke-width="2.4" stroke-dasharray="9,3"/></svg>Nominalwert (bleibt CHF-Betrag)</div>
+            <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#2C3E7A" stroke-width="3"/></svg>Kaufkraft (real, in heutigen Franken)</div>
+          </div>
+          <div id="t1_chart"></div>
+          <div class="rate-table-wrap">
+            <table class="rate-table">
+              <caption id="t1_table_caption"></caption>
+              <thead>
+                <tr><th>Jahr</th><th>Nominalwert</th><th>Kaufkraft (real)</th><th>Nötiger Betrag</th></tr>
+              </thead>
+              <tbody id="t1_table_body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panel_teil1 -->
+
+    <!-- ══════════ TEIL 2 ══════════ -->
+    <div class="part-panel" id="panel_teil2">
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-icon">💰</span>
+          <div>
+            <div class="section-header-title">Einzahlungen &amp; Laufzeit</div>
+            <div class="section-header-sub">Rhythmus, Betrag pro Einzahlung und Dauer des Sparplans</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="field">
+            <div class="field-label">Rhythmus</div>
+            <div class="segmented">
+              <button id="btn_t2_monatlich" class="active" onclick="setRhythmus2('monatlich')">Monatlich</button>
+              <button id="btn_t2_quartalsweise" onclick="setRhythmus2('quartalsweise')">Quartalsweise</button>
+              <button id="btn_t2_halbjaehrlich" onclick="setRhythmus2('halbjaehrlich')">Halbjährlich</button>
+              <button id="btn_t2_jaehrlich" onclick="setRhythmus2('jaehrlich')">Jährlich</button>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span id="t2_lbl_einzahlung_txt">Einzahlung pro Monat</span></div>
+            <div class="input-wrap"><input type="number" id="t2_einzahlung" value="500" min="0" step="50" oninput="compute2()"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Inflationsrate p.a.</div>
+            <div class="input-wrap"><input type="number" id="t2_inflation" value="2.0" min="-5" max="25" step="0.1" oninput="compute2()"><span class="input-unit">%</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="period-row">
+            <span class="period-label">Laufzeit</span>
+            <input type="range" id="t2_slider_jahre" min="1" max="50" value="20" step="1">
+            <span class="period-val"><span id="t2_lbl_jahre">20</span> J.</span>
+            <span class="period-sub" id="t2_lbl_anzahl">= 240 Einzahlungen</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-icon">📊</span>
+          <div>
+            <div class="section-header-title">Kaufkraftverlust des Sparplans</div>
+            <div class="section-header-sub">Ihre Annahme sowie ±1 Prozentpunkt Sensitivität</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="narrative" id="t2_narrative"></div>
+          <div class="result-grid">
+            <div class="result-card rc-pess">
+              <div class="result-card-hdr">⚠ Höhere Inflation</div>
+              <div class="result-card-body">
+                <div class="result-row"><span class="result-lbl" id="p2_inflabel">—</span><span class="result-val"></span></div>
+                <div class="result-row"><span class="result-lbl">Nominal eingezahlt</span><span class="result-val" id="p2_nominal">—</span></div>
+                <div class="result-row hl"><span class="result-lbl">Realwert (heutige Kaufkraft)</span><span class="result-val" id="p2_real">—</span></div>
+                <div class="result-row"><span class="result-lbl">Kaufkraftverlust</span><span class="result-val" id="p2_verlust">—</span></div>
+              </div>
+            </div>
+            <div class="result-card rc-neutral">
+              <div class="result-card-hdr">◆ Ihre Annahme</div>
+              <div class="result-card-body">
+                <div class="result-row"><span class="result-lbl" id="n2_inflabel">—</span><span class="result-val"></span></div>
+                <div class="result-row"><span class="result-lbl">Nominal eingezahlt</span><span class="result-val" id="n2_nominal">—</span></div>
+                <div class="result-row hl"><span class="result-lbl">Realwert (heutige Kaufkraft)</span><span class="result-val" id="n2_real">—</span></div>
+                <div class="result-row"><span class="result-lbl">Kaufkraftverlust</span><span class="result-val" id="n2_verlust">—</span></div>
+              </div>
+            </div>
+            <div class="result-card rc-opt">
+              <div class="result-card-hdr">✓ Tiefere Inflation</div>
+              <div class="result-card-body">
+                <div class="result-row"><span class="result-lbl" id="o2_inflabel">—</span><span class="result-val"></span></div>
+                <div class="result-row"><span class="result-lbl">Nominal eingezahlt</span><span class="result-val" id="o2_nominal">—</span></div>
+                <div class="result-row hl"><span class="result-lbl">Realwert (heutige Kaufkraft)</span><span class="result-val" id="o2_real">—</span></div>
+                <div class="result-row"><span class="result-lbl">Kaufkraftverlust</span><span class="result-val" id="o2_verlust">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-icon">📈</span>
+          <div>
+            <div class="section-header-title">Nominal- und Realwert über die Laufzeit</div>
+            <div class="section-header-sub">Kumulierte Einzahlungen gemäss Ihrer Annahme</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="area-legend">
+            <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#7A8090" stroke-width="2.4" stroke-dasharray="9,3"/></svg>Nominal kumuliert (Summe der Einzahlungen)</div>
+            <div class="legend-item"><svg width="30" height="10"><line x1="2" y1="5" x2="28" y2="5" stroke="#2C3E7A" stroke-width="3"/></svg>Real kumuliert (heutige Kaufkraft)</div>
+          </div>
+          <div id="t2_chart"></div>
+          <div class="rate-table-wrap">
+            <table class="rate-table">
+              <caption id="t2_table_caption"></caption>
+              <thead>
+                <tr><th>Jahr</th><th>Nominal kumuliert</th><th>Real kumuliert</th><th>Kaufkraftverlust</th></tr>
+              </thead>
+              <tbody id="t2_table_body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panel_teil2 -->
+
+    <div class="app-footer">
+      Illustrationsrechner zu Ausbildungszwecken. Keine Anlage- oder Steuerberatung.<br>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin Heri</a>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /app -->
+
+<script>
+function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; computeAll(); }
+function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='flex'; }
+
+function toggleIntro() {
+  const body = document.getElementById('intro_body');
+  const tile = body.closest('.tile-click');
+  const isOpen = body.style.display === 'block';
+  body.style.display = isOpen ? 'none' : 'block';
+  tile.classList.toggle('open', !isOpen);
+}
+
+function fmt(v)    { return Math.round(v).toLocaleString('de-CH'); }
+function fmtCHF(v) { return fmt(v)+' CHF'; }
+function fmtP(v)   { return (v*100).toFixed(2)+'%'; }
+function fmt1(v)   { return v.toFixed(1); }
+function val(id)   { return parseFloat(document.getElementById(id).value)||0; }
+function fmtAxis(v) {
+  const sign = v<0 ? '-' : '';
+  const av = Math.abs(v);
+  if (av >= 1000000) return sign + (av/1000000).toFixed(2) + ' Mio';
+  return sign + fmt(av/1000) + 'k';
+}
+
+var state = { part: 'teil1', rhythmus2: 'monatlich' };
+
+function setPart(p) {
+  state.part = p;
+  document.getElementById('btn_part_teil1').classList.toggle('active', p==='teil1');
+  document.getElementById('btn_part_teil2').classList.toggle('active', p==='teil2');
+  document.getElementById('panel_teil1').classList.toggle('active', p==='teil1');
+  document.getElementById('panel_teil2').classList.toggle('active', p==='teil2');
+}
+
+const rhythmusLabels = { monatlich: 'Monat', quartalsweise: 'Quartal', halbjaehrlich: 'Halbjahr', jaehrlich: 'Jahr' };
+const rhythmusPPY    = { monatlich: 12, quartalsweise: 4, halbjaehrlich: 2, jaehrlich: 1 };
+
+function setRhythmus2(r) {
+  state.rhythmus2 = r;
+  document.getElementById('btn_t2_monatlich').classList.toggle('active', r==='monatlich');
+  document.getElementById('btn_t2_quartalsweise').classList.toggle('active', r==='quartalsweise');
+  document.getElementById('btn_t2_halbjaehrlich').classList.toggle('active', r==='halbjaehrlich');
+  document.getElementById('btn_t2_jaehrlich').classList.toggle('active', r==='jaehrlich');
+  document.getElementById('t2_lbl_einzahlung_txt').textContent = 'Einzahlung pro ' + rhythmusLabels[r];
+  compute2();
+}
+
+document.getElementById('t1_slider_jahre').addEventListener('input', function(){
+  document.getElementById('t1_lbl_jahre').textContent = this.value;
+  compute1();
+});
+document.getElementById('t2_slider_jahre').addEventListener('input', function(){
+  document.getElementById('t2_lbl_jahre').textContent = this.value;
+  compute2();
+});
+
+function computeAll() { compute1(); compute2(); }
+
+// ── Checkpoints für Tabellen: max. ~10 Zeilen, immer inkl. Jahr 0 und letztes Jahr ──
+function checkpoints(n, maxRows) {
+  if (maxRows === undefined) maxRows = 10;
+  const pts = [0];
+  if (n <= maxRows) {
+    for (let y=1; y<=n; y++) pts.push(y);
+  } else {
+    const step = Math.ceil(n/maxRows);
+    for (let y=step; y<n; y+=step) pts.push(y);
+    pts.push(n);
+  }
+  return pts;
+}
+
+// ── Generischer Linien-Chart (SVG) ──
+function drawChart(containerId, series, lineDefs) {
+  const container = document.getElementById(containerId);
+  const W = 640, H = 280, padL = 66, padR = 66, padT = 14, padB = 32;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const n = series.length;
+  let maxVal = 1;
+  lineDefs.forEach(ld => series.forEach(p => { if (p[ld.key] > maxVal) maxVal = p[ld.key]; }));
+
+  function x(i) { return padL + (n<=1 ? 0 : (i/(n-1))*plotW); }
+  function y(v) { return padT + plotH - (v/maxVal)*plotH; }
+  function linePath(key) {
+    let d = '';
+    for (let i=0;i<n;i++) d += (i===0?'M':'L') + x(i) + ',' + y(series[i][key]) + ' ';
+    return d;
+  }
+
+  const linesSvg = lineDefs.map(ld => `<path d="${linePath(ld.key)}" fill="none" stroke="${ld.color}" stroke-width="${ld.width}" stroke-dasharray="${ld.dash||''}"/>`).join('');
+
+  let gridSvg = '';
+  const steps = 4;
+  for (let s=0; s<=steps; s++) {
+    const v = maxVal*s/steps;
+    const yy = y(v);
+    gridSvg += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#ECEEF2" stroke-width="1"/>`;
+    gridSvg += `<text x="${padL-10}" y="${yy+4}" font-size="13" font-weight="700" fill="#1A1D24" text-anchor="end">${fmtAxis(v)}</text>`;
+    gridSvg += `<text x="${W-padR+10}" y="${yy+4}" font-size="13" font-weight="700" fill="#1A1D24" text-anchor="start">${fmtAxis(v)}</text>`;
+  }
+
+  let xLabels = '';
+  const step = Math.max(1, Math.round(n/6));
+  for (let i=0;i<n;i+=step) {
+    xLabels += `<text x="${x(i)}" y="${H-8}" font-size="12" font-weight="600" fill="#7A8090" text-anchor="middle">J${series[i].year}</text>`;
+  }
+  xLabels += `<text x="${x(n-1)}" y="${H-8}" font-size="12" font-weight="600" fill="#7A8090" text-anchor="middle">J${series[n-1].year}</text>`;
+
+  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;">${gridSvg}${linesSvg}${xLabels}</svg>`;
+}
+
+// ══════════ TEIL 1 — Einmalbetrag ══════════
+function scenario1(B, i, n) {
+  const F = Math.pow(1+i, n);
+  const kaufkraft = B/F;
+  const notwendig = B*F;
+  const verlustCHF = B-kaufkraft;
+  const verlustPct = B!==0 ? verlustCHF/B : 0;
+  return { kaufkraft, notwendig, verlustCHF, verlustPct };
+}
+
+function fillCard1(prefix, iPct, r) {
+  document.getElementById(prefix+'_inflabel').textContent = 'Inflation ' + fmt1(iPct) + '% p.a.';
+  document.getElementById(prefix+'_kaufkraft').textContent = fmtCHF(r.kaufkraft);
+  document.getElementById(prefix+'_notwendig').textContent = fmtCHF(r.notwendig);
+  document.getElementById(prefix+'_verlust').textContent = fmtP(r.verlustPct);
+}
+
+function compute1() {
+  const B = val('t1_betrag');
+  const iPct = val('t1_inflation');
+  const i = iPct/100;
+  const n = parseInt(document.getElementById('t1_slider_jahre').value, 10);
+
+  const rHigh = scenario1(B, i+0.01, n);
+  const rMain = scenario1(B, i, n);
+  const rLow  = scenario1(B, Math.max(i-0.01, -0.99), n);
+
+  fillCard1('p1', iPct+1, rHigh);
+  fillCard1('n1', iPct, rMain);
+  fillCard1('o1', Math.max(iPct-1,-99), rLow);
+
+  document.getElementById('t1_narrative').innerHTML =
+    `Bei einer Inflation von <strong>${fmt1(iPct)}% p.a.</strong> sind Ihre heutigen <strong>${fmtCHF(B)}</strong> in <strong>${n} Jahren</strong> real nur noch <strong>${fmtCHF(rMain.kaufkraft)}</strong> wert – ein Kaufkraftverlust von <strong>${fmtP(rMain.verlustPct)}</strong>. Um in ${n} Jahren dieselbe Kaufkraft wie heute zu haben, bräuchten Sie dannzumal <strong>${fmtCHF(rMain.notwendig)}</strong>.`;
+
+  // Chart: Nominalwert (konstant) vs. Kaufkraft (real)
+  const series = [];
+  for (let t=0; t<=n; t++) {
+    series.push({ year: t, nominal: B, real: B/Math.pow(1+i, t) });
+  }
+  drawChart('t1_chart', series, [
+    { key: 'nominal', color: 'var(--grey-500)', width: 2.4, dash: '9,3' },
+    { key: 'real',    color: 'var(--blue-dark)', width: 3 }
+  ]);
+
+  // Tabelle
+  const pts = checkpoints(n);
+  let rows = '';
+  pts.forEach(y => {
+    const s = scenario1(B, i, y);
+    rows += `<tr${y===n?' class="hl"':''}><th>Jahr ${y}</th><td>${fmtCHF(B)}</td><td>${fmtCHF(s.kaufkraft)}</td><td>${fmtCHF(s.notwendig)}</td></tr>`;
+  });
+  document.getElementById('t1_table_body').innerHTML = rows;
+  document.getElementById('t1_table_caption').textContent = `Kaufkraft und nötiger Betrag im Zeitverlauf, bei ${fmt1(iPct)}% Inflation p.a.`;
+}
+
+// ══════════ TEIL 2 — Sparplan ══════════
+function periodRate(i, p) { return Math.pow(1+i, 1/p)-1; }
+
+function scenario2(E, i, n, p) {
+  const N = Math.round(n*p);
+  const r = periodRate(i, p);
+  const nominalTotal = E*N;
+  const real = Math.abs(r) < 1e-9 ? E*N : E*(1-Math.pow(1+r, -N))/r;
+  const verlustCHF = nominalTotal-real;
+  const verlustPct = nominalTotal!==0 ? verlustCHF/nominalTotal : 0;
+  return { nominalTotal, real, verlustCHF, verlustPct };
+}
+
+function fillCard2(prefix, iPct, r) {
+  document.getElementById(prefix+'_inflabel').textContent = 'Inflation ' + fmt1(iPct) + '% p.a.';
+  document.getElementById(prefix+'_nominal').textContent = fmtCHF(r.nominalTotal);
+  document.getElementById(prefix+'_real').textContent = fmtCHF(r.real);
+  document.getElementById(prefix+'_verlust').textContent = fmtP(r.verlustPct);
+}
+
+function compute2() {
+  const E = val('t2_einzahlung');
+  const p = rhythmusPPY[state.rhythmus2];
+  const iPct = val('t2_inflation');
+  const i = iPct/100;
+  const n = parseInt(document.getElementById('t2_slider_jahre').value, 10);
+  const N = Math.round(n*p);
+
+  document.getElementById('t2_lbl_anzahl').textContent = '= ' + fmt(N) + ' Einzahlungen';
+
+  const rHigh = scenario2(E, i+0.01, n, p);
+  const rMain = scenario2(E, i, n, p);
+  const rLow  = scenario2(E, Math.max(i-0.01, -0.99), n, p);
+
+  fillCard2('p2', iPct+1, rHigh);
+  fillCard2('n2', iPct, rMain);
+  fillCard2('o2', Math.max(iPct-1,-99), rLow);
+
+  const rhythmusTxt = { monatlich:'monatlichen', quartalsweise:'quartalsweisen', halbjaehrlich:'halbjährlichen', jaehrlich:'jährlichen' }[state.rhythmus2];
+  document.getElementById('t2_narrative').innerHTML =
+    `Bei ${rhythmusTxt} Einzahlungen von <strong>${fmtCHF(E)}</strong> über <strong>${n} Jahre</strong> und einer Inflation von <strong>${fmt1(iPct)}% p.a.</strong> zahlen Sie nominal <strong>${fmtCHF(rMain.nominalTotal)}</strong> ein. Gemessen in heutiger Kaufkraft sind diese Einzahlungen aber nur <strong>${fmtCHF(rMain.real)}</strong> wert – ein Kaufkraftverlust von <strong>${fmtP(rMain.verlustPct)}</strong> bzw. <strong>${fmtCHF(rMain.verlustCHF)}</strong>.`;
+
+  // Chart: Nominal kumuliert vs. Real kumuliert
+  const r = periodRate(i, p);
+  const series = [];
+  for (let t=0; t<=n; t++) {
+    const periods = Math.round(t*p);
+    const nominalCum = E*periods;
+    const realCum = Math.abs(r) < 1e-9 ? E*periods : E*(1-Math.pow(1+r, -periods))/r;
+    series.push({ year: t, nominal: nominalCum, real: realCum });
+  }
+  drawChart('t2_chart', series, [
+    { key: 'nominal', color: 'var(--grey-500)', width: 2.4, dash: '9,3' },
+    { key: 'real',    color: 'var(--blue-dark)', width: 3 }
+  ]);
+
+  // Tabelle
+  const pts = checkpoints(n);
+  let rows = '';
+  pts.forEach(y => {
+    const s = scenario2(E, i, y, p);
+    rows += `<tr${y===n?' class="hl"':''}><th>Jahr ${y}</th><td>${fmtCHF(s.nominalTotal)}</td><td>${fmtCHF(s.real)}</td><td>${fmtP(s.verlustPct)}</td></tr>`;
+  });
+  document.getElementById('t2_table_body').innerHTML = rows;
+  document.getElementById('t2_table_caption').textContent = `Kumulierte Einzahlungen im Zeitverlauf, ${rhythmusTxt} à ${fmtCHF(E)}, bei ${fmt1(iPct)}% Inflation p.a.`;
+}
+</script>
+</body>
+</html>
