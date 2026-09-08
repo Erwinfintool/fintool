@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Individueller Teuerungsrechner – fintool.ch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --paper:       #f7f6f1;
+    --surface:     #fffefb;
+    --surface-2:   #fbfaf5;
+    --sidebar:     #f1efe8;
+    --ink:         #17181c;
+    --ink-soft:    #52534f;
+    --muted:       #8b8a82;
+    --line:        #e3e1d6;
+    --line-strong: #c9c7ba;
+    --brand:       #1d3557;
+    --brand-ink:   #ffffff;
+    --brand-soft:  #e8edf3;
+    --bar-avg:     #eb6834;
+    --bar-yours:   #d03b3b;
+    --good:        #0ca30c;
+    --critical:    #d03b3b;
+    --focus:       #1d3557;
+    --shadow:      0 1px 2px rgba(23,24,28,0.06), 0 8px 24px rgba(23,24,28,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper:       #101113;
+      --surface:     #1a1b1e;
+      --surface-2:   #1f2023;
+      --sidebar:     #18191b;
+      --ink:         #f4f3ef;
+      --ink-soft:    #c3c2b7;
+      --muted:       #8f8d84;
+      --line:        #2d2e31;
+      --line-strong: #3c3d40;
+      --brand:       #7ea3d1;
+      --brand-ink:   #101113;
+      --brand-soft:  #202b3a;
+      --bar-avg:     #d95926;
+      --bar-yours:   #e66767;
+      --good:        #0ca30c;
+      --critical:    #e66767;
+      --focus:       #7ea3d1;
+      --shadow:      0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper:       #101113;
+    --surface:     #1a1b1e;
+    --surface-2:   #1f2023;
+    --sidebar:     #18191b;
+    --ink:         #f4f3ef;
+    --ink-soft:    #c3c2b7;
+    --muted:       #8f8d84;
+    --line:        #2d2e31;
+    --line-strong: #3c3d40;
+    --brand:       #7ea3d1;
+    --brand-ink:   #101113;
+    --brand-soft:  #202b3a;
+    --bar-avg:     #d95926;
+    --bar-yours:   #e66767;
+    --good:        #0ca30c;
+    --critical:    #e66767;
+    --focus:       #7ea3d1;
+    --shadow:      0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
+  .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--brand); }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .site-header {
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .site-header__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand-mark {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .brand-mark strong { color: var(--ink); font-weight: 700; }
+  .back-link { font-size: 0.9rem; color: var(--ink-soft); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--brand); }
+
+  .page-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 24px 80px; }
+
+  .intro {
+    margin-bottom: 18px;
+    max-width: 74ch;
+  }
+  .eyebrow {
+    font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--brand); font-weight: 600; margin: 0 0 8px;
+  }
+  .intro h1 { font-size: clamp(1.5rem, 2.8vw, 2rem); }
+  .intro p { color: var(--ink-soft); font-size: 0.98rem; margin: 10px 0 0; }
+  .intro .source-note { margin-top: 10px; font-size: 0.84rem; color: var(--muted); }
+  .intro .source-note a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--line-strong); }
+
+  /* ---------- App shell (mirrors the BFS tool's layout) ---------- */
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--sidebar);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    padding: 12px 18px;
+  }
+  .toolbar__title { font-family: "Source Serif 4", serif; font-weight: 600; font-size: 1.05rem; }
+  .toolbar__actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink-soft); cursor: pointer; font-size: 0.95rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { color: var(--brand); border-color: var(--brand); }
+
+  .app-shell {
+    display: grid;
+    grid-template-columns: 404px 1fr;
+    border: 1px solid var(--line);
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: var(--surface);
+  }
+  .app-shell.sidebar-collapsed { grid-template-columns: 0px 1fr; }
+  .app-shell.sidebar-collapsed .sidebar { display: none; }
+  @media (max-width: 860px) {
+    .app-shell, .app-shell.sidebar-collapsed { grid-template-columns: 1fr; }
+    .sidebar { max-height: none !important; }
+  }
+
+  .sidebar {
+    background: var(--sidebar);
+    border-right: 1px solid var(--line);
+    padding: 16px 16px 24px;
+    max-height: 900px;
+    overflow-y: auto;
+  }
+  .side-block { margin-bottom: 20px; }
+  .side-block h3 {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.78rem; letter-spacing: 0.03em; text-transform: uppercase;
+    color: var(--ink-soft); font-weight: 600; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .info-dot {
+    width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--line-strong);
+    color: var(--muted); font-size: 0.68rem; display: inline-flex; align-items: center; justify-content: center;
+    cursor: help; font-style: normal; text-transform: none;
+  }
+  .field-row { display: flex; gap: 10px; }
+  .field-row label { flex: 1; font-size: 0.78rem; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+  .field-row input[type="month"] {
+    font-family: "IBM Plex Mono", monospace; font-size: 0.86rem; padding: 6px 8px;
+    border: 1px solid var(--line-strong); border-radius: 7px; background: var(--surface); color: var(--ink);
+    width: 100%;
+  }
+  select.side-select {
+    width: 100%; padding: 7px 9px; border-radius: 7px; border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink); font-size: 0.86rem; font-family: inherit;
+  }
+  .col-headers {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px;
+    font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.01em;
+    padding: 0 0 4px; text-align: right;
+  }
+
+  .kv-row { padding: 6px 0; }
+  .kv-row.total-row {
+    font-weight: 600; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong);
+    margin-top: 4px; padding: 8px 0; font-size: 0.86rem;
+  }
+  .kv-row__label { font-size: 0.84rem; margin-bottom: 4px; }
+  .kv-row__fields {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; align-items: center;
+  }
+  .kv-row .num { text-align: right; font-size: 0.74rem; }
+  .kv-row__fields > * { min-width: 0; }
+  .kv-input {
+    width: 100%; min-width: 0; box-sizing: border-box; padding: 5px 3px; border: 1px solid var(--line-strong); border-radius: 6px;
+    background: var(--surface); color: var(--ink); font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem; text-align: right;
+  }
+  .kv-input:focus { border-color: var(--brand); }
+  .kv-input[readonly] { background: var(--surface-2); color: var(--muted); }
+  .kv-ref {
+    display: block; width: 100%; min-width: 0; padding: 5px 3px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--surface-2); color: var(--muted); font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem; text-align: right; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .cat-inputs { margin-top: 6px; }
+  .cat-input-row {
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .cat-input-row:last-child { border-bottom: none; }
+  .cat-input-row__name { font-size: 0.82rem; margin-bottom: 4px; }
+  .cat-input-row__fields { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; align-items: center; }
+
+  /* ---------- Main / chart area ---------- */
+  .app-main { padding: 20px 22px 24px; min-width: 0; }
+  .chart-panel h2 { font-size: 1rem; margin-bottom: 2px; }
+  .chart-panel .chart-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; }
+
+  .bar-chart { position: relative; padding-top: 22px; }
+  .bar-chart__axis {
+    position: absolute; top: 0; left: var(--label-w, 190px); right: 8px; height: 18px;
+    font-size: 0.72rem; color: var(--muted); font-family: "IBM Plex Mono", monospace;
+  }
+  .bar-chart__axis span { position: absolute; transform: translateX(-50%); }
+  .bar-chart__axis span:first-child { transform: translateX(0); }
+  .bar-chart__axis span:last-child { transform: translateX(-100%); }
+  .bar-chart__grid {
+    position: absolute; top: 22px; bottom: 0; left: var(--label-w, 190px); right: 8px;
+  }
+  .bar-chart__grid i {
+    position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); font-style: normal;
+  }
+  .bar-rows { position: relative; }
+  .bar-row { display: grid; grid-template-columns: var(--label-w, 190px) 1fr; align-items: center; min-height: 40px; padding: 3px 0; }
+  .bar-row__label { font-size: 0.8rem; color: var(--ink-soft); padding-right: 12px; line-height: 1.25; }
+  .bar-row__track { position: relative; height: 22px; margin-right: 8px; }
+  .bar-row__bar {
+    position: absolute; left: 0; height: 8px; border-radius: 0 3px 3px 0;
+    transition: width 0.25s ease;
+  }
+  .bar-row__bar.avg { top: 1px; background: var(--bar-avg); }
+  .bar-row__bar.yours { top: 12px; background: var(--bar-yours); }
+  .bar-row__bar:hover { filter: brightness(1.08); cursor: pointer; }
+
+  .legend-row {
+    display: flex; gap: 20px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+    font-size: 0.82rem; color: var(--ink-soft);
+  }
+  .legend-row__item { display: flex; align-items: center; gap: 7px; }
+  .legend-row__swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .bar-tooltip {
+    position: fixed; pointer-events: none; background: var(--ink); color: var(--paper);
+    font-size: 0.78rem; padding: 6px 9px; border-radius: 7px; line-height: 1.4;
+    box-shadow: var(--shadow); white-space: nowrap; opacity: 0; transition: opacity 0.1s ease; z-index: 20;
+  }
+  .bar-tooltip.visible { opacity: 1; }
+
+  .result-panel {
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line);
+  }
+  .result-panel h2 { font-size: 1rem; margin-bottom: 10px; }
+
+  .cumulative-panel {
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line);
+  }
+  .cumulative-panel h2 { font-size: 1rem; margin-bottom: 2px; }
+
+  .line-chart { position: relative; margin-top: 6px; }
+  .line-chart svg text { font-family: "IBM Plex Mono", monospace; }
+
+  .type-note {
+    font-size: 0.76rem; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 5px;
+  }
+  .type-note.is-estimate { color: var(--bar-avg); }
+  .type-note .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+
+  .projection-panel {
+    margin-top: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+    box-shadow: var(--shadow); padding: 20px 22px 22px;
+  }
+  .projection-panel h2 { font-size: 1.05rem; margin-bottom: 6px; }
+  .projection-panel .chart-sub { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 16px; max-width: 62ch; }
+  .projection-controls {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .projection-controls label { font-size: 0.86rem; color: var(--ink-soft); font-weight: 500; }
+  .projection-controls input[type="range"] {
+    flex: 1; min-width: 160px; max-width: 320px; accent-color: var(--brand);
+  }
+  .projection-controls .num {
+    font-weight: 600; min-width: 52px; text-align: right; font-size: 0.95rem;
+  }
+  .stat-row { display: flex; gap: 18px; flex-wrap: wrap; }
+  .stat-tile { flex: 1; min-width: 200px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .stat-tile__label { font-size: 0.76rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-tile__value { font-size: 1.6rem; font-weight: 600; margin-top: 4px; font-family: "IBM Plex Mono", monospace; }
+  .stat-tile__sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .stat-tile--yours .stat-tile__value { color: var(--bar-yours); }
+  .stat-tile--avg .stat-tile__value { color: var(--bar-avg); }
+  .delta-pill {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 7px 12px;
+    border-radius: 999px; font-size: 0.86rem; font-weight: 600;
+  }
+  .delta-pill.higher { background: rgba(208,59,59,0.12); color: var(--critical); }
+  .delta-pill.lower  { background: rgba(12,163,12,0.12); color: var(--good); }
+  .delta-pill.equal  { background: var(--brand-soft); color: var(--brand); }
+
+  details.methodik {
+    margin-top: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow);
+  }
+  details.methodik > summary {
+    cursor: pointer; padding: 16px 22px; font-weight: 600; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  details.methodik > summary::-webkit-details-marker { display: none; }
+  details.methodik > summary::after {
+    content: "+"; font-family: "IBM Plex Mono", monospace; font-size: 1.2rem; color: var(--muted);
+  }
+  details.methodik[open] > summary::after { content: "\2212"; }
+  .methodik__body { padding: 0 22px 22px; color: var(--ink-soft); font-size: 0.92rem; }
+  .methodik__body h3 { font-size: 0.95rem; margin: 18px 0 8px; color: var(--ink); }
+  .methodik__body p { margin: 0 0 10px; }
+  .methodik__body ul { margin: 0 0 10px; padding-left: 20px; }
+  .methodik__body li { margin-bottom: 4px; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; font-family: "IBM Plex Mono", monospace; }
+  table.data-table th, table.data-table td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.data-table th:first-child, table.data-table td:first-child {
+    text-align: left; font-family: "IBM Plex Sans", sans-serif; position: sticky; left: 0; background: var(--surface);
+  }
+  table.data-table thead th { background: var(--surface-2); color: var(--ink-soft); font-weight: 600; }
+  table.data-table td.editable input {
+    width: 54px; border: 1px solid transparent; background: transparent; color: var(--ink);
+    font-family: inherit; font-size: inherit; text-align: right; border-radius: 4px;
+  }
+  table.data-table td.editable input:hover, table.data-table td.editable input:focus {
+    border-color: var(--line-strong); background: var(--surface-2);
+  }
+  table.data-table tr.weight-row td { font-weight: 600; }
+
+  .disclaimer {
+    margin-top: 20px; padding: 16px 20px; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; font-size: 0.82rem; color: var(--muted);
+  }
+
+  .site-footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 22px 0 40px; }
+  .site-footer__inner {
+    max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  /* ---------- Deckblatt / Startbildschirm ---------- */
+  .cover-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 64px 24px 40px;
+    flex: 1;
+    width: 100%;
+  }
+  .cover-hero { text-align: center; max-width: 62ch; margin: 0 auto; }
+  .cover-hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); }
+  .cover-hero .byline {
+    margin: 14px 0 0; font-size: 0.98rem; color: var(--ink-soft);
+    font-family: "Source Serif 4", Georgia, serif;
+  }
+  .cover-hero p.lead { color: var(--ink-soft); font-size: 1.05rem; margin: 18px 0 0; }
+  .cover-hero .source-note { margin-top: 14px; font-size: 0.84rem; color: var(--muted); }
+  .cover-hero .source-note a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--line-strong); }
+  .cover-cta-row { display: flex; justify-content: center; margin-top: 32px; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--brand); color: var(--brand-ink);
+    font-weight: 600; font-size: 1.02rem;
+    padding: 14px 28px; border-radius: 10px;
+    text-decoration: none; box-shadow: var(--shadow);
+    border: 1px solid var(--brand); cursor: pointer;
+    transition: transform 0.12s ease, filter 0.12s ease;
+    font-family: inherit;
+  }
+  .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-primary .arrow { font-size: 1.1rem; transition: transform 0.12s ease; }
+  .btn-primary:hover .arrow { transform: translateX(3px); }
+  .cover-chapters { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 56px; }
+  .cover-chapter-card {
+    border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+    box-shadow: var(--shadow); padding: 22px 24px;
+  }
+  .cover-chapter-card .chapter-kicker {
+    font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 0 0 8px;
+  }
+  .cover-chapter-card h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  .cover-chapter-card p { color: var(--ink-soft); font-size: 0.92rem; margin: 0; }
+  .back-to-cover {
+    background: none; border: none; padding: 0; font: inherit;
+    font-size: 0.9rem; color: var(--ink-soft); text-decoration: none;
+    white-space: nowrap; cursor: pointer;
+  }
+  .back-to-cover:hover { color: var(--brand); }
+  @media (max-width: 640px) {
+    .cover-wrap { padding: 40px 20px 32px; }
+    .cover-chapters { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="coverScreen">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand-mark" href="https://www.fintool.ch"><strong>fintool.ch</strong> · Prof. Dr. Erwin Heri</a>
+      <a class="back-link" href="https://www.fintool.ch">&larr; Zur&uuml;ck</a>
+    </div>
+  </header>
+
+  <div class="cover-wrap">
+    <div class="cover-hero">
+      <p class="eyebrow">Rechner &middot; Konsum &amp; Inflation</p>
+      <h1>Individueller Teuerungsrechner</h1>
+      <p class="byline">Prof. Dr. Erwin W. Heri</p>
+      <p class="lead">
+        Wie stark trifft Sie die Teuerung wirklich? Tragen Sie Ihre eigenen Haushaltsausgaben
+        pro Kategorie ein, vergleichen Sie Ihre pers&ouml;nliche Inflation mit jener Ihrer
+        Vergleichsgruppe &ndash; und werfen Sie einen Blick auf die n&auml;chsten zehn Jahre.
+      </p>
+      <p class="source-note">
+        Darstellung angelehnt an den
+        <a href="https://lik-app.bfs.admin.ch/de/itr" target="_blank" rel="noopener">Individuellen Teuerungsrechner des Bundesamts f&uuml;r Statistik (BFS)</a>,
+        inkl. dessen Referenzwerten f&uuml;r die Haushaltstypen.
+      </p>
+      <div class="cover-cta-row">
+        <button type="button" class="btn-primary" id="btnStartRechner">
+          Rechner starten <span class="arrow">&rarr;</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="cover-chapters">
+      <div class="cover-chapter-card">
+        <p class="chapter-kicker">Kapitel 1</p>
+        <h2>Ihr individueller Rechner</h2>
+        <p>
+          W&auml;hlen Sie Ihren Haushaltstyp, tragen Sie Ihr Einkommen und Ihre Ausgaben pro
+          Kategorie ein und sehen Sie, wie sich Ihre pers&ouml;nliche Teuerung seit 2000 von
+          der Ihrer Vergleichsgruppe unterscheidet.
+        </p>
+      </div>
+      <div class="cover-chapter-card">
+        <p class="chapter-kicker">Kapitel 2</p>
+        <h2>10-Jahres-Projektion</h2>
+        <p>
+          Sch&auml;tzen Sie ab, wie sich Ihre pers&ouml;nliche Teuerung bei einer von Ihnen
+          gew&auml;hlten, konstanten k&uuml;nftigen Inflationsrate &uuml;ber die n&auml;chsten
+          zehn Jahre entwickeln k&ouml;nnte.
+        </p>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      Illustrations- und Bildungsrechner zu Ausbildungszwecken. Keine Anlage- oder Steuerberatung.
+      Die individuellen Kategoriewerte sind Modellsch&auml;tzungen.
+    </p>
+  </div>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <span>&copy; 2026 fintool.ch &middot; Prof. Dr. Erwin Heri</span>
+      <span>Quelle Warenkorb, Referenzwerte &amp; Methodik: Bundesamt f&uuml;r Statistik (BFS)</span>
+    </div>
+  </footer>
+</div>
+
+<div id="mainApp" hidden>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand-mark" href="https://www.fintool.ch"><strong>fintool.ch</strong> · Prof. Dr. Erwin Heri</a>
+    <button type="button" class="back-to-cover" id="btnBackToCover">&larr; Zum Deckblatt</button>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="intro">
+    <p class="eyebrow">Rechner &middot; Konsum &amp; Inflation</p>
+    <h1>Individueller Teuerungsrechner</h1>
+    <p>
+      Tragen Sie Ihre eigenen Haushaltsausgaben pro Kategorie ein und vergleichen Sie Ihre
+      pers&ouml;nliche Teuerung mit jener des Durchschnittshaushalts &ndash; f&uuml;r den
+      gew&auml;hlten Zeitraum.
+    </p>
+    <p class="source-note">
+      Darstellung angelehnt an den
+      <a href="https://lik-app.bfs.admin.ch/de/itr" target="_blank" rel="noopener">Individuellen Teuerungsrechner des Bundesamts f&uuml;r Statistik (BFS)</a>,
+      inkl. dessen Referenzwerten f&uuml;r die Haushaltstypen. Details unter &laquo;Daten &amp; Methodik&raquo; unten.
+      Kapitel 1 (Rechner) und <a href="#projektion">Kapitel 2 (10-Jahres-Projektion)</a> finden Sie
+      auf dieser Seite untereinander.
+    </p>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar__title">Kapitel 1 &middot; Individueller Teuerungsrechner</div>
+    <div class="toolbar__actions">
+      <button class="icon-btn" id="btnResetAll" type="button" title="Auf Durchschnittshaushalt zur&uuml;cksetzen">&#8635;</button>
+      <button class="icon-btn" id="btnToggleSidebar" type="button" title="Seitenleiste ein-/ausblenden">&#8676;</button>
+    </div>
+  </div>
+
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <section class="side-block">
+        <h3>Zeitspanne</h3>
+        <div class="field-row">
+          <label>von <input type="month" id="dateFrom" value="2000-05" min="2000-01" max="2026-08"></label>
+          <label>bis <input type="month" id="dateTo" value="2026-08" min="2000-01" max="2026-08"></label>
+        </div>
+      </section>
+
+      <section class="side-block">
+        <h3>Vergleichsgruppe (Haushaltstyp) <span class="info-dot" title="Bestimmt die &Oslash;-Referenzspalte gem&auml;ss BFS-Rechner. Ihre eigenen Werte in der Spalte &laquo;Ihr Haushalt&raquo; bleiben davon unabh&auml;ngig editierbar.">i</span></h3>
+        <select class="side-select" id="householdType">
+          <option value="avg">Durchschnittshaushalt</option>
+          <option value="single_lt65">Einpersonenhaushalt (&lt; 65 Jahre)</option>
+          <option value="single_ge65">Einpersonenhaushalt (ab 65 Jahre)</option>
+          <option value="couple_lt65">Paarhaushalt (&lt; 65 Jahre)</option>
+          <option value="couple_ge65">Paarhaushalt (ab 65 Jahre)</option>
+        </select>
+        <div class="type-note" id="typeNote">Vergleich mit: <strong class="js-avg-label">Durchschnittshaushalt</strong></div>
+        <div class="col-headers" style="margin-top:10px;"><span>&Oslash; Mt.</span><span>&Oslash; Jahr</span><span>Ihr Mt.</span><span>Ihr Jahr</span></div>
+        <div class="kv-row">
+          <div class="kv-row__label">Bruttoeinkommen</div>
+          <div class="kv-row__fields">
+            <span class="kv-ref num" id="refGrossMonth">10&#8217;019</span>
+            <span class="kv-ref num" id="refGrossYear">120&#8217;228</span>
+            <input class="kv-input" type="text" inputmode="numeric" id="grossMonth" value="10&#8217;019">
+            <input class="kv-input" type="text" inputmode="numeric" id="grossYear" value="120&#8217;228">
+          </div>
+        </div>
+      </section>
+
+      <section class="side-block">
+        <div class="kv-row total-row">
+          <div class="kv-row__label">Haushaltsausgaben</div>
+          <div class="kv-row__fields">
+            <span class="kv-ref num" id="refTotalMonth">5'838</span>
+            <span class="kv-ref num" id="refTotalYear">70'056</span>
+            <span class="num" id="totalMonth">5'838</span>
+            <span class="num" id="totalYear">70'056</span>
+          </div>
+        </div>
+        <div class="col-headers"><span>&Oslash; Mt.</span><span>&Oslash; Jahr</span><span>Ihr Mt.</span><span>Ihr Jahr</span></div>
+        <div class="cat-inputs" id="catInputs"><!-- injected by JS --></div>
+      </section>
+    </aside>
+
+    <main class="app-main">
+      <div class="chart-panel">
+        <h2>Haushaltsbudget nach Kategorie</h2>
+        <div class="chart-sub">Anteil an den gesamten Haushaltsausgaben, in Prozent</div>
+        <div class="bar-chart" id="barChart"><!-- injected by JS --></div>
+        <div class="legend-row">
+          <span class="legend-row__item"><span class="legend-row__swatch" style="background:var(--bar-avg)"></span><span class="js-avg-label">Durchschnittshaushalt</span></span>
+          <span class="legend-row__item"><span class="legend-row__swatch" style="background:var(--bar-yours)"></span>Ihr Haushalt</span>
+        </div>
+      </div>
+
+      <div class="result-panel">
+        <h2>Teuerung im gew&auml;hlten Zeitraum</h2>
+        <div class="stat-row">
+          <div class="stat-tile stat-tile--yours">
+            <div class="stat-tile__label">Ihre Teuerung</div>
+            <div class="stat-tile__value num" id="personalTotal">&ndash;</div>
+            <div class="stat-tile__sub" id="personalAnnual">&ndash;</div>
+          </div>
+          <div class="stat-tile stat-tile--avg">
+            <div class="stat-tile__label js-avg-label">Durchschnittshaushalt</div>
+            <div class="stat-tile__value num" id="avgTotal">&ndash;</div>
+            <div class="stat-tile__sub" id="avgAnnual">&ndash;</div>
+          </div>
+        </div>
+        <div class="delta-pill equal" id="deltaPill">entspricht dem Durchschnittshaushalt</div>
+      </div>
+
+      <div class="cumulative-panel">
+        <h2>Kumulative Entwicklung im gew&auml;hlten Zeitraum</h2>
+        <div class="chart-sub">Index: Preisniveau zu Beginn der Zeitspanne = 100</div>
+        <div class="line-chart" id="cumulativeChart"><!-- injected by JS --></div>
+        <div class="legend-row">
+          <span class="legend-row__item"><span class="legend-row__swatch" style="background:var(--bar-avg)"></span><span class="js-avg-label">Durchschnittshaushalt</span></span>
+          <span class="legend-row__item"><span class="legend-row__swatch" style="background:var(--bar-yours)"></span>Ihr Haushalt</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <section class="projection-panel" id="projektion">
+    <h2>Kapitel 2 &middot; Projektion: Ihre Teuerung in den n&auml;chsten 10 Jahren</h2>
+    <p class="chart-sub">
+      Annahme: Ihre heutige Konsumstruktur (Kategorien-Gewichtung Ihres Haushalts) bleibt unver&auml;ndert.
+      W&auml;hlen Sie eine k&uuml;nftige, gleichbleibende j&auml;hrliche Teuerung, um zu sehen, wie sich
+      die Kosten Ihres heutigen Warenkorbs und die Kaufkraft eines festen Betrags entwickeln.
+    </p>
+    <div class="projection-controls">
+      <label for="projRate">Angenommene Teuerung p.a.</label>
+      <input type="range" id="projRate" min="-2" max="6" step="0.1" value="1.5">
+      <span class="num" id="projRateVal">+1.5%</span>
+    </div>
+    <div class="line-chart" id="projectionChart"><!-- injected by JS --></div>
+    <div class="legend-row">
+      <span class="legend-row__item"><span class="legend-row__swatch" style="background:var(--bar-yours)"></span>Kosten Ihres heutigen Warenkorbs (Index)</span>
+      <span class="legend-row__item"><span class="legend-row__swatch" style="background:var(--bar-avg)"></span>Kaufkraft von CHF 100 von heute (Index)</span>
+    </div>
+    <div class="stat-row" style="margin-top:16px;">
+      <div class="stat-tile stat-tile--yours">
+        <div class="stat-tile__label">Ihr Budget in 10 Jahren</div>
+        <div class="stat-tile__value num" id="projCostValue">&ndash;</div>
+        <div class="stat-tile__sub" id="projCostSub">&ndash;</div>
+      </div>
+      <div class="stat-tile stat-tile--avg">
+        <div class="stat-tile__label">Kaufkraft von CHF 1&#8217;000 heute</div>
+        <div class="stat-tile__value num" id="projPowerValue">&ndash;</div>
+        <div class="stat-tile__sub" id="projPowerSub">in 10 Jahren</div>
+      </div>
+    </div>
+  </section>
+
+  <details class="methodik">
+    <summary>Daten &amp; Methodik</summary>
+    <div class="methodik__body">
+      <h3>Woher stammen Kategorien, Gewichte und Referenzwerte?</h3>
+      <p>
+        Die 13 Ausgabengruppen, ihre Bezeichnungen sowie die Referenzwerte des
+        &laquo;Durchschnittshaushalts&raquo; (Bruttoeinkommen und Ausgaben je Kategorie) entsprechen
+        den Angaben, die der offizielle BFS-Rechner f&uuml;r seinen Beispielhaushalt anzeigt
+        (Bruttoeinkommen CHF 10&#8217;019/Mt., Haushaltsausgaben CHF 5&#8217;838/Mt.). Die daraus
+        abgeleiteten Gewichte (Anteil je Kategorie an den Haushaltsausgaben) bilden die
+        &laquo;Durchschnittshaushalt&raquo;-Balken im Chart oben.
+      </p>
+      <h3>Woher stammen die Gesamt-Jahresteuerungsraten 2000&ndash;2026?</h3>
+      <p>
+        Reale, publizierte Werte: 2000&ndash;2019 aus der Weltbank-Datenreihe f&uuml;r die Schweiz
+        (FP.CPI.TOTL.ZG), 2020&ndash;2026 aus BFS-Medienmitteilungen. Gegen mehrere einzeln zitierte
+        offizielle BFS-Pressemitteilungstitel exakt gegengepr&uuml;ft.
+      </p>
+      <h3>Woher stammen die Jahreswerte je Kategorie?</h3>
+      <p>
+        Der offizielle BFS-Rechner ist eine interaktive Web-Anwendung ohne offenen Datenexport;
+        die monatlichen Kategorie-Subindizes sind nicht frei abrufbar. Die hier hinterlegten
+        Jahreswerte je Kategorie sind deshalb <strong>Modellsch&auml;tzungen</strong>, kalibriert so,
+        dass sie &ndash; bei den Gewichten des Durchschnittshaushalts &ndash; die tats&auml;chlich
+        publizierte Jahresteuerung der Schweiz auf ca. &plusmn;0.05 Prozentpunkte genau reproduzieren.
+        Die Verteilung zwischen Kategorien st&uuml;tzt sich u.a. auf bekannte Treiber wie
+        Krankenkassenpr&auml;mien, die &Ouml;lpreisspitze 2008/-crash 2009, die Frankenst&auml;rke
+        nach 2011/2015 und die Energiepreis-Spitze 2022. Alle Werte sind unten editierbar. Die
+        Teuerung im gew&auml;hlten Zeitraum wird aus den vollen Kalenderjahren zwischen &laquo;von&raquo;
+        und &laquo;bis&raquo; verkettet (geometrisch verkn&uuml;pft) &ndash; eine Ann&auml;herung auf
+        Basis von Jahresdurchschnittswerten, nicht auf Monatsbasis.
+      </p>
+      <h3>Haushaltstypen und Vergleichsgruppe</h3>
+      <p>
+        Alle f&uuml;nf Haushaltstypen (Durchschnittshaushalt, Einpersonenhaushalt &lt;/ab 65 Jahre,
+        Paarhaushalt &lt;/ab 65 Jahre) entsprechen den vom offiziellen BFS-Rechner ausgewiesenen
+        Referenzwerten f&uuml;r Bruttoeinkommen und Ausgaben je Kategorie (Wahlknopf &laquo;Haushaltstyp&raquo;
+        im Original-Tool). Die Auswahl bestimmt die &laquo;&Oslash;&raquo;-Spalte in der Seitenleiste
+        sowie den Vergleichsbalken/die Vergleichslinie in den Grafiken &ndash; Sie w&auml;hlen also,
+        mit welcher Haushaltsgruppe Sie sich vergleichen m&ouml;chten. Ihre eigenen Werte in der
+        Spalte &laquo;Ihr Haushalt&raquo; sind davon unabh&auml;ngig und bleiben beim Wechsel der
+        Vergleichsgruppe erhalten; der Kreispfeil-Button oben rechts &uuml;bertr&auml;gt bei Bedarf
+        die Referenzwerte der aktuell gew&auml;hlten Gruppe als Ausgangspunkt in Ihre Spalte.
+      </p>
+      <p>
+        &Auml;ndern Sie Ihr eigenes Bruttoeinkommen, werden Ihre Haushaltsausgaben proportional
+        mitskaliert &ndash; mit derselben Ausgabenquote (Haushaltsausgaben &divide; Bruttoeinkommen),
+        die die aktuell gew&auml;hlte Vergleichsgruppe aufweist, und unter Beibehaltung der bisherigen
+        Verteilung &uuml;ber Ihre 13 Kategorien. Das bildet nach, dass auch beim offiziellen
+        BFS-Rechner ein Wechsel des Haushaltstyps Bruttoeinkommen und Haushaltsausgaben gemeinsam
+        &auml;ndert. Bearbeiten Sie danach einzelne Kategorien von Hand, wird nur diese Kategorie
+        angepasst; das Bruttoeinkommen bleibt davon unber&uuml;hrt (die Abh&auml;ngigkeit gilt nur
+        in der Richtung Einkommen &rarr; Ausgaben).
+      </p>
+      <h3>Projektion &uuml;ber 10 Jahre</h3>
+      <p>
+        Die Projektion verkn&uuml;pft die von Ihnen gew&auml;hlte, &uuml;ber 10 Jahre konstant
+        angenommene j&auml;hrliche Teuerung geometrisch mit dem heutigen Ausgabenvolumen Ihres
+        Haushalts. Da eine einheitliche Rate unterstellt wird, ist das Ergebnis unabh&auml;ngig von
+        der Kategorienverteilung &ndash; es zeigt die Kostenentwicklung Ihres Warenkorbs sowie,
+        spiegelbildlich, den realen Kaufkraftverlust eines heute festgelegten Frankenbetrags. Es
+        handelt sich um eine vereinfachte Illustration, nicht um eine Prognose der tats&auml;chlichen
+        k&uuml;nftigen Teuerung.
+      </p>
+      <h3>Tabelle: Gewichte und Jahreswerte (editierbar)</h3>
+      <div class="table-scroll">
+        <table class="data-table" id="dataTable"></table>
+      </div>
+      <h3>Quellen</h3>
+      <ul>
+        <li><a href="https://lik-app.bfs.admin.ch/de/itr" target="_blank" rel="noopener">BFS &ndash; Individueller Teuerungsrechner</a></li>
+        <li><a href="https://www.bfs.admin.ch/bfs/de/home/statistiken/preise/landesindex-konsumentenpreise.html" target="_blank" rel="noopener">BFS &ndash; Landesindex der Konsumentenpreise (&Uuml;bersicht)</a></li>
+        <li><a href="https://www.bfs.admin.ch/bfs/de/home/statistiken/preise/erhebungen/lik/warenkorb.html" target="_blank" rel="noopener">BFS &ndash; Warenkorb und Gewichtung</a></li>
+        <li><a href="https://www.foodaktuell.ch/2026/02/13/landesindex-der-konsumentenpreise-so-schaut-der-warenkorb-neu-aus" target="_blank" rel="noopener">foodaktuell.ch &ndash; Warenkorbrevision 2026 (13 Kategorien)</a></li>
+        <li><a href="https://www.admin.ch/de/newnsb/NSUt8um5SBxJ" target="_blank" rel="noopener">BFS-Medienmitteilung LIK August 2026</a></li>
+        <li><a href="https://www.sbfi.admin.ch/de/newnsb/1POPbeD9zTX33VpiJ3zDB" target="_blank" rel="noopener">BFS-Medienmitteilung Jahresteuerung 2025 (+0,2%)</a></li>
+        <li><a href="https://www.20min.ch/story/inflation-schweiz-beendet-2024-mit-jahresteuerung-von-11-prozent-103253061" target="_blank" rel="noopener">20&nbsp;Minuten &ndash; Jahresteuerung 2024 (+1,1%)</a></li>
+        <li><a href="https://www.bag.admin.ch/de/newnsb/d2okh_kUK_OFhmMDfpyiy" target="_blank" rel="noopener">BAG &ndash; Krankenkassenpr&auml;mien 2026 (+4,4%)</a></li>
+        <li><a href="https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=CH" target="_blank" rel="noopener">Weltbank &ndash; Jahresteuerung Schweiz 2000&ndash;2019 (Datenreihe)</a></li>
+      </ul>
+      <p style="font-size:0.8rem;">
+        Stand der Daten: September 2026. Bei neuen BFS-Publikationen k&ouml;nnen die Werte in der
+        Tabelle oben direkt angepasst werden.
+      </p>
+    </div>
+  </details>
+
+  <p class="disclaimer">
+    Illustrations- und Bildungsrechner zu Ausbildungszwecken. Keine Anlage- oder Steuerberatung.
+    Die individuellen Kategoriewerte sind Modellsch&auml;tzungen (siehe &laquo;Daten &amp; Methodik&raquo;).
+  </p>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <span>&copy; 2026 fintool.ch &middot; Prof. Dr. Erwin Heri</span>
+    <span>Quelle Warenkorb, Referenzwerte &amp; Methodik: Bundesamt f&uuml;r Statistik (BFS)</span>
+  </div>
+</footer>
+
+</div><!-- /#mainApp -->
+
+<script>
+(function () {
+  "use strict";
+
+  var coverScreenEl = document.getElementById("coverScreen");
+  var mainAppEl = document.getElementById("mainApp");
+  document.getElementById("btnStartRechner").addEventListener("click", function () {
+    coverScreenEl.hidden = true;
+    mainAppEl.hidden = false;
+    window.scrollTo(0, 0);
+  });
+  document.getElementById("btnBackToCover").addEventListener("click", function () {
+    mainAppEl.hidden = true;
+    coverScreenEl.hidden = false;
+    window.scrollTo(0, 0);
+  });
+
+  var YEARS = [];
+  for (var _y = 2000; _y <= 2026; _y++) { YEARS.push(_y); }
+
+  var CATEGORIES = [
+    { id: "food", name: "Nahrungsmittel und alkoholfreie Getränke", avgMonth: 623,
+      rates: {2000:1.1,2001:-0.1,2002:-0.5,2003:-0.2,2004:-0.1,2005:0.2,2006:0.3,2007:0.5,2008:3.4,2009:-1.3,2010:-0.4,2011:-0.1,2012:-1.0,2013:-0.5,2014:-0.2,2015:-0.8,2016:-0.6,2017:0.0,2018:0.0,2019:0.1,2020:0.2,2021:0.6,2022:3.9,2023:3.2,2024:0.5,2025:-0.3,2026:0.2} },
+    { id: "alcohol", name: "Alkoholische Getränke und Tabak", avgMonth: 101,
+      rates: {2000:1.6,2001:0.9,2002:0.5,2003:0.5,2004:0.6,2005:0.9,2006:0.8,2007:1.0,2008:1.4,2009:0.2,2010:0.6,2011:0.9,2012:0.0,2013:0.3,2014:0.3,2015:0.2,2016:0.2,2017:0.5,2018:0.5,2019:0.6,2020:0.2,2021:1.1,2022:0.9,2023:2.0,2024:1.3,2025:0.9,2026:1.1} },
+    { id: "clothing", name: "Bekleidung und Schuhe", avgMonth: 201,
+      rates: {2000:0.1,2001:-1.1,2002:-2.0,2003:-1.5,2004:-1.4,2005:-0.9,2006:-0.7,2007:-0.5,2008:-0.1,2009:-2.3,2010:-1.4,2011:-3.1,2012:-4.0,2013:-2.7,2014:-2.2,2015:-4.3,2016:-2.8,2017:-1.0,2018:-0.5,2019:-0.9,2020:-2.3,2021:-0.4,2022:-0.1,2023:-0.5,2024:-1.2,2025:-1.6,2026:-0.9} },
+    { id: "housing", name: "Wohnen und Energie", avgMonth: 1469,
+      rates: {2000:1.6,2001:0.9,2002:0.5,2003:0.5,2004:0.6,2005:1.4,2006:1.3,2007:1.0,2008:2.4,2009:-0.8,2010:0.1,2011:0.4,2012:-0.2,2013:0.3,2014:0.3,2015:-0.8,2016:-0.3,2017:0.5,2018:1.0,2019:0.9,2020:-0.3,2021:1.1,2022:5.9,2023:3.3,2024:2.5,2025:0.4,2026:1.4} },
+    { id: "household", name: "Hausrat und Haushaltsführung", avgMonth: 224,
+      rates: {2000:1.1,2001:-0.1,2002:-1.0,2003:-0.5,2004:-0.1,2005:0.2,2006:0.3,2007:0.3,2008:1.4,2009:-1.3,2010:-0.4,2011:-2.1,2012:-3.0,2013:-1.7,2014:-1.2,2015:-3.3,2016:-1.8,2017:-0.5,2018:0.0,2019:-0.2,2020:-0.3,2021:0.4,2022:2.4,2023:1.5,2024:-0.2,2025:-1.1,2026:-0.4} },
+    { id: "health", name: "Gesundheit", avgMonth: 921,
+      rates: {2000:3.1,2001:5.4,2002:6.0,2003:4.5,2004:4.1,2005:2.9,2006:3.3,2007:0.5,2008:3.9,2009:4.7,2010:4.6,2011:2.9,2012:1.5,2013:1.8,2014:1.8,2015:1.7,2016:1.7,2017:1.5,2018:2.5,2019:0.6,2020:0.2,2021:0.6,2022:0.4,2023:2.5,2024:2.8,2025:1.9,2026:1.6} },
+    { id: "transport", name: "Verkehr", avgMonth: 470,
+      rates: {2000:3.6,2001:-0.1,2002:-1.5,2003:-0.5,2004:1.1,2005:2.9,2006:1.8,2007:2.0,2008:5.4,2009:-6.3,2010:1.6,2011:-0.1,2012:-2.0,2013:-1.2,2014:-0.7,2015:-3.8,2016:-1.8,2017:1.5,2018:2.5,2019:0.1,2020:-4.3,2021:1.1,2022:4.4,2023:-0.5,2024:-1.7,2025:-2.1,2026:1.1} },
+    { id: "comm", name: "Information und Kommunikation", avgMonth: 225,
+      rates: {2000:-2.9,2001:-3.6,2002:-3.0,2003:-2.5,2004:-2.4,2005:-1.6,2006:-1.7,2007:-1.5,2008:-1.1,2009:-2.3,2010:-2.4,2011:-2.1,2012:-2.5,2013:-1.7,2014:-1.7,2015:-2.3,2016:-1.8,2017:-1.5,2018:-1.5,2019:-1.4,2020:-2.3,2021:-1.4,2022:-1.6,2023:-1.5,2024:-2.2,2025:-1.6,2026:-1.4} },
+    { id: "leisure", name: "Freizeit, Sport und Kultur", avgMonth: 545,
+      rates: {2000:1.1,2001:-0.1,2002:-0.5,2003:-0.2,2004:0.1,2005:0.4,2006:0.3,2007:0.5,2008:0.9,2009:-1.3,2010:-0.4,2011:-1.1,2012:-2.0,2013:-1.2,2014:-0.7,2015:-2.3,2016:-1.3,2017:0.0,2018:0.3,2019:0.1,2020:-1.3,2021:0.4,2022:1.4,2023:1.5,2024:0.3,2025:-0.1,2026:0.4} },
+    { id: "education", name: "Bildung", avgMonth: 65,
+      rates: {2000:2.1,2001:1.4,2002:1.5,2003:1.0,2004:1.1,2005:1.4,2006:1.3,2007:1.5,2008:1.4,2009:0.7,2010:0.6,2011:0.9,2012:0.5,2013:0.8,2014:0.8,2015:0.7,2016:0.7,2017:1.0,2018:1.0,2019:1.1,2020:0.2,2021:1.1,2022:1.4,2023:2.0,2024:1.3,2025:0.9,2026:1.1} },
+    { id: "restaurants", name: "Restaurants und Hotels", avgMonth: 445,
+      rates: {2000:1.6,2001:0.9,2002:0.5,2003:0.5,2004:0.6,2005:1.1,2006:1.0,2007:1.2,2008:2.4,2009:-0.3,2010:0.6,2011:0.7,2012:0.0,2013:0.3,2014:0.3,2015:-0.3,2016:0.0,2017:0.5,2018:0.8,2019:0.6,2020:-0.3,2021:0.6,2022:2.9,2023:3.5,2024:1.8,2025:0.9,2026:1.1} },
+    { id: "insurance", name: "Versicherungen und Finanzdienstleistungen", avgMonth: 150,
+      rates: {2000:2.1,2001:0.9,2002:0.5,2003:0.5,2004:0.6,2005:0.9,2006:0.8,2007:1.0,2008:1.4,2009:0.2,2010:0.6,2011:0.9,2012:0.0,2013:0.3,2014:0.3,2015:0.2,2016:0.2,2017:1.0,2018:1.5,2019:1.1,2020:0.2,2021:0.6,2022:0.9,2023:2.5,2024:2.8,2025:2.4,2026:2.1} },
+    { id: "other", name: "Sonstige Waren und Dienstleistungen", avgMonth: 399,
+      rates: {2000:1.1,2001:-0.1,2002:-1.0,2003:-0.5,2004:-0.1,2005:0.4,2006:0.3,2007:0.5,2008:0.9,2009:-1.3,2010:-0.4,2011:-1.1,2012:-2.0,2013:-1.2,2014:-0.7,2015:-2.3,2016:-1.3,2017:0.0,2018:0.3,2019:0.1,2020:-0.8,2021:0.6,2022:1.4,2023:1.5,2024:0.3,2025:-0.1,2026:0.4} }
+  ];
+
+  var HEADLINE = {2000:1.6,2001:1.0,2002:0.6,2003:0.6,2004:0.8,2005:1.2,2006:1.1,2007:0.7,2008:2.4,2009:-0.5,2010:0.7,2011:0.2,2012:-0.7,2013:-0.2,2014:0.0,2015:-1.1,2016:-0.4,2017:0.5,2018:0.9,2019:0.4,2020:-0.7,2021:0.6,2022:2.8,2023:2.1,2024:1.1,2025:0.2,2026:0.8};
+
+  var GROSS_MONTH_DEFAULT = 10019;
+  var AVG_TOTAL_MONTH = CATEGORIES.reduce(function (s, c) { return s + c.avgMonth; }, 0);
+
+  // ---------- Household types ----------
+  // Alle vier Zusatztypen sind exakte Referenzwerte, die Erwin direkt aus dem Wahlknopf des
+  // offiziellen BFS-Rechners abgelesen und als Screenshots geliefert hat (September 2026).
+  // Summenprobe: jede Kategoriensumme reproduziert die im Rechner ausgewiesene Haushaltsausgaben-
+  // Summe exakt.
+  var HOUSEHOLD_TYPES = {
+    avg: { name: "Durchschnittshaushalt", verified: true, gross: GROSS_MONTH_DEFAULT, cats: null },
+    single_lt65: {
+      name: "Einpersonenhaushalt (< 65 Jahre)", verified: true, gross: 6926,
+      cats: { food: 345, alcohol: 77, clothing: 123, housing: 1271, household: 119, health: 499,
+        transport: 438, comm: 130, leisure: 333, education: 34, restaurants: 427, insurance: 59, other: 114 }
+    },
+    single_ge65: {
+      name: "Einpersonenhaushalt (ab 65 Jahre)", verified: true, gross: 4669,
+      cats: { food: 403, alcohol: 62, clothing: 98, housing: 1100, household: 132, health: 654,
+        transport: 245, comm: 107, leisure: 314, education: 1, restaurants: 267, insurance: 88, other: 141 }
+    },
+    couple_lt65: {
+      name: "Paarhaushalt (< 65 Jahre)", verified: true, gross: 12915,
+      cats: { food: 613, alcohol: 134, clothing: 250, housing: 1707, household: 275, health: 974,
+        transport: 840, comm: 191, leisure: 627, education: 52, restaurants: 730, insurance: 110, other: 215 }
+    },
+    couple_ge65: {
+      name: "Paarhaushalt (ab 65 Jahre)", verified: true, gross: 8516,
+      cats: { food: 741, alcohol: 127, clothing: 172, housing: 1263, household: 247, health: 1238,
+        transport: 580, comm: 157, leisure: 623, education: 4, restaurants: 530, insurance: 174, other: 217 }
+    }
+  };
+
+  // Referenz-("Ø")-Basis: bestimmt allein durch die gewaehlte Vergleichsgruppe (Haushaltstyp).
+  // "Ihr Haushalt" (yoursMonth) ist davon komplett unabhaengig und wird NIE automatisch ueberschrieben.
+  function refType() {
+    return HOUSEHOLD_TYPES[householdTypeEl.value] || HOUSEHOLD_TYPES.avg;
+  }
+  function refMonthMap() {
+    var t = refType();
+    if (t.cats) return t.cats;
+    var m = {};
+    CATEGORIES.forEach(function (c) { m[c.id] = c.avgMonth; });
+    return m;
+  }
+  function refTotalMonth() {
+    var m = refMonthMap();
+    return CATEGORIES.reduce(function (s, c) { return s + m[c.id]; }, 0);
+  }
+  function refGrossMonth() {
+    return refType().gross || GROSS_MONTH_DEFAULT;
+  }
+  function refLabel() {
+    return refType().name;
+  }
+
+  var yoursMonth = {};
+  CATEGORIES.forEach(function (c) { yoursMonth[c.id] = c.avgMonth; });
+
+  var fmtInt = function (n) {
+    n = Math.round(n);
+    return n.toLocaleString("de-CH");
+  };
+  var fmt1 = function (n) {
+    var v = Math.round(n * 10) / 10;
+    if (Object.is(v, -0)) v = 0;
+    return v.toFixed(1);
+  };
+  var fmtSigned = function (n) {
+    var v = Math.round(n * 10) / 10;
+    if (Object.is(v, -0)) v = 0;
+    return (v > 0 ? "+" : "") + v.toFixed(1) + "%";
+  };
+
+  function yoursTotal() {
+    var s = 0;
+    CATEGORIES.forEach(function (c) { s += yoursMonth[c.id]; });
+    return s;
+  }
+
+  function weightsFrom(monthMap, total) {
+    var w = {};
+    CATEGORIES.forEach(function (c) { w[c.id] = total > 0 ? (monthMap[c.id] / total) * 100 : 0; });
+    return w;
+  }
+
+  function weightedRate(weights, year) {
+    var sum = 0, wsum = 0;
+    CATEGORIES.forEach(function (c) { sum += weights[c.id] * c.rates[year]; wsum += weights[c.id]; });
+    return wsum > 0 ? sum / wsum : 0;
+  }
+
+  // ---------- Sidebar: category CHF inputs ----------
+  var catInputsEl = document.getElementById("catInputs");
+  function renderCatInputs() {
+    var refM = refMonthMap();
+    catInputsEl.innerHTML = "";
+    CATEGORIES.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "cat-input-row";
+
+      var name = document.createElement("div");
+      name.className = "cat-input-row__name";
+      name.textContent = c.name;
+      row.appendChild(name);
+
+      var fields = document.createElement("div");
+      fields.className = "cat-input-row__fields";
+
+      var refSpan = document.createElement("span");
+      refSpan.className = "kv-ref num";
+      refSpan.textContent = fmtInt(refM[c.id]);
+
+      var refYearSpan = document.createElement("span");
+      refYearSpan.className = "kv-ref num";
+      refYearSpan.textContent = fmtInt(refM[c.id] * 12);
+
+      var monthInput = document.createElement("input");
+      monthInput.className = "kv-input";
+      monthInput.type = "text";
+      monthInput.inputMode = "numeric";
+      monthInput.value = fmtInt(yoursMonth[c.id]);
+
+      var yearInput = document.createElement("input");
+      yearInput.className = "kv-input";
+      yearInput.type = "text";
+      yearInput.inputMode = "numeric";
+      yearInput.value = fmtInt(yoursMonth[c.id] * 12);
+
+      monthInput.addEventListener("input", function () {
+        var v = parseCHF(monthInput.value);
+        yoursMonth[c.id] = Math.max(0, v);
+        yearInput.value = fmtInt(yoursMonth[c.id] * 12);
+        refreshAll();
+      });
+      monthInput.addEventListener("blur", function () {
+        monthInput.value = fmtInt(yoursMonth[c.id]);
+      });
+      yearInput.addEventListener("input", function () {
+        var v = parseCHF(yearInput.value);
+        yoursMonth[c.id] = Math.max(0, v / 12);
+        monthInput.value = fmtInt(yoursMonth[c.id]);
+        refreshAll();
+      });
+      yearInput.addEventListener("blur", function () {
+        yearInput.value = fmtInt(yoursMonth[c.id] * 12);
+      });
+
+      fields.appendChild(refSpan);
+      fields.appendChild(refYearSpan);
+      fields.appendChild(monthInput);
+      fields.appendChild(yearInput);
+      row.appendChild(fields);
+      catInputsEl.appendChild(row);
+    });
+  }
+
+  var householdTypeEl = document.getElementById("householdType");
+  var typeNoteEl = document.getElementById("typeNote");
+
+  document.getElementById("btnResetAll").addEventListener("click", function () {
+    var m = refMonthMap();
+    CATEGORIES.forEach(function (c) { yoursMonth[c.id] = m[c.id]; });
+    var gross = refGrossMonth();
+    grossMonthEl.value = fmtInt(gross);
+    grossYearEl.value = fmtInt(gross * 12);
+    renderCatInputs();
+    refreshAll();
+  });
+  householdTypeEl.addEventListener("change", function () {
+    renderCatInputs();
+    refreshAll();
+    buildDataTable();
+  });
+
+  document.getElementById("btnToggleSidebar").addEventListener("click", function () {
+    document.getElementById("appShell").classList.toggle("sidebar-collapsed");
+  });
+
+  // ---------- Totals ----------
+  var totalMonthEl = document.getElementById("totalMonth");
+  var totalYearEl = document.getElementById("totalYear");
+  function refreshTotals() {
+    var t = yoursTotal();
+    totalMonthEl.textContent = fmtInt(t);
+    totalYearEl.textContent = fmtInt(t * 12);
+  }
+
+  // ---------- Bar chart ----------
+  var barChartEl = document.getElementById("barChart");
+  function niceMax(v) {
+    var steps = [5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 75, 100];
+    for (var i = 0; i < steps.length; i++) { if (steps[i] + 0.6 >= v) return steps[i]; }
+    return Math.ceil(v / 10) * 10;
+  }
+
+  function buildBarChart() {
+    var total = yoursTotal();
+    var avgW = weightsFrom(refMonthMap(), refTotalMonth());
+    var yourW = weightsFrom(yoursMonth, total);
+    var maxVal = 0;
+    CATEGORIES.forEach(function (c) { maxVal = Math.max(maxVal, avgW[c.id], yourW[c.id]); });
+    var max = niceMax(maxVal);
+
+    barChartEl.innerHTML = "";
+    barChartEl.style.setProperty("--label-w", "190px");
+
+    var axis = document.createElement("div");
+    axis.className = "bar-chart__axis";
+    [0, max].forEach(function (v) {
+      var span = document.createElement("span");
+      span.style.left = (v / max * 100) + "%";
+      span.textContent = (v === 0 ? "0" : fmt1(v)) + "%";
+      axis.appendChild(span);
+    });
+    barChartEl.appendChild(axis);
+
+    var grid = document.createElement("div");
+    grid.className = "bar-chart__grid";
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (f) {
+      var line = document.createElement("i");
+      line.style.left = (f * 100) + "%";
+      grid.appendChild(line);
+    });
+    barChartEl.appendChild(grid);
+
+    var rows = document.createElement("div");
+    rows.className = "bar-rows";
+
+    CATEGORIES.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "bar-row";
+
+      var label = document.createElement("div");
+      label.className = "bar-row__label";
+      label.textContent = c.name;
+      row.appendChild(label);
+
+      var track = document.createElement("div");
+      track.className = "bar-row__track";
+
+      var avgBar = document.createElement("div");
+      avgBar.className = "bar-row__bar avg";
+      avgBar.style.width = (avgW[c.id] / max * 100) + "%";
+      avgBar.dataset.label = refLabel();
+      avgBar.dataset.value = fmt1(avgW[c.id]) + "%";
+      avgBar.dataset.name = c.name;
+
+      var yourBar = document.createElement("div");
+      yourBar.className = "bar-row__bar yours";
+      yourBar.style.width = (yourW[c.id] / max * 100) + "%";
+      yourBar.dataset.label = "Ihr Haushalt";
+      yourBar.dataset.value = fmt1(yourW[c.id]) + "%";
+      yourBar.dataset.name = c.name;
+
+      track.appendChild(avgBar);
+      track.appendChild(yourBar);
+      row.appendChild(track);
+      rows.appendChild(row);
+    });
+
+    barChartEl.appendChild(rows);
+
+    var tooltip = document.getElementById("barTooltip");
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = "bar-tooltip";
+      tooltip.id = "barTooltip";
+      document.body.appendChild(tooltip);
+    }
+    barChartEl.querySelectorAll(".bar-row__bar").forEach(function (bar) {
+      bar.addEventListener("mouseenter", function (e) { showBarTip(bar, e); });
+      bar.addEventListener("mousemove", function (e) { showBarTip(bar, e); });
+      bar.addEventListener("mouseleave", function () { tooltip.classList.remove("visible"); });
+    });
+    function showBarTip(bar, e) {
+      tooltip.innerHTML = "<strong>" + bar.dataset.name + "</strong><br>" + bar.dataset.label + ": " + bar.dataset.value;
+      tooltip.style.left = (e.clientX + 12) + "px";
+      tooltip.style.top = (e.clientY - 12) + "px";
+      tooltip.classList.add("visible");
+    }
+  }
+
+  // ---------- Result over selected Zeitspanne ----------
+  var dateFromEl = document.getElementById("dateFrom");
+  var dateToEl = document.getElementById("dateTo");
+  var personalTotalEl = document.getElementById("personalTotal");
+  var personalAnnualEl = document.getElementById("personalAnnual");
+  var avgTotalEl = document.getElementById("avgTotal");
+  var avgAnnualEl = document.getElementById("avgAnnual");
+  var deltaPillEl = document.getElementById("deltaPill");
+
+  function compound(weights, fromYear, toYear) {
+    var factor = 1;
+    for (var y = fromYear + 1; y <= toYear; y++) {
+      if (HEADLINE[y] === undefined) continue;
+      factor *= (1 + weightedRate(weights, y) / 100);
+    }
+    return factor;
+  }
+
+  function refreshResult() {
+    var fromYear = parseInt((dateFromEl.value || "2000-01").split("-")[0], 10);
+    var toYear = parseInt((dateToEl.value || "2026-08").split("-")[0], 10);
+    if (toYear <= fromYear) toYear = fromYear + 1;
+    fromYear = Math.max(2000, Math.min(2025, fromYear));
+    toYear = Math.max(fromYear + 1, Math.min(2026, toYear));
+    var n = toYear - fromYear;
+
+    var total = yoursTotal();
+    var avgW = weightsFrom(refMonthMap(), refTotalMonth());
+    var yourW = weightsFrom(yoursMonth, total);
+
+    var personalFactor = compound(yourW, fromYear, toYear);
+    var avgFactor = compound(avgW, fromYear, toYear);
+
+    var personalTotalPct = (personalFactor - 1) * 100;
+    var avgTotalPct = (avgFactor - 1) * 100;
+    var personalAnnualPct = (Math.pow(personalFactor, 1 / n) - 1) * 100;
+    var avgAnnualPct = (Math.pow(avgFactor, 1 / n) - 1) * 100;
+
+    personalTotalEl.textContent = fmtSigned(personalTotalPct);
+    personalAnnualEl.textContent = fmtSigned(personalAnnualPct) + " p.a. Ø";
+    avgTotalEl.textContent = fmtSigned(avgTotalPct);
+    avgAnnualEl.textContent = fmtSigned(avgAnnualPct) + " p.a. Ø";
+
+    var diff = Math.round((personalTotalPct - avgTotalPct) * 10) / 10;
+    var lbl = refLabel();
+    deltaPillEl.classList.remove("higher", "lower", "equal");
+    if (Math.abs(diff) < 0.1) {
+      deltaPillEl.textContent = "entspricht " + lbl + " (" + fromYear + "–" + toYear + ")";
+      deltaPillEl.classList.add("equal");
+    } else if (diff > 0) {
+      deltaPillEl.textContent = "+" + fmt1(diff) + " Prozentpunkte über " + lbl + " (" + fromYear + "–" + toYear + ")";
+      deltaPillEl.classList.add("higher");
+    } else {
+      deltaPillEl.textContent = fmt1(diff) + " Prozentpunkte unter " + lbl + " (" + fromYear + "–" + toYear + ")";
+      deltaPillEl.classList.add("lower");
+    }
+  }
+
+  dateFromEl.addEventListener("change", refreshAll);
+  dateToEl.addEventListener("change", refreshAll);
+
+  // ---------- Gross income (display convenience, not part of the inflation calc) ----------
+  function parseCHF(str) {
+    var digits = String(str).replace(/[^\d]/g, "");
+    return digits ? parseInt(digits, 10) : 0;
+  }
+
+  // Wenn "Ihr Bruttoeinkommen" geaendert wird, skaliert "Ihre Haushaltsausgaben" proportional mit
+  // (gleiche Ausgabenquote wie die aktuell gewaehlte Vergleichsgruppe, gleiche Kategorien-Mischung
+  // wie bisher bei Ihnen) -- analog dazu, dass im BFS-Rechner ein Wechsel des Haushaltstyps sowohl
+  // Bruttoeinkommen als auch Haushaltsausgaben gemeinsam veraendert.
+  function scaleYoursToTotal(newTotal) {
+    newTotal = Math.max(0, newTotal);
+    var oldTotal = yoursTotal();
+    if (oldTotal > 0) {
+      var factor = newTotal / oldTotal;
+      CATEGORIES.forEach(function (c) { yoursMonth[c.id] = yoursMonth[c.id] * factor; });
+    } else {
+      var w = weightsFrom(refMonthMap(), refTotalMonth());
+      CATEGORIES.forEach(function (c) { yoursMonth[c.id] = newTotal * (w[c.id] || 0) / 100; });
+    }
+  }
+
+  function applyIncomeToExpenses(newGrossMonth) {
+    var refG = refGrossMonth();
+    var ratio = refG > 0 ? refTotalMonth() / refG : 0;
+    scaleYoursToTotal(newGrossMonth * ratio);
+    renderCatInputs();
+    refreshAll();
+  }
+
+  var grossMonthEl = document.getElementById("grossMonth");
+  var grossYearEl = document.getElementById("grossYear");
+  var refGrossMonthEl = document.getElementById("refGrossMonth");
+  grossMonthEl.addEventListener("input", function () {
+    var v = parseCHF(grossMonthEl.value);
+    grossYearEl.value = fmtInt(v * 12);
+    applyIncomeToExpenses(v);
+  });
+  grossMonthEl.addEventListener("blur", function () {
+    grossMonthEl.value = fmtInt(parseCHF(grossMonthEl.value));
+  });
+  grossYearEl.addEventListener("input", function () {
+    var v = parseCHF(grossYearEl.value);
+    grossMonthEl.value = fmtInt(v / 12);
+    applyIncomeToExpenses(v / 12);
+  });
+  grossYearEl.addEventListener("blur", function () {
+    grossYearEl.value = fmtInt(parseCHF(grossYearEl.value));
+  });
+
+  // ---------- Methodology data table ----------
+  var dataTableEl = document.getElementById("dataTable");
+  function buildDataTable() {
+    var avgW = weightsFrom(refMonthMap(), refTotalMonth());
+    var thead = "<thead><tr><th>Kategorie</th><th>Ø Gewicht</th>" +
+      YEARS.map(function (y) { return "<th>" + y + "</th>"; }).join("") + "</tr></thead>";
+    var rows = CATEGORIES.map(function (c) {
+      var cells = "<td>" + fmt1(avgW[c.id]) + "%</td>" +
+        YEARS.map(function (y) {
+          return '<td class="editable"><input type="number" step="0.1" value="' + fmt1(c.rates[y]) +
+            '" data-cat="' + c.id + '" data-year="' + y + '" />%</td>';
+        }).join("");
+      return "<tr><td>" + c.name + "</td>" + cells + "</tr>";
+    }).join("");
+    var sumRow = "<tr class='weight-row'><td>Gewichteter Durchschnitt (" + refLabel() + ")</td><td>100.0%</td>" +
+      YEARS.map(function (y) {
+        return "<td>" + fmtSigned(weightedRate(avgW, y)) + "</td>";
+      }).join("") + "</tr>";
+    var headlineRow = "<tr><td>Publizierte Jahresteuerung (BFS/Weltbank)</td><td>&mdash;</td>" +
+      YEARS.map(function (y) { return "<td>" + fmtSigned(HEADLINE[y]) + "</td>"; }).join("") + "</tr>";
+    dataTableEl.innerHTML = thead + "<tbody>" + rows + sumRow + headlineRow + "</tbody>";
+
+    dataTableEl.querySelectorAll("input[data-cat]").forEach(function (input) {
+      input.addEventListener("change", function () {
+        var cat = input.getAttribute("data-cat");
+        var year = parseInt(input.getAttribute("data-year"), 10);
+        var v = parseFloat(input.value);
+        if (isNaN(v)) return;
+        var target = CATEGORIES.filter(function (c) { return c.id === cat; })[0];
+        target.rates[year] = v;
+        refreshAll();
+        buildDataTable();
+      });
+    });
+  }
+
+  // ---------- Generic inline SVG line chart ----------
+  function buildLineChart(container, xLabels, series, opts) {
+    opts = opts || {};
+    var w = 760, h = 220, padL = 46, padR = 54, padT = 14, padB = 26;
+    var innerW = w - padL - padR, innerH = h - padT - padB;
+    var n = xLabels.length;
+    var allVals = [];
+    series.forEach(function (s) { s.values.forEach(function (v) { allVals.push(v); }); });
+    var minV = Math.min.apply(null, allVals);
+    var maxV = Math.max.apply(null, allVals);
+    if (opts.includeZero) minV = Math.min(minV, 0);
+    var span = (maxV - minV) || 1;
+    minV -= span * 0.1; maxV += span * 0.1; span = maxV - minV;
+
+    function xPos(i) { return padL + (n <= 1 ? 0 : (i / (n - 1)) * innerW); }
+    function yPos(v) { return padT + innerH - ((v - minV) / span) * innerH; }
+
+    var svg = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:220px;display:block;">';
+
+    var steps = 4;
+    for (var g = 0; g <= steps; g++) {
+      var v = minV + (span * g / steps);
+      var y = yPos(v);
+      svg += '<line x1="' + padL + '" x2="' + (w - padR) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--line)" stroke-width="1"/>';
+      svg += '<text x="' + (padL - 8) + '" y="' + (y + 3).toFixed(1) + '" font-size="9.5" text-anchor="end" fill="var(--muted)">' + (opts.yFmt ? opts.yFmt(v) : Math.round(v)) + '</text>';
+    }
+
+    xLabels.forEach(function (lbl, i) {
+      if (opts.xShow && !opts.xShow(i, lbl)) return;
+      svg += '<text x="' + xPos(i).toFixed(1) + '" y="' + (h - 6) + '" font-size="9.5" text-anchor="middle" fill="var(--muted)">' + lbl + '</text>';
+    });
+
+    var endYs = series.map(function (s) { return yPos(s.values[s.values.length - 1]); });
+    var minGap = 12;
+    for (var pass = 0; pass < 3; pass++) {
+      for (var a = 0; a < endYs.length; a++) {
+        for (var b = a + 1; b < endYs.length; b++) {
+          var d = endYs[b] - endYs[a];
+          if (Math.abs(d) < minGap) {
+            var push = (minGap - Math.abs(d)) / 2 || minGap / 2;
+            if (d >= 0) { endYs[a] -= push; endYs[b] += push; } else { endYs[a] += push; endYs[b] -= push; }
+          }
+        }
+      }
+    }
+
+    series.forEach(function (s) {
+      var d = s.values.map(function (v, i) { return (i === 0 ? "M" : "L") + xPos(i).toFixed(1) + "," + yPos(v).toFixed(1); }).join(" ");
+      svg += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="2.25"/>';
+    });
+    series.forEach(function (s, si) {
+      var lastI = s.values.length - 1;
+      var cx = xPos(lastI), cy = yPos(s.values[lastI]);
+      svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="3" fill="' + s.color + '"/>';
+      svg += '<text x="' + (cx + 7).toFixed(1) + '" y="' + (endYs[si] + 3.5).toFixed(1) + '" font-size="10.5" font-weight="600" fill="' + s.color + '">' +
+        (s.endLabel !== undefined ? s.endLabel : Math.round(s.values[lastI])) + '</text>';
+    });
+
+    svg += '</svg>';
+    container.innerHTML = svg;
+  }
+
+  // ---------- Cumulative development chart (Zeitspanne) ----------
+  var cumulativeChartEl = document.getElementById("cumulativeChart");
+  function buildCumulativeChart() {
+    var fromYear = parseInt((dateFromEl.value || "2000-01").split("-")[0], 10);
+    var toYear = parseInt((dateToEl.value || "2026-08").split("-")[0], 10);
+    if (toYear <= fromYear) toYear = fromYear + 1;
+    fromYear = Math.max(2000, Math.min(2025, fromYear));
+    toYear = Math.max(fromYear + 1, Math.min(2026, toYear));
+
+    var total = yoursTotal();
+    var avgW = weightsFrom(refMonthMap(), refTotalMonth());
+    var yourW = weightsFrom(yoursMonth, total);
+
+    var years = [];
+    for (var y = fromYear; y <= toYear; y++) years.push(y);
+
+    var yoursIdx = [100], avgIdx = [100];
+    for (var i = 1; i < years.length; i++) {
+      var yr = years[i];
+      yoursIdx.push(yoursIdx[i - 1] * (1 + weightedRate(yourW, yr) / 100));
+      avgIdx.push(avgIdx[i - 1] * (1 + weightedRate(avgW, yr) / 100));
+    }
+
+    var xLabels = years.map(function (y) { return String(y); });
+    buildLineChart(cumulativeChartEl, xLabels, [
+      { values: avgIdx, color: "var(--bar-avg)", endLabel: fmt1(avgIdx[avgIdx.length - 1]) },
+      { values: yoursIdx, color: "var(--bar-yours)", endLabel: fmt1(yoursIdx[yoursIdx.length - 1]) }
+    ], {
+      yFmt: function (v) { return Math.round(v); },
+      xShow: function (i, lbl) { return (parseInt(lbl, 10) - fromYear) % Math.max(1, Math.ceil(years.length / 9)) === 0 || i === years.length - 1; }
+    });
+  }
+
+  // ---------- 10-year projection chapter ----------
+  var projRateEl = document.getElementById("projRate");
+  var projRateValEl = document.getElementById("projRateVal");
+  var projectionChartEl = document.getElementById("projectionChart");
+  var projCostValueEl = document.getElementById("projCostValue");
+  var projCostSubEl = document.getElementById("projCostSub");
+  var projPowerValueEl = document.getElementById("projPowerValue");
+  var projPowerSubEl = document.getElementById("projPowerSub");
+  var PROJECTION_YEARS = 10;
+
+  function buildProjection() {
+    var rate = parseFloat(projRateEl.value);
+    if (isNaN(rate)) rate = 0;
+    projRateValEl.textContent = (rate > 0 ? "+" : "") + rate.toFixed(1) + "%";
+
+    var costIdx = [100], powerIdx = [100];
+    for (var i = 1; i <= PROJECTION_YEARS; i++) {
+      costIdx.push(costIdx[i - 1] * (1 + rate / 100));
+      powerIdx.push(powerIdx[i - 1] / (1 + rate / 100));
+    }
+    var xLabels = [];
+    for (var j = 0; j <= PROJECTION_YEARS; j++) xLabels.push("+" + j);
+
+    buildLineChart(projectionChartEl, xLabels, [
+      { values: powerIdx, color: "var(--bar-avg)", endLabel: fmt1(powerIdx[powerIdx.length - 1]) },
+      { values: costIdx, color: "var(--bar-yours)", endLabel: fmt1(costIdx[costIdx.length - 1]) }
+    ], {
+      yFmt: function (v) { return Math.round(v); },
+      xShow: function (i) { return i % 2 === 0; }
+    });
+
+    var total = yoursTotal();
+    var futureCost = total * Math.pow(1 + rate / 100, PROJECTION_YEARS);
+    projCostValueEl.textContent = "CHF " + fmtInt(futureCost) + "/Mt.";
+    projCostSubEl.textContent = fmtSigned((Math.pow(1 + rate / 100, PROJECTION_YEARS) - 1) * 100) + " ggü. heute (CHF " + fmtInt(total) + "/Mt.)";
+
+    var futurePower = 1000 / Math.pow(1 + rate / 100, PROJECTION_YEARS);
+    projPowerValueEl.textContent = "CHF " + fmtInt(futurePower);
+    projPowerSubEl.textContent = "realer Gegenwert in " + PROJECTION_YEARS + " Jahren";
+  }
+  projRateEl.addEventListener("input", buildProjection);
+
+  function updateAvgLabels() {
+    var lbl = refLabel();
+    document.querySelectorAll(".js-avg-label").forEach(function (el) { el.textContent = lbl; });
+    refGrossMonthEl.textContent = fmtInt(refGrossMonth());
+    document.getElementById("refGrossYear").textContent = fmtInt(refGrossMonth() * 12);
+    document.getElementById("refTotalMonth").textContent = fmtInt(refTotalMonth());
+    document.getElementById("refTotalYear").textContent = fmtInt(refTotalMonth() * 12);
+  }
+
+  function refreshAll() {
+    updateAvgLabels();
+    refreshTotals();
+    buildBarChart();
+    refreshResult();
+    buildCumulativeChart();
+  }
+
+  renderCatInputs();
+  buildDataTable();
+  refreshAll();
+  buildProjection();
+})();
+</script>
+</body>
+</html>
