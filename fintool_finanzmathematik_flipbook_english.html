@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Mathematics for Beginners — Erwin W. Heri</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --brand:       #fd4f57;
+      --brand-dark:  #c83a42;
+      --paper:       #ffffff;
+      --text:        #1a1a1a;
+      --muted:       #888;
+      --border:      #e8e4dc;
+      --formula-bg:  #fff5f5;
+      --ui-dark:     #111111;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: #1a1a1a;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    #header {
+      background: var(--ui-dark);
+      color: white;
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      border-bottom: 3px solid var(--brand);
+    }
+    #header .brand {
+      font-family: sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 2px;
+    }
+    #header .booktitle {
+      font-size: 14px;
+      font-weight: normal;
+      color: #e8e8e8;
+      letter-spacing: 0.01em;
+    }
+    #header-chapter {
+      font-family: sans-serif;
+      font-size: 11px;
+      color: #888;
+      text-align: right;
+      max-width: 320px;
+    }
+
+    /* ── STAGE ───────────────────────────────────────────── */
+    #stage {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px 0;
+      overflow: hidden;
+    }
+
+    /* ── PAGES ───────────────────────────────────────────── */
+    .page {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      max-width: 780px;
+      background: var(--paper);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      padding: 40px 64px 28px;
+      border-radius: 2px;
+      height: calc(100vh - 118px);
+      overflow: hidden;
+    }
+    .page.active { display: flex; }
+    .page-body {
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Centre content vertically, but keep chapter-label pinned to top */
+    .page-body > .chapter-label + * { margin-top: auto; }
+    .page-body > *:first-child:not(.chapter-label) { margin-top: auto; }
+    .page-body > *:last-child { margin-bottom: auto; }
+    .page-footer {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      padding-top: 9px;
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: sans-serif;
+      font-size: 10px;
+      color: #bbb;
+      letter-spacing: 0.02em;
+    }
+    #page-0 .page-footer { display: none; }
+    .page.anim-forward { animation: fadeIn 0.22s ease forwards; }
+    .page.anim-back    { animation: fadeIn 0.22s ease forwards; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── TYPOGRAPHY ──────────────────────────────────────── */
+    .page h1 {
+      font-size: 19px;
+      color: #111;
+      font-weight: normal;
+      line-height: 1.3;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--brand);
+    }
+    .page h2 {
+      font-size: 14px;
+      color: var(--brand);
+      font-weight: bold;
+      margin: 22px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-family: sans-serif;
+    }
+    .page p {
+      font-size: 14.5px;
+      line-height: 1.75;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .chapter-label {
+      font-family: sans-serif;
+      font-size: 10px;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* ── FORMULAS ────────────────────────────────────────── */
+    .formula {
+      background: var(--formula-bg);
+      border-left: 3px solid var(--brand);
+      padding: 10px 16px;
+      margin: 12px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #222;
+      border-radius: 0 3px 3px 0;
+      line-height: 1.5;
+    }
+    .formula.big {
+      font-size: 20px;
+      padding: 18px 24px;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    /* ── VIDEO BUTTONS ───────────────────────────────────── */
+    .video-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--brand);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      margin: 12px 0;
+      cursor: pointer;
+      border-radius: 3px;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      transition: background 0.15s, transform 0.1s;
+      text-align: left;
+      width: 100%;
+      max-width: 500px;
+    }
+    .video-btn:hover {
+      background: var(--brand-dark);
+      transform: translateX(2px);
+    }
+    .play-icon {
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 11px;
+      padding-left: 2px;
+    }
+    .btn-text { display: flex; flex-direction: column; }
+    .btn-label {
+      font-size: 9px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 1px;
+      font-family: sans-serif;
+    }
+    .btn-title { font-size: 13px; }
+
+    /* ── NAV ─────────────────────────────────────────────── */
+    #nav {
+      background: var(--ui-dark);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-shrink: 0;
+      border-top: 3px solid var(--brand);
+    }
+    #nav button {
+      background: transparent;
+      color: #ccc;
+      border: 1px solid #444;
+      padding: 6px 20px;
+      cursor: pointer;
+      border-radius: 2px;
+      font-size: 12px;
+      font-family: sans-serif;
+      transition: all 0.15s;
+      min-width: 90px;
+    }
+    #nav button:hover:not(:disabled) {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+    }
+    #nav button:disabled { opacity: 0.2; cursor: default; }
+    #page-indicator {
+      color: #666;
+      font-family: sans-serif;
+      font-size: 11px;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    /* ── COVER ───────────────────────────────────────────── */
+    #page-0 { padding: 0; overflow: hidden; }
+    .cover-inner {
+      height: 100%;
+      min-height: calc(100vh - 118px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 64px 72px;
+      background: #fff;
+      border-left: 6px solid var(--brand);
+    }
+    .cover-brand {
+      font-family: sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 48px;
+      font-weight: bold;
+    }
+    .cover-author {
+      font-size: 15px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+    .cover-title {
+      font-size: 38px;
+      line-height: 1.15;
+      color: #111;
+      margin-bottom: 16px;
+      max-width: 480px;
+    }
+    .cover-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 52px;
+      max-width: 380px;
+      line-height: 1.6;
+    }
+    .cover-rule {
+      width: 48px;
+      height: 3px;
+      background: var(--brand);
+      margin-bottom: 28px;
+    }
+    .cover-tagline {
+      font-size: 13.5px;
+      color: #555;
+      line-height: 2;
+      max-width: 340px;
+    }
+
+    /* ── TOC ─────────────────────────────────────────────── */
+    .toc-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: color 0.12s;
+    }
+    .toc-entry:hover .toc-name { color: var(--brand); }
+    .toc-entry.ch { font-weight: bold; }
+    .toc-entry.ch .toc-name { color: #111; }
+    .toc-entry.sub { padding-left: 20px; }
+    .toc-entry.sub .toc-name { font-size: 13px; color: var(--muted); font-weight: normal; }
+    .toc-arrow { font-size: 11px; color: var(--brand); opacity: 0.5; }
+
+    /* ── MODAL ───────────────────────────────────────────── */
+    #video-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    #video-modal.open { display: flex; }
+    #modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+    }
+    #modal-box {
+      position: relative;
+      z-index: 1;
+      background: #0a0a0a;
+      border-radius: 3px;
+      overflow: hidden;
+      width: min(92vw, 960px);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.95);
+    }
+    #modal-head {
+      background: var(--brand);
+      color: white;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #modal-head span { font-size: 13px; font-family: sans-serif; }
+    #modal-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.75);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 2px;
+      transition: color 0.12s;
+    }
+    #modal-close:hover { color: white; }
+    #video-player {
+      width: 100%;
+      display: block;
+      max-height: 72vh;
+      background: #000;
+    }
+    #video-frame {
+      width: 100%;
+      height: 72vh;
+      border: none;
+      display: block;
+      background: #000;
+    }
+
+    @media (max-width: 600px) {
+      .page { padding: 28px 20px 36px; }
+      .cover-inner { padding: 40px 24px; border-left: 4px solid var(--brand); }
+      .cover-title { font-size: 26px; }
+      #nav button { min-width: 70px; padding: 6px 8px; font-size: 11px; }
+    }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+    .fn-page-ref { color: #222; font-size: 11px; vertical-align: super; font-weight: 600; }
+  
+    /* ── FOOTNOTE ─────────────────────────────────── */
+    .page-footnote {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      color: #666;
+      line-height: 1.55;
+      border-top: 1px solid var(--border);
+      padding-top: 7px;
+      margin-top: 10px;
+    }
+    .fn-ref { color: var(--brand); font-size: 8.5px; vertical-align: super; }
+    .fn-page-ref { color: #222; font-size: 11px; vertical-align: super; font-weight: 600; }
+  
+    .page-body { overflow-y: auto; scrollbar-width: thin; }
+    .page-body::-webkit-scrollbar { width: 5px; }
+    .page-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+</style>
+</head>
+<body>
+<div id="header">
+  <div>
+    <div class="brand">Fintool · Textbook</div>
+    <div class="booktitle">Financial Mathematics for Beginners</div>
+  </div>
+  <div id="header-chapter"></div>
+</div>
+<div id="stage">
+
+<!-- PAGE 0: COVER -->
+<div class="page active" id="page-0" data-chapter="Cover">
+<div class="page-body">
+  <div class="cover-inner">
+    <div class="cover-brand">Fintool · Textbook</div>
+    <div class="cover-author">Erwin W. Heri</div>
+    <div class="cover-title">Financial Mathematics<br>for Beginners</div>
+    <div class="cover-subtitle">The mathematical foundations of investing — explained clearly</div>
+    <div class="cover-rule"></div>
+    <div class="cover-tagline">Capital grows.<br>Time beats returns.<br>Costs quietly eat away at both.</div>
+  </div>
+</div>
+<div class="page-footer"><span></span><span></span></div>
+</div>
+<!-- PAGE 1: TOC -->
+<div class="page" id="page-1" data-chapter="Table of Contents">
+<div class="page-body">
+  <h1>Table of Contents</h1>
+  <div class="toc-entry ch" onclick="goToPage(2)">
+    <span class="toc-name">Preface: Why Financial Mathematics for Everyone?</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(5)">
+    <span class="toc-name">Chapter 1 — Compound Interest: The Basic Formula of Investing</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(18)">
+    <span class="toc-name">Chapter 2 — Reading Financial Charts Correctly: The Logarithmic Scale</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(22)">
+    <span class="toc-name">Chapter 3 — Measuring Returns: Discrete, Continuous, Time- and Money-Weighted</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(31)">
+    <span class="toc-name">Chapter 4 — The Time Value of Money: Present Value and Discounting</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(39)">
+    <span class="toc-name">Chapter 5 — Bonds: Duration and Interest Rate Risk</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(46)">
+    <span class="toc-name">Chapter 6 — Measuring Risk: Volatility, Normal Distribution, Fat Tails</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(56)">
+    <span class="toc-name">Chapter 7 — Stock Valuation: From P/E to CAPE</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(64)">
+    <span class="toc-name">Chapter 8 — Portfolio Theory, CAPM, and the Capital Market Line</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(69)">
+    <span class="toc-name">Conclusion: What the Formulas Can Do — and What They Can't</span><span class="toc-arrow">→</span>
+  </div>
+  <div class="toc-entry ch" onclick="goToPage(72)">
+    <span class="toc-name">Formula Reference: The Key Equations at a Glance</span><span class="toc-arrow">→</span>
+  </div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>1</span>
+</div>
+</div>
+<!-- PAGE 2 -->
+<div class="page" id="page-2" data-chapter="Preface">
+<div class="page-body">
+  <span class="chapter-label">Preface</span>
+  <h1>Why Financial Mathematics for Everyone?</h1>
+  <p>Picture two people standing in front of the same investment brochure. One reads the numbers and nods along, hoping for the best. The other pulls out a pencil, checks the math, and asks a pointed question that makes the advisor pause. The difference between them isn't intelligence. It's that the second person knows how the basic formulas work — and that knowledge is a kind of armor. It lets you think along instead of just listening. It lets you catch a claim that doesn't add up before it costs you money.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>2</span>
+</div>
+</div>
+<!-- PAGE 3 -->
+<div class="page" id="page-3" data-chapter="Preface · Continued">
+<div class="page-body">
+  <span class="chapter-label">Preface · Continued</span>
+  <p>This book grew out of the knowledge platform fintool.ch, and it's written for people who are not mathematicians and have no plans to become one. All you really need is comfort with basic arithmetic and a willingness to look at an equation not as a wall, but as a kind of shorthand — a sentence written in symbols instead of words. Once you learn to read that sentence, it often tells you more than three paragraphs of explanation ever could.</p>
+  <p>Each chapter opens with a simple question: why does this matter? From there we bring in the tool — a formula, walked through with real numbers rather than abstractions. Then we step back and ask where it shows up in ordinary life: in a bank statement, a pension estimate, a headline about markets. Companion videos carry the ideas further and show them in action.<sup class="fn-page-ref">*</sup></p>
+</div>
+<div class="page-footnote"><sup class="fn-page-ref">*</sup> If you find that the presenters in the respective videos speak too slowly or too quickly, you can adjust the playback speed in the bottom right corner.</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>3</span>
+</div>
+</div>
+<!-- PAGE 4 -->
+<div class="page" id="page-4" data-chapter="Preface · Continued">
+<div class="page-body">
+  <span class="chapter-label">Preface · Continued</span>
+  <p>If there's one idea that ties this whole book together, it's a single equation. Understand it deeply, and you've effectively understood half of the financial world — present value, duration, stock valuation, portfolio theory are all, in one way or another, variations on the same theme. Here it is:</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Capital grows. Time beats returns. Costs quietly eat away at both. Those are three of the biggest lessons in financial mathematics, and all three fall directly out of this one formula. Everything else in this book is really just working out the consequences.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>4</span>
+</div>
+</div>
+<!-- PAGE 5 -->
+<div class="page" id="page-5" data-chapter="Chapter 1">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1</span>
+  <h1>Compound Interest: The Basic Formula of Investing</h1>
+  <p>Suppose someone puts $100 into an investment that earns 8% a year. After twelve months they have $108 — simple enough, and easy to picture. But watch what happens in year two. It isn't just the original $100 earning interest anymore. The $8 the account earned in year one starts earning interest of its own. That quiet snowball effect is compound interest: interest that earns interest.</p>
+  <p>Written as a formula, starting capital K0 grows into Kn after n years at an annual return of r:</p>
+  <div class="formula big">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>5</span>
+</div>
+</div>
+<!-- PAGE 6 -->
+<div class="page" id="page-6" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>Run the numbers and the snowball becomes obvious. $100 at 8% becomes $215.89 after 10 years, $466.10 after 20, $1,006.27 after 30, and $2,172.45 after 40. Notice something striking: the final ten years alone add more than the first thirty combined. That's compound interest at work.</p>
+  <p>For comparison, imagine the same $100 earning simple interest instead — interest only on the original amount, never on what it has already earned. After 40 years that gives you 100 + 40 × 8 = $420. With compounding, it's $2,172. This isn't a small gap. It's a difference in kind, not degree — and it's why time and compound interest are, together, the most powerful combination in personal finance.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>6</span>
+</div>
+</div>
+<!-- PAGE 7 -->
+<div class="page" id="page-7" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>Here's another way to see the stakes: after 40 years, a 2% return turns $100 into $220, while an 8% return turns it into $2,172 — nearly ten times as much. Just six percentage points of difference, compounded over four decades, produces a tenfold gap in outcomes. That's precisely why a seemingly modest fee difference of 1 or 2 percentage points a year can matter so much over the long run. Compound interest, it turns out, works just as faithfully for the fund company collecting the fee as it does for the investor collecting the return.</p>
+  <button class="video-btn" onclick="playVideo('v31')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 31</span><span class="btn-title">Compound Interest Formula: Basic Concept</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>7</span>
+</div>
+</div>
+<!-- PAGE 8 -->
+<div class="page" id="page-8" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>The capital K0 grows in one year to K0 × (1+r). In the second year to K0 × (1+r)². After n years to K0 × (1+r)^n. This video walks through that progression step by step, from the first few numbers to the general formula, using the simplest possible example: a single sum invested over several years. Once the idea clicks, it changes the way you think about time, returns, inflation, and interest.</p>
+  <button class="video-btn" onclick="playVideo('v32')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 32</span><span class="btn-title">Compound Interest Formula: Solving for r</span></div>
+  </button>
+  <p>Same equation, but now flip the question around. Suppose you want to know what return a market index actually delivered over 20 years. Solve the formula for r instead of Kn:</p>
+  <div class="formula">r  =  (K<sub>n</sub> / K<sub>0</sub>)<sup>1/</sup><sup>n</sup>  −  1</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>8</span>
+</div>
+</div>
+<!-- PAGE 9 -->
+<div class="page" id="page-9" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>Take an index that climbed from 1,000 to 4,000 points over 20 years. Plug in the numbers: (4,000/1,000)^(1/20) − 1 = 7.18% per year. That figure — the annualized return — is the steady yearly rate that would have carried you from the starting point to the ending point. It's also your best tool for fact-checking a fund prospectus, since you can now calculate historical returns yourself instead of taking someone else's word for it.</p>
+  <button class="video-btn" onclick="playVideo('v2201')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 2201</span><span class="btn-title">From Smoker to Millionaire</span></div>
+  </button>
+  <p>Here's a story that makes the formula feel real: what happens when someone quits smoking and invests every dollar they would have spent on cigarettes, month after month, for decades? It's the same equation, Kn = K0 × (1+r)^n, applied to an ordinary habit. Small, unglamorous amounts, invested consistently, quietly turn into something substantial — that's the whole point of this video.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>9</span>
+</div>
+</div>
+<!-- PAGE 10 -->
+<div class="page" id="page-10" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <h2>The Rule of 72 — Doubling Time in Your Head</h2>
+  <p>There's a shortcut hiding inside the compound interest formula, one simple enough to do in your head:</p>
+  <div class="formula">Doubling time (years)  =  72 / r%</div>
+  <p>At 6%, your money doubles in 72/6 = 12 years. At 3%, it takes 24. At 8%, just 9. At 1% — the kind of rate you might find in a dormant savings account — it takes a sobering 72 years. The cash is safe, but it barely moves.</p>
+  <p>Flip the logic and it works just as well for inflation: at 2% a year, purchasing power is cut in half in about 36 years (72/2 = 36). The number on your statement hasn't changed, but what it can buy has quietly shrunk. That's a good argument against thinking purely in nominal terms when you save.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>10</span>
+</div>
+</div>
+<!-- PAGE 11 -->
+<div class="page" id="page-11" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>It's also a handy sanity check. Hear that an index doubled in 9 years, and you can immediately say: that's roughly an 8% annual return. See a product promising 10% a year, and you know your money should double in 7.2 years — ask yourself whether that actually sounds plausible. The rule of 72 lets you run these checks in your head, with no calculator required.</p>
+  <button class="video-btn" onclick="playVideo('v35')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 35</span><span class="btn-title">The Rule of 72: Derivation</span></div>
+  </button>
+  <p>Where does the number 72 actually come from? Solve Kn = 2 × K0 for n and you get n = ln(2) / ln(1+r) ≈ 0.693 / r, or, with r expressed as a percentage, n ≈ 69.3 / r%. So 72 is really a convenient rounding — chosen because it divides evenly by so many common rates (1, 2, 3, 4, 6, 8, 9, 12). This video walks through the derivation step by step and explains why 72 won the popularity contest over 69 or 70.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>11</span>
+</div>
+</div>
+<!-- PAGE 12 -->
+<div class="page" id="page-12" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <button class="video-btn" onclick="playVideo('v8500')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 8500</span><span class="btn-title">The Rule of 72 — Practice and Current Data</span></div>
+  </button>
+  <p>Two companion videos take the rule from theory into practice: how do you actually use it, how do you calculate it on the spot, and what does it mean for how you think about investing and inflation? Video 8500 is the more recent of the two and brings in current figures for inflation, savings-account rates, and market returns.</p>
+  <h2>Nominal and Real Return — The Purchasing Power View</h2>
+  <p>Up to now we've only looked at nominal return — how the number in your account grows. But a dollar today and a dollar in 20 years are not the same thing, because inflation is constantly nibbling away at what money can buy. What actually matters to you as an investor is real return: the gain in purchasing power once inflation has been subtracted out.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>12</span>
+</div>
+</div>
+<!-- PAGE 13 -->
+<div class="page" id="page-13" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>The Fisher equation ties the three variables together — nominal return r, real return r_real, and inflation π:</p>
+  <div class="formula">(1 + r<sub>real</sub>)  =  (1 + r<sub>nominal</sub>) / (1 + π)</div>
+  <p>For small numbers this simplifies neatly to r_real ≈ r_nominal − π. At 7% nominal and 2% inflation, real return is roughly 5%. Applied to compounding: $100 grows over 30 years to a nominal $761 (at 7%), but only to a real $432 once inflation is stripped out (at 5%). The statement shows $761. Your actual buying power is closer to today's $432.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>13</span>
+</div>
+</div>
+<!-- PAGE 14 -->
+<div class="page" id="page-14" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>Here's why that matters: a savings account paying 0.25% while inflation runs at 2% is actually losing you 1.75% in real terms every single year. The balance keeps climbing — but what it can buy keeps shrinking. After 20 years you'll have more dollars on paper, yet they'll purchase roughly 30% less than today's dollars do. If you want your savings to hold their value over the long run, the target isn't just a positive return — it's a return that outpaces inflation.</p>
+  <h2>The Savings Plan: Investing Money Regularly</h2>
+  <p>So far every example has assumed a single lump sum, K0, invested once and left alone. But that's rarely how real people build wealth. Few of us ever have $100,000 to invest all at once and simply watch it grow. Most of us save a fixed amount every month instead, brick by brick. That's a savings plan, and it comes with its own elegant formula.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>14</span>
+</div>
+</div>
+<!-- PAGE 15 -->
+<div class="page" id="page-15" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>If you invest the same amount C every month and earn a return r per period, then after n periods your final capital (FV, or future value) comes out to:</p>
+  <div class="formula">FV  =  C  ×  [(1 + r)<sup>n</sup> − 1]  /  r</div>
+  <p>Try it with real numbers: $500 a month, 6% a year (0.5% a month), for 30 years — 360 months in total. FV = 500 × [(1.005)^360 − 1] / 0.005 = 500 × (6.022 − 1) / 0.005 = 500 × 1,004.5 = $502,258. Total contributions over those 30 years: 500 × 360 = $180,000. Once again, compounding did the heavy lifting — generating an extra $322,258 on top of what was actually paid in, nearly double the contributions themselves.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>15</span>
+</div>
+</div>
+<!-- PAGE 16 -->
+<div class="page" id="page-16" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>The formula also runs in reverse. Say you want $1,000,000 in 25 years and expect a 5% annual return — how much do you need to save every month? Solve for C, with FV = 1,000,000, r = 0.004167 (5%/12), and n = 300 (25 years): C = FV × r / [(1+r)^n − 1] = 1,000,000 × 0.004167 / [(1.004167)^300 − 1] = 1,000,000 × 0.004167 / (3.481 − 1) ≈ $1,679 a month.</p>
+  <p>Three lessons fall out of this formula. First, time beats money: someone saving $300 a month for 30 years ends up ahead of someone saving $600 a month for 20 years, even though they put in roughly similar totals. Second, an early start beats a late one: begin at 25, and you'll need to save less each month than someone who waits until 35, yet still arrive at 65 with the same total. Third, small amounts saved consistently really do add up to large sums — not through any trick, but simply through the exponent doing its work.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>16</span>
+</div>
+</div>
+<!-- PAGE 17 -->
+<div class="page" id="page-17" data-chapter="Chapter 1 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 1 · Continued</span>
+  <p>There's a quieter benefit here too: a savings plan takes the timing problem off your hands. Investing a fixed amount every month means you automatically buy more shares when prices are low and fewer when prices are high — a pattern known as dollar-cost averaging. It isn't a magic formula for higher returns, but it does something arguably more valuable: it protects you from the single most common mistake private investors make, which is trying to time the market.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>17</span>
+</div>
+</div>
+<!-- PAGE 18 -->
+<div class="page" id="page-18" data-chapter="Chapter 2">
+<div class="page-body">
+  <span class="chapter-label">Chapter 2</span>
+  <h1>Reading Financial Charts Correctly: The Logarithmic Scale</h1>
+  <p>Pull up any long-run stock chart — 50, 100, maybe 200 years of history — and something about the vertical axis will look off. The spacing isn't even. That's not a mistake in the chart. It's a deliberate choice, and not understanding it means you're probably misreading every long-term financial chart you've ever looked at.</p>
+  <p>On a linear scale, the gap between 100 and 200 looks exactly like the gap between 1,000 and 1,100 — both are 100 units. On a logarithmic scale, the gap between 100 and 200 looks like the gap between 1,000 and 2,000 — both represent a 100% gain. If what you actually care about is returns, the logarithmic version is the honest one.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>18</span>
+</div>
+</div>
+<!-- PAGE 19 -->
+<div class="page" id="page-19" data-chapter="Chapter 2 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 2 · Continued</span>
+  <p>A linear chart has a built-in bias: it makes recent moves look far more dramatic than early ones, even when the percentage gains are identical. That's a big part of why financial media so often reach for linear scales — drama sells — and why doing so quietly distorts our sense of financial history.</p>
+  <button class="video-btn" onclick="playVideo('v33')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 33</span><span class="btn-title">Logarithmic vs. Linear Scale — Part 1</span></div>
+  </button>
+  <p>Using real sales figures and long-run price data, this video shows just how much the choice of y-axis scaling can matter. Linear or logarithmic isn't a neutral technical footnote — it's a decision about which part of the story gets emphasized. If you don't know what's actually on the y-axis, you don't really understand the chart in front of you.</p>
+  <button class="video-btn" onclick="playVideo('v34')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 34</span><span class="btn-title">Logarithmic vs. Linear Scale — Part 2</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>19</span>
+</div>
+</div>
+<!-- PAGE 20 -->
+<div class="page" id="page-20" data-chapter="Chapter 2 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 2 · Continued</span>
+  <p>The math behind it: if y = log_a(x), then a^y = x. The natural logarithm (base e ≈ 2.718) is a close cousin of the compound interest formula — ln(Kn/K0) = r × n under continuous compounding. On a log scale, equal visual distance always means equal percentage change, no matter what the absolute numbers are. That's exactly why professionals default to log scales for anything spanning decades.</p>
+  <p>Here's a practical way to think about it: on a log scale, a drop that covers a given visual distance always represents the same percentage loss. A fall from 10,000 to 5,000 looks identical in size to a fall from 1,000 to 500 — both are 50% losses. On a linear chart, the first drop looks ten times more dramatic, even though it isn't. This is more than a technical curiosity — it shapes how investors judge and compare past crises.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>20</span>
+</div>
+</div>
+<!-- PAGE 21 -->
+<div class="page" id="page-21" data-chapter="Chapter 2 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 2 · Continued</span>
+  <p>There are responsible ways to chart a market's ups and downs, and irresponsible ones — and the irresponsible ones show up constantly. The following video walks through how the same price history, presented two different ways, can tell two entirely different stories, and why that trick gets used so often in financial reporting.</p>
+  <button class="video-btn" onclick="playVideo('v5460')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 5460</span><span class="btn-title">Is the Bubble About to Burst?</span></div>
+  </button>
+  <p>Logarithms may never win a popularity contest, but skip one on a long-run Dow Jones chart — or any long stock market history — and you end up with a picture that fundamentally misrepresents what actually happened. This video shows how to do it right, and gives you a quick way to size up whether a chart in a newspaper or bank brochure deserves your trust.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>21</span>
+</div>
+</div>
+<!-- PAGE 22 -->
+<div class="page" id="page-22" data-chapter="Chapter 3">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3</span>
+  <h1>Measuring Returns: Discrete, Continuous, Time-Weighted, Money-Weighted</h1>
+  <p>Not all returns are created equal — or rather, not all "returns" mean the same thing. Compare two funds and you need to be sure both numbers were calculated the same way. Splice together historical figures from different sources and you might be comparing apples to oranges without realizing it. Four distinctions matter most: discrete versus continuous, arithmetic versus geometric, and time-weighted versus money-weighted.</p>
+  <h2>Discrete and Continuous Return</h2>
+  <button class="video-btn" onclick="playVideo('v48')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 48</span><span class="btn-title">Return: Discrete vs. Continuous</span></div>
+  </button>
+  <p>The simplest measure — discrete return — is just the percentage change from start to finish. A stock climbs from €100 to €110: R = 110/100 − 1 = 0.10 = 10%.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>22</span>
+</div>
+</div>
+<!-- PAGE 23 -->
+<div class="page" id="page-23" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>That's the everyday meaning of return: "my investment is up 10%."</p>
+  <div class="formula">r<sub>discrete</sub>  =  (K<sub>t</sub>  −  K<sub>t-1</sub>) / K<sub>t-1</sub></div>
+  <p>Continuous — or logarithmic — return takes a different route, using the natural logarithm because it assumes the growth is compounding continuously rather than in discrete jumps: r = ln(P1/P0). Same example: r = ln(110/100) = ln(1.10) ≈ 0.0953 = 9.53%.</p>
+  <div class="formula">r<sub>continuous</sub>  =  ln(K<sub>t</sub> / K<sub>t-1</sub>)</div>
+  <p>So the two measures aren't wrong or right — they simply assume different things about how growth accumulates over time.</p>
+  <p>You can convert freely between them:</p>
+  <p>r = ln(1 + R)  →  R = e^r − 1</p>
+  <p>For small moves, the two numbers are nearly identical. The bigger the swing, the more they pull apart.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>23</span>
+</div>
+</div>
+<!-- PAGE 24 -->
+<div class="page" id="page-24" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>Here's a distinction worth remembering: discrete returns don't stack neatly across time. Continuous returns do.</p>
+  <p>Take a stock that rises from €100 to €110, then from €110 to €121.</p>
+  <p>In the first stretch: R1 = 110/100 − 1 = 0.10 = 10%. In the second: R2 = 121/110 − 1 = 0.10 = 10%.</p>
+  <p>Add those two discrete returns and you get 10% + 10% = 20%.</p>
+  <p>But the real total gain is R = 121/100 − 1 = 0.21 = 21% — not 20%.</p>
+  <p>That gap is why discrete returns have to be chained together multiplicatively across periods, not simply added:</p>
+  <p>1 + R_total = (1 + R1)(1 + R2) · … · (1 + Rn)</p>
+  <p>Or, rearranged: R = (1 + R1)(1 + R2) · … · (1 + Rn) − 1.</p>
+  <p>Continuous returns skip this trap entirely — they're additive: R = r1 + r2 + … + rn, or R = Σrt for t = 1 to n, where rt = ln(Pt/Pt-1).</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>24</span>
+</div>
+</div>
+<!-- PAGE 25 -->
+<div class="page" id="page-25" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>The short version: discrete return is the everyday percentage you already know. Continuous return is the logarithmic cousin, favored in financial mathematics, statistics, and modeling precisely because it behaves so cleanly under compounding.</p>
+  <p>A good habit: whenever a return figure crosses your desk, ask which of the two methods produced it.</p>
+  <h2>Arithmetic and Geometric Mean</h2>
+  <p>Consider a portfolio that gains 50% in year one and loses 50% in year two. The arithmetic average of those two numbers is a tidy 0% — which sounds like you broke even. You didn't. The actual math is 100 × 1.5 × 0.5 = 75, a 25% loss. The number that correctly captures annual return here is the geometric mean: (1.5 × 0.5)^(1/2) − 1 = −13.4% per year. There's a handy approximation for it:</p>
+  <div class="formula">g  =  μ  −  σ<sup>2</sup> / 2</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>25</span>
+</div>
+</div>
+<!-- PAGE 26 -->
+<div class="page" id="page-26" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>The wider the swings — the higher the volatility σ — the further the arithmetic mean μ drifts from the geometric mean g that actually describes your experience. This has a real consequence: cutting risk through diversification doesn't just make your ride smoother. It also lifts your actual long-run, geometric return. Volatility, in other words, is a quiet tax on long-term performance.</p>
+  <h2>Time-Weighted and Money-Weighted Return</h2>
+  <button class="video-btn" onclick="playVideo('v51')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 51</span><span class="btn-title">Time-Weighted vs. Money-Weighted Return</span></div>
+  </button>
+  <p>The choice between time-weighted and money-weighted return comes down to one question: do you want to factor in when money moved in and out, and whose results are actually being measured?</p>
+  <p>Time-Weighted Return</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>26</span>
+</div>
+</div>
+<!-- PAGE 27 -->
+<div class="page" id="page-27" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>The time-weighted return asks a narrow, useful question: how did the investment itself perform, regardless of when the investor happened to add or withdraw cash? Deposits and withdrawals are deliberately kept from distorting the picture.</p>
+  <p>That makes it the right tool for judging a fund manager or a strategy on its own merits.</p>
+  <div class="formula">TWR  =  (1+r<sub>1</sub>) × (1+r<sub>2</sub>) × … × (1+r<sub>n</sub>)  −  1</div>
+  <p>Say a portfolio gains 10% in period one and loses 5% in period two. The combined return works out to: TWR = (1 + 0.10)(1 − 0.05) − 1 = 0.045 = 4.5%.</p>
+  <p>So the time-weighted return here is 4.5%.</p>
+  <p>Money-Weighted Return</p>
+  <p>The money-weighted return asks a different, more personal question — one that does care about when money went in and came out.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>27</span>
+</div>
+</div>
+<!-- PAGE 28 -->
+<div class="page" id="page-28" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>Consider what that means in practice: a deposit made right before prices jump works strongly in your favor. A deposit made right before a slide works strongly against you. That's why the money-weighted return more faithfully reflects what a specific investor actually experienced with their own money. It's closely related to what's called the internal rate of return.</p>
+  <p>Put simply: the time-weighted return answers "how well did the investment do?" The money-weighted return answers "how well did my money do?"</p>
+  <p>Rule of thumb: time-weighted return ignores deposits and withdrawals; money-weighted return is shaped by them. Or: the time-weighted number tends to judge the manager or the strategy, while the money-weighted number tends to judge the investor's actual outcome.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>28</span>
+</div>
+</div>
+<!-- PAGE 29 -->
+<div class="page" id="page-29" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>Research consistently finds that equity fund investors earn a lower money-weighted return than the fund's own published time-weighted return — because, on average, they invest procyclically. They buy when sentiment is buoyant and prices are high, and sell when sentiment sours and prices are low. This gap, often called the behavior gap, typically runs 1 to 2 percentage points a year. It's one more argument for a disciplined, rules-based approach to investing.</p>
+  <h2>Return Comparisons in Practice: What the Metrics Really Say</h2>
+  <p>Here's a scenario that trips up a lot of investors: a wealth manager reports an 8% time-weighted return. Meanwhile, an investor with unlucky timing walks away with only 5%, money-weighted. Neither number is wrong — they're simply measuring different things. A sharp investor knows the difference and asks which figure actually applies to them.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>29</span>
+</div>
+</div>
+<!-- PAGE 30 -->
+<div class="page" id="page-30" data-chapter="Chapter 3 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 3 · Continued</span>
+  <p>There's another distinction worth knowing: gross versus net return. Pay an actively managed fund a 1.5% annual fee, and an advertised 8% gross return quietly becomes 6.5% net — and that gap compounds. Starting from $100,000, over 30 years: a portfolio held at 0.1% cost (a typical index fund) grows to $979,000. The same portfolio at 1.5% cost grows to only $661,000. The difference — $318,000 — simply evaporates into fees. Compound interest, once again, works just as reliably for the people collecting the fees as it does for the investor.</p>
+  <p>Reading a fund report, always ask five questions: (1) time-weighted or money-weighted? (2) gross or net of costs? (3) arithmetic or geometric average? (4) which benchmark? (5) over what period? Those five questions are usually enough to tell an honest comparison from a flattering one.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>30</span>
+</div>
+</div>
+<!-- PAGE 31 -->
+<div class="page" id="page-31" data-chapter="Chapter 4">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4</span>
+  <h1>The Time Value of Money: Present Value and Discounting</h1>
+  <p>The compound interest formula looks forward: what does $100 become in 20 years? Present value asks the mirror-image question, looking backward: what is a future payment actually worth today? It's another pillar of finance, and it, too, falls straight out of the compound interest formula.</p>
+  <button class="video-btn" onclick="playVideo('v37')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 37</span><span class="btn-title">The Present Value of Money</span></div>
+  </button>
+  <div class="formula">Present Value PV  =  Future value in n / (1 + r)<sup>n</sup></div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>31</span>
+</div>
+</div>
+<!-- PAGE 32 -->
+<div class="page" id="page-32" data-chapter="Chapter 4 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4 · Continued</span>
+  <p>Take $10,000 promised in 10 years. At a 3% discount rate: PV = 10,000 / (1.03)^10 = $7,441. At 5%: PV = 10,000 / (1.05)^10 = $6,139. Notice what a 2-percentage-point jump in rates does — it knocks $1,302 (18%) off today's value. And the further out the payment sits, the harder that effect bites.</p>
+  <p>The next video builds the present value idea up from scratch. A bond, a stock, a piece of real estate, a pension claim — strip away the labels and each one is simply a stream of promised future payments. Its fair price today is nothing more than the present value of those promises, discounted at a rate that reflects how uncertain they really are.</p>
+  <button class="video-btn" onclick="playVideo('v38')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 38</span><span class="btn-title">The Present Value of an Annuity and a Perpetuity</span></div>
+  </button>
+  <p>An annuity paid over T years (a geometric series):</p>
+  <div class="formula">PV  =  (C / r)  ×  [1 − 1/(1+r)<sup>T</sup>]</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>32</span>
+</div>
+</div>
+<!-- PAGE 33 -->
+<div class="page" id="page-33" data-chapter="Chapter 4 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4 · Continued</span>
+  <p>A perpetuity — the same stream, but paid forever (T stretching toward infinity):</p>
+  <div class="formula">PV (perpetuity)  =  C / r</div>
+  <p>This formula quietly underpins the income approach to valuing an entire business. A stock paying a $3 dividend, discounted at 5%: price = 3/0.05 = $60. Let the discount rate climb to 6%, and the price falls to 3/0.06 = $50 — a 17% decline, with the dividend itself never having changed. That's the actual mechanism behind the familiar warning: "rising interest rates push down stock prices."</p>
+  <button class="video-btn" onclick="playVideo('v39')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 39</span><span class="btn-title">Bonds: Price and Yield to Maturity</span></div>
+  </button>
+  <div class="formula">Price  =  Σ [C/(1+r)<sup>t</sup>]  +  N/(1+r)<sup>T</sup></div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>33</span>
+</div>
+</div>
+<!-- PAGE 34 -->
+<div class="page" id="page-34" data-chapter="Chapter 4 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4 · Continued</span>
+  <p>A numerical case: a 3% coupon bond, $1,000 face value, 5 years to maturity. At a 3% market rate, price = $1,000 (par). At 5%, price = $913 (below par). At 1%, price = $1,097 (above par). Rates up, bond prices down — always. The yield to maturity (YTM) is simply the internal rate of return: the single discount rate at which the present value of every future payment equals today's market price.</p>
+  <p>One more video pulls the whole idea together:</p>
+  <button class="video-btn" onclick="playVideo('v8540')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 8540</span><span class="btn-title">How Do Bonds Work?</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>34</span>
+</div>
+</div>
+<!-- PAGE 35 -->
+<div class="page" id="page-35" data-chapter="Chapter 4 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4 · Continued</span>
+  <p>The discount rate r used in any of these calculations reflects three things: a risk-free baseline return, a risk premium for how uncertain the payment really is, and the expected level of inflation. When market rates rise, the discount rate rises for every asset at once. That's why growth stocks — whose profits sit far in the future and carry more uncertainty — tend to fall especially hard when rates climb: the denominator (1+r)^n grows exponentially as n grows.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>35</span>
+</div>
+</div>
+<!-- PAGE 36 -->
+<div class="page" id="page-36" data-chapter="Chapter 4 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4 · Continued</span>
+  <p>The present value idea also explains a pattern you may have noticed: in ordinary times, stocks and bonds tend to move in opposite directions. During calm economic stretches they're negatively correlated, which is exactly why the classic 60/40 portfolio worked so well for so long. But when inflation and rates rise together — as they did in 2022 — that relationship can break down entirely. Both stocks and bonds lose ground at once, simply because the discount rate is climbing for both.</p>
+  <h2>Present Value of an Annuity: Pension Funds and Retirement Savings</h2>
+  <p>One of the most consequential real-world uses of present value is putting a number on a pension promise. What is a lifetime pension of $3,000 a month actually worth? The answer depends entirely on the discount rate and how long the payments are expected to run. At a 2% technical interest rate and an expected 20-year payout period, the annuity formula gives:</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>36</span>
+</div>
+</div>
+<!-- PAGE 37 -->
+<div class="page" id="page-37" data-chapter="Chapter 4 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4 · Continued</span>
+  <p>PV = 3,000 × 12 × [1 − 1/(1.02)^20] / 0.02 = 36,000 × 16.35 = $588,600. That's the theoretical value of this pension today — the amount a pension fund would need to set aside right now to cover $3,000 a month for 20 years. And that figure is sensitive to the assumed rate: at 3% it falls to roughly $537,000; at 1% it climbs to roughly $651,000.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>37</span>
+</div>
+</div>
+<!-- PAGE 38 -->
+<div class="page" id="page-38" data-chapter="Chapter 4 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 4 · Continued</span>
+  <p>That sensitivity is exactly why the technical interest rate pension funds use is such a politically charged number. Set it lower, and the present value of every obligation swells, forcing the fund to hold more capital. During the low-rate years from 2015 to 2022, many pension funds were forced to cut their technical rates from around 4% down to 2% or lower. The practical effect: payout conversion rates had to fall too, since the same accumulated savings now had to stretch to fund a smaller monthly pension. Nearly every pension reform debate, at its core, is really an argument about this one formula.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>38</span>
+</div>
+</div>
+<!-- PAGE 39 -->
+<div class="page" id="page-39" data-chapter="Chapter 5">
+<div class="page-body">
+  <span class="chapter-label">Chapter 5</span>
+  <h1>Bonds: Duration and Interest Rate Risk</h1>
+  <p>Bonds have a reputation as the safe corner of a portfolio. The credit risk on a U.S. Treasury bond is genuinely low. But interest rate risk is real, it's measurable, and for long maturities it can be substantial. 2022 made that point rather dramatically: bonds — safe, boring bonds — posted double-digit losses. Duration is the tool that turns that vague unease into a precise number.</p>
+  <button class="video-btn" onclick="playVideo('v41')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 41</span><span class="btn-title">Interest Rate Risk — Duration</span></div>
+  </button>
+  <p>Macaulay duration is a weighted average: it takes every payment's timing and weights it by that payment's present value.</p>
+  <div class="formula">D  =  Σ [t × (C<sub>t</sub> / (1+r)<sup>t</sup>) / Price]</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>39</span>
+</div>
+</div>
+<!-- PAGE 40 -->
+<div class="page" id="page-40" data-chapter="Chapter 5 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 5 · Continued</span>
+  <p>Here's the intuition: duration is roughly the point in time by which you've effectively gotten your invested capital back, interest included. A zero-coupon bond has a duration equal to its full maturity. A coupon-paying bond has a shorter duration than its maturity, because the regular coupon payments pull the effective center of gravity forward in time. A concrete case: a 3% coupon bond, 5 years to maturity, 3% market rate, priced at $1,000. Its Macaulay duration works out to 4.72 years.</p>
+  <button class="video-btn" onclick="playVideo('v42')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 42</span><span class="btn-title">Modified Duration</span></div>
+  </button>
+  <div class="formula">MD  =  D / (1 + r)</div>
+  <p>For the bond above: MD = 4.72 / 1.03 = 4.58. From there, a useful approximation for what happens when rates move:</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>40</span>
+</div>
+</div>
+<!-- PAGE 41 -->
+<div class="page" id="page-41" data-chapter="Chapter 5 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 5 · Continued</span>
+  <div class="formula">Δ Price / Price  =  − MD × Δr</div>
+  <p>Plug in the numbers: a 1.5-percentage-point rate increase gives −4.58 × 0.015 = −6.87%. A 10-year government bond with a modified duration around 8 would lose roughly 12% on the same 1.5-point move. That's essentially what happened in 2022 — the sharpest rate increase in decades — and "safe" long-maturity bonds took losses that felt more like a stock market downturn than a bond market one.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>41</span>
+</div>
+</div>
+<!-- PAGE 42 -->
+<div class="page" id="page-42" data-chapter="Chapter 5 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 5 · Continued</span>
+  <p>Duration cuts both ways — it's also a lever investors pull deliberately. Expect rates to rise, and you shorten your portfolio's duration by favoring shorter-maturity bonds. Expect rates to fall, and you lengthen it. Pension funds take this further with duration matching: they line up the duration of their bond holdings with the duration of what they owe (future pension payments), turning interest rate risk into something they can actively manage rather than simply endure.</p>
+  <p>Keep in mind that modified duration is only a linear approximation. For larger rate moves — more than a percentage point or so — it starts to lose accuracy, because the true relationship between price and rates curves rather than runs in a straight line. That curvature is called convexity, and it offers a sharper estimate. For most everyday purposes, though, modified duration alone gets you close enough.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>42</span>
+</div>
+</div>
+<!-- PAGE 43 -->
+<div class="page" id="page-43" data-chapter="Chapter 5 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 5 · Continued</span>
+  <h2>Duration and Investment Horizon: The Immunized Investor</h2>
+  <p>There's an elegant trick hiding inside duration that goes well beyond simply measuring risk: immunization. If you know you'll need a fixed sum in exactly n years, you can build a bond portfolio whose duration matches n years exactly. Do that, and price swings and reinvestment effects offset each other almost perfectly — your final capital ends up roughly the same regardless of which way rates move.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>43</span>
+</div>
+</div>
+<!-- PAGE 44 -->
+<div class="page" id="page-44" data-chapter="Chapter 5 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 5 · Continued</span>
+  <p>Picture a pension fund that knows it owes a payout in exactly 10 years. It buys bonds with a 10-year duration. If rates rise, those bonds lose price value — but the coupons get reinvested at the new, higher rates, and that reinvestment gain offsets the price loss almost exactly. The match isn't perfect — duration and investment horizon drift apart from each other at slightly different speeds as time passes — but as a guiding principle, it sits at the center of both institutional portfolio management and retirement planning.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>44</span>
+</div>
+</div>
+<!-- PAGE 45 -->
+<div class="page" id="page-45" data-chapter="Chapter 5 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 5 · Continued</span>
+  <p>For an individual investor, duration translates into a very practical rule: if you'll need the money in 3 years, don't park it in bonds with a 10-year duration. If your horizon is genuinely long, you can afford more duration — and you'll typically be compensated for the extra patience with a higher return, known as the term premium. Duration is what turns that trade-off from a vague feeling into a number you can actually plan around.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>45</span>
+</div>
+</div>
+<!-- PAGE 46 -->
+<div class="page" id="page-46" data-chapter="Chapter 6">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6</span>
+  <h1>Measuring Risk: Volatility, Normal Distribution, Fat Tails</h1>
+  <p>In everyday conversation, risk is a vague sense of unease. In finance, it's a number — and the most commonly used one is volatility, the standard deviation of returns. It's a genuinely useful measure, but it has real blind spots too, and knowing where those blind spots are matters more than memorizing the formula itself.</p>
+  <button class="video-btn" onclick="playVideo('v47')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 47</span><span class="btn-title">Volatility as a Risk Measure</span></div>
+  </button>
+  <div class="formula">σ  =  √ [ (1/(n−1)) × Σ(r<sub>i</sub> − r̅)<sup>2</sup> ]</div>
+  <p>To annualize it, we lean on the fact that variances add up cleanly when returns are independent:</p>
+  <div class="formula">σ<sub>ann</sub>  =  σ<sub>daily</sub>  ×  √250</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>46</span>
+</div>
+</div>
+<!-- PAGE 47 -->
+<div class="page" id="page-47" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <p>An annualized volatility of 15% is really a statement about probability: roughly two years out of three, the annual return lands within 15 percentage points of the average, and in about 95% of years, within 30 points. To ground that in daily terms: 1% daily volatility scales up to 1% × √252 = 15.87% annualized. Switzerland's SMI index has historically run at roughly 17% to 20% annualized volatility.</p>
+  <button class="video-btn" onclick="playVideo('v49')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 49</span><span class="btn-title">Frequency Distribution and Normal Distribution</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>47</span>
+</div>
+</div>
+<!-- PAGE 48 -->
+<div class="page" id="page-48" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <p>A frequency distribution simply tallies how often different returns have shown up historically. The normal distribution is its idealized cousin — the familiar symmetric bell curve, fully defined by just two numbers: the mean μ (where it's centered) and the standard deviation σ (how wide it is). If real returns actually followed this curve, you could compute any probability you wanted from just those two numbers. The catch, as we're about to see, is that they don't.</p>
+  <p>There's more than one way to picture stock market risk — including, oddly enough, something close to the same bell curve used for grading exams in school. That framing lets us make surprisingly precise statements about how likely a given outcome really is. This video puts a face on volatility: what does 15% actually look like once you plot it? And how closely does the real distribution of stock returns actually track the tidy theoretical bell curve?</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>48</span>
+</div>
+</div>
+<!-- PAGE 49 -->
+<div class="page" id="page-49" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <button class="video-btn" onclick="playVideo('v4490')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 4490</span><span class="btn-title">A Picture Is Worth 1,000 Words</span></div>
+  </button>
+  <p>Risk is abstract right up until the moment you see it drawn out. This video plots decades of actual annual returns for a stock index into a single histogram, and the shape that emerges makes something concrete out of an abstract number: what a "15% volatility" figure really means, and just how wide the range of real-world outcomes actually is.</p>
+  <button class="video-btn" onclick="playVideo('v4521')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 4521</span><span class="btn-title">Stock Risk and Statistics</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>49</span>
+</div>
+</div>
+<!-- PAGE 50 -->
+<div class="page" id="page-50" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <p>Markets aren't always rational, investing isn't a coin flip, and — this is the key point — stock returns don't actually follow a normal distribution. This 2023 update overlays real return data on the theoretical bell curve, and the tails are visibly, noticeably fatter than theory predicts. Extreme events show up more often than a tidy Gaussian model would ever suggest, and that has direct consequences for any decision built on risk.</p>
+  <p>These fat tails are the crux of it: real-world return distributions have heavier tails than the normal distribution assumes. Take the crash of October 1987, when the Dow Jones fell 22.6% in a single day. Under a strict normal distribution, an event that extreme should occur less than once in a billion years. It happened anyway — and so did 2008, and the March 2020 Covid crash, and a string of other events the bell curve says shouldn't exist.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>50</span>
+</div>
+</div>
+<!-- PAGE 51 -->
+<div class="page" id="page-51" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <p>Statisticians capture this with two measures: kurtosis and skewness. Positive kurtosis means fatter tails than the normal curve predicts. Negative skewness means losses tend to be more extreme than gains of the same size — a pattern that shows up across most asset classes. Risk models that lean on the normal distribution alone will systematically underestimate how often — and how badly — extreme events actually occur.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>51</span>
+</div>
+</div>
+<!-- PAGE 52 -->
+<div class="page" id="page-52" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <p>Here's the deeper problem: treating volatility as the only risk measure that matters creates bad incentives. Optimize a portfolio purely on annualized standard deviation and you end up ignoring skewness and kurtosis entirely. Structured products, in particular, can advertise attractive volatility numbers while quietly burying serious tail risk. It's exactly why regulatory frameworks have gradually moved away from pure variance-based measures and toward something called expected shortfall, which is more sensitive to what happens in the worst-case tail.</p>
+  <h2>Risk and Time: Volatility Scales with the Square Root of Time</h2>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>52</span>
+</div>
+</div>
+<!-- PAGE 53 -->
+<div class="page" id="page-53" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <p>Here's a property of volatility that trips up even experienced investors: it scales with the square root of time, not with time itself. Daily volatility σ1 becomes monthly volatility σ1 × √22, and annual volatility σ1 × √252. The practical upshot is striking — over longer stretches, risk grows more slowly than return does. At a 6% annual return and 15% annual volatility, project out 10 years and you get an expected return of 79%, against a standard deviation of only 15% × √10 = 47.4%.<sup class="fn-ref">1</sup></p>
+</div>
+<div class="page-footnote"><sup class="fn-ref">1</sup> The √t rule for volatility holds under the assumption of independent, identically distributed returns (i.i.d.). Empirically, however, this assumption isn't well established. Over the long run, there's evidence of slight mean reversion in stock returns (Fama/French), which would correct the √t scaling downward. In crisis periods, on the other hand, returns show clustering — both of which break the i.i.d. assumption.</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>53</span>
+</div>
+</div>
+<!-- PAGE 54 -->
+<div class="page" id="page-54" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <p>For long-term investors, that gap has a direct payoff: the ratio of return to risk — the Sharpe ratio — actually improves as your time horizon stretches out. Someone investing for 30 years holds a genuine structural advantage over a short-term trader — not because their money is any less volatile day to day, but because expected return climbs in a straight line with time while the spread of outcomes climbs only with time's square root. That's the mathematical backbone behind the familiar claim that stocks reward patience. One caveat worth flagging: this logic assumes a well-diversified portfolio, and it says nothing about sequence-of-returns risk in the years right around retirement, which is a separate and important concern.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>54</span>
+</div>
+</div>
+<!-- PAGE 55 -->
+<div class="page" id="page-55" data-chapter="Chapter 6 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 6 · Continued</span>
+  <h2>Drawdown</h2>
+  <p>There's another way to talk about risk that volatility alone doesn't capture: maximum drawdown, the largest cumulative loss from a peak down to the following trough. Switzerland's SMI fell −46% in 2002, −57% in 2008, and −30% in March 2020. Numbers like these tell you something annualized volatility can't: what the worst realistic scenario actually felt like, and how long it took to climb back out. For anyone who might need their money at precisely the wrong moment, drawdown is often the more honest risk measure.</p>
+  <p>The video below brings this down to earth with concrete examples:</p>
+  <button class="video-btn" onclick="playVideo('v6720')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 6720</span><span class="btn-title">Developing a Feel for Risk</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>55</span>
+</div>
+</div>
+<!-- PAGE 56 -->
+<div class="page" id="page-56" data-chapter="Chapter 7">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7</span>
+  <h1>Stock Valuation: From P/E to CAPE</h1>
+  <p>Buy a stock and you're paying today's price for a claim on tomorrow's earnings. The question never really changes: is today's price reasonable given what the company is likely to earn? The price-earnings ratio is the simplest attempt at an answer — and also one of the most routinely misused numbers in all of finance.</p>
+  <div class="formula">P/E  =  Price / Earnings per share (EPS)</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>56</span>
+</div>
+</div>
+<!-- PAGE 57 -->
+<div class="page" id="page-57" data-chapter="Chapter 7 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7 · Continued</span>
+  <p>A P/E of 15 means investors are paying $15 for every $1 of annual earnings. Flip it around and you get the earnings yield: 1/P/E = 6.7%. Assuming flat earnings, it would take 15 years of profits to "earn back" the purchase price. At a P/E of 30 — common among growth stocks in 2021 — that stretches to 30 years, which only makes sense if you believe in a long, resilient growth story.</p>
+  <button class="video-btn" onclick="playVideo('v53')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 53</span><span class="btn-title">P/E Ratio: Terminology</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>57</span>
+</div>
+</div>
+<!-- PAGE 58 -->
+<div class="page" id="page-58" data-chapter="Chapter 7 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7 · Continued</span>
+  <p>Not all earnings figures are equal. EPS LTM (last twelve months) is backward-looking and fact-based, but can be skewed by one-off events. EPS NTM (next twelve months) is forward-looking analyst guesswork — useful, but inherently uncertain. Normalized earnings try to smooth out the business cycle entirely. Swap one earnings measure for another and the same stock's P/E can shift dramatically — which, conveniently or inconveniently, leaves plenty of room for selective storytelling.</p>
+  <button class="video-btn" onclick="playVideo('v54')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 54</span><span class="btn-title">P/E Ratio: Citigroup</span></div>
+  </button>
+  <button class="video-btn" onclick="playVideo('v55')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 55</span><span class="btn-title">P/E Ratio: UBS</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>58</span>
+</div>
+</div>
+<!-- PAGE 59 -->
+<div class="page" id="page-59" data-chapter="Chapter 7 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7 · Continued</span>
+  <p>Two real, large banks, tracked over a full decade. Lining up EPS LTM against EPS NTM makes an uncomfortable pattern visible: analysts tend to be optimistic on average, and bank earnings in particular swing wildly — which makes the P/E ratio a particularly shaky tool in that corner of the market.</p>
+  <button class="video-btn" onclick="playVideo('v56')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 56</span><span class="btn-title">P/E-Growth Ratio (PEG)</span></div>
+  </button>
+  <p>Context changes everything: a P/E of 30 can be a bargain if earnings are growing 30% a year, while a P/E of 10 can be expensive if earnings are going nowhere. The PEG ratio puts growth and valuation side by side:</p>
+  <div class="formula">PEG  =  P/E / Earnings growth (in %)</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>59</span>
+</div>
+</div>
+<!-- PAGE 60 -->
+<div class="page" id="page-60" data-chapter="Chapter 7 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7 · Continued</span>
+  <p>A PEG near 1 suggests a roughly fair price. Below 1, potentially cheap. Above 1, the market is betting on growth that hasn't shown up yet. How reliable this signal is depends heavily on which growth number you plug in — trailing history or an analyst's forecast.</p>
+  <h2>The Gordon Growth Model</h2>
+  <p>If a stock pays a dividend D0 that keeps growing at a steady rate g forever, its fair price is simply the present value of that growing stream — a growing perpetuity:</p>
+  <div class="formula">Price  =  D<sub>1</sub> / (r − g)  =  D<sub>0</sub> × (1+g) / (r − g)</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>60</span>
+</div>
+</div>
+<!-- PAGE 61 -->
+<div class="page" id="page-61" data-chapter="Chapter 7 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7 · Continued</span>
+  <p>Try it: a $3 dividend, 4% growth, an 8% required return. Price = 3 × 1.04 / (0.08 − 0.04) = $78. Now let the required return climb to 10%: price = 3.12 / 0.06 = $52 — a 33% drop, and the dividend itself never moved an inch. This is why growth stocks, whose valuations rest on a small denominator (r − g), are so exposed to shifts in interest rates.</p>
+  <h2>The Shiller P/E Ratio (CAPE)</h2>
+  <p>The basic P/E ratio has a blind spot: earnings rise and fall with the business cycle. In a recession, earnings dip, the P/E looks artificially high, and a genuinely cheap market can look expensive. Robert Shiller's fix is to smooth earnings over a 10-year average, adjusted for inflation:</p>
+  <div class="formula">CAPE  =  Price / Average (inflation-adjusted earnings, 10 years)</div>
+  <button class="video-btn" onclick="playVideo('v57')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 57</span><span class="btn-title">Shiller P/E — Part 1</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>61</span>
+</div>
+</div>
+<!-- PAGE 62 -->
+<div class="page" id="page-62" data-chapter="Chapter 7 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7 · Continued</span>
+  <button class="video-btn" onclick="playVideo('v58')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 58</span><span class="btn-title">Shiller P/E — Part 2</span></div>
+  </button>
+  <p>Part 1 traces the CAPE back to 1881 — 140 years of history — where the long-run average sits around 17, and readings above 25 have historically counted as elevated. In 2021/22 the U.S. CAPE briefly climbed past 35. Part 2 makes the payoff clear: a high CAPE reliably points to lower expected returns over the following 10 to 20 years — a statistically solid pattern, though not something you can use to time next month's market.</p>
+  <p>The following video shows these tools in action, including a look at where things stood in the summer of 2025.</p>
+  <button class="video-btn" onclick="playVideo('v8585')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 8585</span><span class="btn-title">What Do the Metrics Say?</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>62</span>
+</div>
+</div>
+<!-- PAGE 63 -->
+<div class="page" id="page-63" data-chapter="Chapter 7 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 7 · Continued</span>
+  <p>If this chapter has one takeaway, it's an old Warren Buffett line worth repeating: price is what you pay, value is what you get. Unfortunately, no single metric — not P/E, not CAPE, not anything else — hands you the one "correct" valuation on a silver platter.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>63</span>
+</div>
+</div>
+<!-- PAGE 64 -->
+<div class="page" id="page-64" data-chapter="Chapter 8">
+<div class="page-body">
+  <span class="chapter-label">Chapter 8</span>
+  <h1>Portfolio Theory, CAPM, and the Capital Market Line</h1>
+  <p>Modern portfolio theory, developed by Harry Markowitz in 1952, proved something remarkable with pure algebra: diversification is the one genuine free lunch in all of finance. You can actually lower your risk without giving up a proportional amount of return. That's not a matter of opinion or salesmanship — it's a mathematical proof.</p>
+  <h2>Two Assets: The Diversification Principle</h2>
+  <button class="video-btn" onclick="playVideo('v61')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 61</span><span class="btn-title">Portfolio Theory: Fundamentals — Part 1</span></div>
+  </button>
+  <div class="formula">E(R<sub>P</sub>)  =  w × E(R<sub>1</sub>) + (1−w) × E(R<sub>2</sub>)</div>
+  <div class="formula">σ<sub>P</sub>  =  √[w<sup>2</sup>σ<sub>1</sub><sup>2</sup> + (1−w)<sup>2</sup>σ<sub>2</sub><sup>2</sup> + 2w(1−w)ρσ<sub>1</sub>σ<sub>2</sub>]</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>64</span>
+</div>
+</div>
+<!-- PAGE 65 -->
+<div class="page" id="page-65" data-chapter="Chapter 8 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 8 · Continued</span>
+  <p>As long as ρ (the correlation between the two assets) is below 1, the portfolio's risk comes in lower than the simple weighted average of its parts' individual risks — that gap is the mathematics of diversification, laid bare. A concrete case: stocks (σ = 20%, E(R) = 8%) and bonds (σ = 5%, E(R) = 3%), correlated at ρ = 0.2. A 60/40 blend delivers E(RP) = 6.0% at σP = 12.55%, versus a naive weighted-average risk of 14.0%. That 1.45-percentage-point gap is pure diversification benefit — extra safety with no sacrifice in return.</p>
+  <h2>The Efficient Frontier, CAPM, and the Capital Market Line</h2>
+  <button class="video-btn" onclick="playVideo('v62')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 62</span><span class="btn-title">Portfolio Theory — Part 2</span></div>
+  </button>
+  <button class="video-btn" onclick="playVideo('v63')">
+    <div class="play-icon">&#9654;</div>
+    <div class="btn-text"><span class="btn-label">Video 63</span><span class="btn-title">Portfolio Theory — Part 3</span></div>
+  </button>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>65</span>
+</div>
+</div>
+<!-- PAGE 66 -->
+<div class="page" id="page-66" data-chapter="Chapter 8 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 8 · Continued</span>
+  <p>Add more holdings to a portfolio and its risk keeps falling — but only down to a floor, the systematic risk that diversification alone can never remove. For n equally weighted holdings:</p>
+  <div class="formula">σ<sub>P</sub><sup>2</sup>  =  σ̄<sup>2</sup>/n  +  (1 − 1/n) × Cov̄</div>
+  <p>Push n large enough and the risk specific to any one company effectively vanishes, leaving only market-wide, systematic risk behind. This is where the CAPM enters the picture, with a simple claim: investors only get paid a risk premium for the systematic risk they carry — measured by beta:</p>
+  <div class="formula">E(R<sub>i</sub>)  =  R<sub>f</sub>  +  β<sub>i</sub>  ×  [E(R<sub>M</sub>) − R<sub>f</sub>]</div>
+  <div class="formula">β  =  Cov(R<sub>i</sub>, R<sub>M</sub>) / Var(R<sub>M</sub>)</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>66</span>
+</div>
+</div>
+<!-- PAGE 67 -->
+<div class="page" id="page-67" data-chapter="Chapter 8 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 8 · Continued</span>
+  <p>A beta of 1 means an asset simply tracks the market. A beta of 1.5 means it moves 50% harder in both directions — up 15% when the market is up 10%, down 15% when the market is down 10%. A beta of 0.5 means half the market's swing. Defensive sectors like utilities and pharmaceuticals tend to sit below beta 1; cyclical sectors like technology and energy tend to sit above it.</p>
+  <p>The capital market line (CML) traces out every efficient portfolio you can build by combining the overall market portfolio with a risk-free asset. Its slope — the market portfolio's own Sharpe ratio — represents the best risk-adjusted return available to any investor, full stop:</p>
+  <div class="formula">SR  =  (E(R<sub>P</sub>) − R<sub>f</sub>) / σ<sub>P</sub></div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>67</span>
+</div>
+</div>
+<!-- PAGE 68 -->
+<div class="page" id="page-68" data-chapter="Chapter 8 · Continued">
+<div class="page-body">
+  <span class="chapter-label">Chapter 8 · Continued</span>
+  <p>Alpha is whatever return you earn above and beyond what the CAPM predicts. Decades of research point to an uncomfortable conclusion for the fund management industry: most actively managed funds generate no alpha at all — and many generate negative alpha, a finding that later work by Fama and French helped explain by showing that much of what looks like "skill" is really exposure to additional, identifiable risk factors beyond the market alone.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>68</span>
+</div>
+</div>
+<!-- PAGE 69 -->
+<div class="page" id="page-69" data-chapter="Conclusion">
+<div class="page-body">
+  <span class="chapter-label">Conclusion</span>
+  <h1>What the Formulas Can Do — and What They Can't</h1>
+  <p>Eight chapters, and really just one throughline. Every major valuation idea in finance — present value, bond pricing, duration, the Gordon growth model, CAPE — turns out to be a direct or indirect variation on this single equation:</p>
+  <div class="formula">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Once you've truly internalized this, the financial world looks different — sharper, more skeptical, harder to fool with clever language. Not because you've memorized every equation in this book. But because you now know what's actually sitting behind the numbers.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>69</span>
+</div>
+</div>
+<!-- PAGE 70 -->
+<div class="page" id="page-70" data-chapter="Conclusion · Continued">
+<div class="page-body">
+  <span class="chapter-label">Conclusion · Continued</span>
+  <p>What formulas are good for: they strip a problem down to its essentials. They force hidden assumptions out into the open, where they can finally be questioned. Write down a P/E ratio and you're implicitly making a call about growth and risk. Calculate a duration and you're making a statement about interest rate sensitivity. Quote a volatility figure and you're describing the spread of returns — while also, quietly, assuming a great deal about their shape. Formulas don't tolerate vagueness.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>70</span>
+</div>
+</div>
+<!-- PAGE 71 -->
+<div class="page" id="page-71" data-chapter="Conclusion · Continued">
+<div class="page-body">
+  <span class="chapter-label">Conclusion · Continued</span>
+  <p>What formulas can't do: capture reality in full. Volatility undersells fat-tail risk. The CAPM only partly explains why returns differ across stocks. P/E and CAPE are yardsticks for value, not signals for timing a trade. Duration is a straight-line approximation that starts to break down once rates move a lot. Every model here is a simplification of something messier — and some of them are still genuinely useful, as long as you respect where their edges are.</p>
+  <p>Put simply: the formulas help enormously. They just don't do your thinking for you. Anyone who has genuinely absorbed that idea is well equipped — for reading an annual report, for a conversation with a bank advisor, for their own investment decisions. That, in the end, is really what this book set out to do.</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>71</span>
+</div>
+</div>
+<!-- PAGE 72 -->
+<div class="page" id="page-72" data-chapter="Formula Reference">
+<div class="page-body">
+  <span class="chapter-label">Formula Reference</span>
+  <h1>Formula Reference: The Key Equations at a Glance</h1>
+  <p>This chapter gathers every formula from the book in one place. It isn't meant to be studied — it's meant to be consulted: for looking something up, comparing two figures, or double-checking a calculation. Every formula here was already derived and walked through with real numbers in its home chapter.</p>
+  <h2>Chapter 1: Compound Interest and Savings Plans</h2>
+  <p>Compound interest formula (basic formula):</p>
+  <div class="formula">K<sub>n</sub>  =  K<sub>0</sub>  ×  (1 + r)<sup>n</sup></div>
+  <p>Annualized return (solved for r):</p>
+  <div class="formula">r  =  (K<sub>n</sub> / K<sub>0</sub>)<sup>1/</sup><sup>n</sup>  −  1</div>
+  <p>Doubling time (Rule of 72):</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>72</span>
+</div>
+</div>
+<!-- PAGE 73 -->
+<div class="page" id="page-73" data-chapter="Formula Reference · Continued">
+<div class="page-body">
+  <span class="chapter-label">Formula Reference · Continued</span>
+  <div class="formula">t  =  72 / r%</div>
+  <p>Real return (Fisher equation):</p>
+  <div class="formula">r<sub>real</sub>  ≈  r<sub>nominal</sub>  −  π</div>
+  <p>Savings plan (final capital from regular contributions):</p>
+  <div class="formula">FV  =  C  ×  [(1 + r)<sup>n</sup> − 1]  /  r</div>
+  <h2>Chapter 3: Measuring Returns</h2>
+  <p>Discrete return:</p>
+  <div class="formula">r<sub>d</sub>  =  (K<sub>t</sub> − K<sub>t-1</sub>) / K<sub>t-1</sub></div>
+  <p>Continuous (logarithmic) return:</p>
+  <div class="formula">r<sub>s</sub>  =  ln(K<sub>t</sub> / K<sub>t-1</sub>)</div>
+  <p>Geometric mean (approximation):</p>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>73</span>
+</div>
+</div>
+<!-- PAGE 74 -->
+<div class="page" id="page-74" data-chapter="Formula Reference · Continued">
+<div class="page-body">
+  <span class="chapter-label">Formula Reference · Continued</span>
+  <div class="formula">g  ≈  μ  −  σ<sup>2</sup> / 2</div>
+  <h2>Chapter 4: Present Value</h2>
+  <p>Present value of a single payment:</p>
+  <div class="formula">PV  =  C / (1 + r)<sup>n</sup></div>
+  <p>Present value of an annuity:</p>
+  <div class="formula">PV  =  (C / r)  ×  [1 − 1/(1+r)<sup>T</sup>]</div>
+  <p>Perpetuity:</p>
+  <div class="formula">PV  =  C / r</div>
+  <h2>Chapter 5: Duration</h2>
+  <p>Modified duration and price change:</p>
+  <div class="formula">MD  =  D / (1 + r)</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>74</span>
+</div>
+</div>
+<!-- PAGE 75 -->
+<div class="page" id="page-75" data-chapter="Formula Reference · Continued">
+<div class="page-body">
+  <span class="chapter-label">Formula Reference · Continued</span>
+  <div class="formula">Δ Price / Price  =  − MD × Δr</div>
+  <h2>Chapter 6: Risk</h2>
+  <p>Standard deviation (volatility):</p>
+  <div class="formula">σ  =  √ [ (1/(n−1)) × Σ(r<sub>i</sub> − r̅)<sup>2</sup> ]</div>
+  <p>Annualization of volatility:</p>
+  <div class="formula">σ<sub>ann</sub>  =  σ<sub>daily</sub>  ×  √252</div>
+  <h2>Chapter 7: Stock Valuation</h2>
+  <p>Gordon growth model:</p>
+  <div class="formula">Price  =  D<sub>1</sub> / (r − g)</div>
+  <p>CAPE (Shiller P/E):</p>
+  <div class="formula">CAPE  =  Price / Average (inflation-adj. earnings, 10 yrs)</div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>75</span>
+</div>
+</div>
+<!-- PAGE 76 -->
+<div class="page" id="page-76" data-chapter="Formula Reference · Continued">
+<div class="page-body">
+  <span class="chapter-label">Formula Reference · Continued</span>
+  <h2>Chapter 8: Portfolio Theory and CAPM</h2>
+  <p>Portfolio return:</p>
+  <div class="formula">E(R<sub>P</sub>)  =  w × E(R<sub>1</sub>) + (1−w) × E(R<sub>2</sub>)</div>
+  <p>Portfolio risk (two assets):</p>
+  <div class="formula">σ<sub>P</sub>  =  √[w<sup>2</sup>σ<sub>1</sub><sup>2</sup> + (1−w)<sup>2</sup>σ<sub>2</sub><sup>2</sup> + 2w(1−w)ρσ<sub>1</sub>σ<sub>2</sub>]</div>
+  <p>CAPM:</p>
+  <div class="formula">E(R<sub>i</sub>)  =  R<sub>f</sub>  +  β<sub>i</sub>  ×  [E(R<sub>M</sub>) − R<sub>f</sub>]</div>
+  <p>Sharpe ratio:</p>
+  <div class="formula">SR  =  (E(R<sub>P</sub>) − R<sub>f</sub>) / σ<sub>P</sub></div>
+</div>
+<div class="page-footer">
+  <span>Financial Mathematics for Beginners</span>
+  <span>76</span>
+</div>
+</div>
+
+</div>
+<div id="nav">
+  <button id="btn-first" onclick="goToPage(0)" disabled title="To Start">⏮</button>
+  <button id="btn-prev" onclick="changePage(-1)" disabled>◀ Back</button>
+  <span id="page-indicator"></span>
+  <button id="btn-next" onclick="changePage(1)">Next ▶</button>
+</div>
+<div id="video-modal">
+  <div id="modal-backdrop" onclick="closeVideo()"></div>
+  <div id="modal-box">
+    <div id="modal-head">
+      <span id="modal-title">Video</span>
+      <button id="modal-close" onclick="closeVideo()">✕</button>
+    </div>
+    <video id="video-player" controls></video>
+    <iframe id="video-frame" allowfullscreen allow="autoplay; fullscreen"></iframe>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+const VIDEO_URLS = {
+  v31: 'https://stream.mux.com/iQZZsKzZa9q01kjL66Mc202902A1s2HqXI4a02KyRB64wOw.m3u8',
+  v32: 'https://stream.mux.com/IbgENxnfP9BizyKFoArd4e4xqM01BiZDrUMl3bOpI02gY.m3u8',
+  v2201: 'https://stream.mux.com/KaMibPEWlfUEEKqorbSeFlz1Oj7jxSj6bTtRy02UsPlk.m3u8',
+  v35: 'https://stream.mux.com/GkVRNi2Rblwhv9n005WfanHt3lGrG4WKWaZS5UWFjKQ8.m3u8',
+  v8500: 'https://stream.mux.com/UYthsCK3SpuwhrNU01OEEaeSyyCncz40148eXPI12m7js.m3u8',
+  v33: 'https://stream.mux.com/ScXCJAI00oCyj6024a5DUTLGkC01zwcuQx9OJ2p01yh9Ub4.m3u8',
+  v34: 'https://stream.mux.com/zJAP01ZLDzcAZaOsmwpdwDq7ZLAup7N4cDCd8YRKIPrY.m3u8',
+  v5460: 'https://stream.mux.com/yHpqBMhnzohBToBpbo3UZaTFVmqQ9zwodZteXxzt4eg.m3u8',
+  v48: 'https://stream.mux.com/47HTBoZBJEdb865mvz1KHGD8cw01n9OHREDC9TNmBifk.m3u8',
+  v51: 'https://stream.mux.com/DLb01Fdi9g02KFec2jGAy39u3IkvQBdjPbQqGjuaZsIB8.m3u8',
+  v37: 'https://stream.mux.com/tjsRaX9vKnIRAPnZA0099ievVcilluwhexpn9NYpXOwk.m3u8',
+  v38: 'https://stream.mux.com/tAO44crTWddbO4iTGKD3eIjjDOVE00NJQiy3RWhbYHb8.m3u8',
+  v39: 'https://stream.mux.com/rk8H3RqRuZbeSQjLKvKQpTFkKS8l00wBvstPYMIpDU02Q.m3u8',
+  v8540: 'https://stream.mux.com/hCTJMHE9VSNcAsFFhG7H6tzWo00XcD02hiuaE01Vx4sWuA.m3u8',
+  v41: 'https://stream.mux.com/RSHMRqJwVzR01wIzo00nPEbe19PA01lQiWuPKEW01z7H8TY.m3u8',
+  v42: 'https://stream.mux.com/oBf4AKHs2XG3KH00kQ5iJibjIY7d3aDXiV02UxF5SWivk.m3u8',
+  v47: 'https://stream.mux.com/02006S02lqbLQp18Oq6DXAH4UYAxmn01wxu003aaZ1DCCiPM.m3u8',
+  v49: 'https://stream.mux.com/PkjKgjrziSGNMUFpiTlPnv4AI28v02pB9on1mfHZegNM.m3u8',
+  v4490: 'https://stream.mux.com/OsWYLSVyQEsFk02H2REs5ndC01FgFwsmzJAUxOyquwoUs.m3u8',
+  v4521: 'https://stream.mux.com/GjxmsUWeMN9sG3Ejyyu72EwnXhzVjgM00HQvwLRLVeaY.m3u8',
+  v6720: 'https://stream.mux.com/ytgiaFsBFdBT00XQK4VRFULu66fLlBYyltmNoMBVucZY.m3u8',
+  v53: 'https://stream.mux.com/rocWxdY1fxu38NDVaD55v1XadAof6l1q02o8JSrxdaNA.m3u8',
+  v54: 'https://stream.mux.com/Ra9GKCC6PMdWGgGs8u9Vf2nDbCBuUk8oj7zFeaoWyiE.m3u8',
+  v55: 'https://stream.mux.com/yp79MpbtddaUxUneZ800X18EOUbGctAAeitF16oPlknw.m3u8',
+  v56: 'https://stream.mux.com/tu00BrzauteKf2grbx1NVBXMmXfq1xDTqkEewahW00LcA.m3u8',
+  v57: 'https://stream.mux.com/v2JlNlRkAGiBaDekBh76yj01m3Z8qcSyypftJG1Iouz4.m3u8',
+  v58: 'https://stream.mux.com/xln4FrDtULhG1wFv00mFA01t1hldE6EEk1FQijnWRlO02s.m3u8',
+  v8585: 'https://stream.mux.com/qMQr57mAvYIiTKoTMhVy6T01Wto1HeWL5YK00CaXGetMI.m3u8',
+  v61: 'https://stream.mux.com/kSy8ovos3UCqnBnISt00JaHUg4Wnz7vk02KRRnjR01w3f8.m3u8',
+  v62: 'https://stream.mux.com/Bq01SzNA01L1ygQvRFRxZgI87C6WmwVjjmbanxeo9GhmA.m3u8',
+  v63: 'https://stream.mux.com/9eX4uj02JNbtZtlkcgf6f00EFkAdizfwpFxPdLAZy01tOQ.m3u8',
+};
+const VIDEO_TITLES = {
+  v31: 'Compound Interest Formula: Basic Concept',
+  v32: 'Compound Interest Formula: Solving for r',
+  v2201: 'From Smoker to Millionaire',
+  v35: 'The Rule of 72: Derivation',
+  v8500: 'The Rule of 72 — Practice and Current Data',
+  v33: 'Logarithmic vs. Linear Scale — Part 1',
+  v34: 'Logarithmic vs. Linear Scale — Part 2',
+  v5460: 'Is the Bubble About to Burst?',
+  v48: 'Return: Discrete vs. Continuous',
+  v51: 'Time-Weighted vs. Money-Weighted Return',
+  v37: 'The Present Value of Money',
+  v38: 'The Present Value of an Annuity and a Perpetuity',
+  v39: 'Bonds: Price and Yield to Maturity',
+  v8540: 'How Do Bonds Work?',
+  v41: 'Interest Rate Risk — Duration',
+  v42: 'Modified Duration',
+  v47: 'Volatility as a Risk Measure',
+  v49: 'Frequency Distribution and Normal Distribution',
+  v4490: 'A Picture Is Worth 1,000 Words',
+  v4521: 'Stock Risk and Statistics',
+  v6720: 'Developing a Feel for Risk',
+  v53: 'P/E Ratio: Terminology',
+  v54: 'P/E Ratio: Citigroup',
+  v55: 'P/E Ratio: UBS',
+  v56: 'P/E-Growth Ratio (PEG)',
+  v57: 'Shiller P/E — Part 1',
+  v58: 'Shiller P/E — Part 2',
+  v8585: 'What Do the Metrics Say?',
+  v61: 'Portfolio Theory: Fundamentals — Part 1',
+  v62: 'Portfolio Theory — Part 2',
+  v63: 'Portfolio Theory — Part 3',
+};
+const pages = Array.from(document.querySelectorAll('.page'));
+const total = pages.length;
+let current = 0, savedScroll = 0;
+function updateUI() {
+  const ch = pages[current].dataset.chapter || '';
+  document.getElementById('header-chapter').textContent = ch;
+  document.getElementById('page-indicator').textContent =
+    ch + (ch ? '  ·  ' : '') + 'Page ' + (current+1) + ' / ' + total;
+  document.getElementById('btn-first').disabled = current===0;
+  document.getElementById('btn-prev').disabled = current===0;
+  document.getElementById('btn-next').disabled = current===total-1;
+}
+function showPage(idx, dir) {
+  pages[current].classList.remove('active');
+  current=idx;
+  const p=pages[current];
+  p.classList.remove('anim-forward','anim-back');
+  void p.offsetWidth;
+  p.classList.add('active', dir>0?'anim-forward':'anim-back');
+  updateUI();
+}
+function changePage(dir){ const n=current+dir; if(n>=0&&n<total) showPage(n,dir); }
+function goToPage(idx){ if(idx!==current) showPage(idx,idx>current?1:-1); }
+document.addEventListener('keydown', e=>{
+  if(document.getElementById('video-modal').classList.contains('open')){
+    if(e.key==='Escape') closeVideo(); return;
+  }
+  if(e.key==='ArrowRight'||e.key==='PageDown') changePage(1);
+  if(e.key==='ArrowLeft' ||e.key==='PageUp')   changePage(-1);
+});
+let hlsInstance = null;
+function playVideo(key){
+  const url=VIDEO_URLS[key], title=VIDEO_TITLES[key]||key;
+  if(!url){alert('Video URL missing: '+title);return;}
+  savedScroll=pages[current].scrollTop;
+  const player=document.getElementById('video-player');
+  const frame=document.getElementById('video-frame');
+  document.getElementById('modal-title').textContent=title;
+  frame.style.display='none'; frame.src='';
+  player.style.display='block';
+  const isHls = /\.m3u8(\?|$)/i.test(url);
+  const isPage = url.startsWith('http') && !isHls && !url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i);
+  if (isPage) {
+    player.style.display='none'; frame.style.display='block'; frame.src=url;
+  } else if (isHls) {
+    if (player.canPlayType('application/vnd.apple.mpegurl')) {
+      player.src = url; player.load(); player.play();
+    } else if (window.Hls && Hls.isSupported()) {
+      if (hlsInstance) { hlsInstance.destroy(); }
+      hlsInstance = new Hls();
+      hlsInstance.loadSource(url);
+      hlsInstance.attachMedia(player);
+      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => player.play());
+    } else {
+      player.src = url; player.load(); player.play();
+    }
+  } else {
+    player.src = url; player.load(); player.play();
+  }
+  player.onended = closeVideo;
+  document.getElementById('video-modal').classList.add('open');
+}
+function closeVideo(){
+  const player=document.getElementById('video-player');
+  const frame=document.getElementById('video-frame');
+  document.getElementById('video-modal').classList.remove('open');
+  player.pause();
+  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+  player.removeAttribute('src'); player.load();
+  frame.src='';
+  setTimeout(()=>{pages[current].scrollTop=savedScroll;},60);
+}
+updateUI();
+</script>
+</body>
+</html>
