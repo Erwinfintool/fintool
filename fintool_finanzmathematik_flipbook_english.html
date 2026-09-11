@@ -493,6 +493,95 @@
     .page-body::-webkit-scrollbar { width: 5px; }
     .page-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+    /* ══════════════════════════════════════════════════════
+       MOBILE STYLES  (≤ 768 px)  — continuous scroll layout
+       ══════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* Full-width, no shadow */
+      .book {
+        max-width: 100%;
+        padding: 0;
+        box-shadow: none;
+        background: #f5f5f5;
+      }
+
+      /* Fix container layout for scroll mode */
+      body {
+        height: auto !important;
+        overflow: auto !important;
+      }
+      #stage {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        height: auto !important;
+      }
+
+      /* Show ALL pages as stacked blocks — remove pagination */
+      .page, .page.active {
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        padding: 20px 18px 16px;
+        margin-bottom: 8px;
+        border-radius: 0;
+        box-shadow: none;
+        border-top: 3px solid var(--brand);
+      }
+
+      /* Cover page: no top border */
+      #page-0 { border-top: none; padding: 0; }
+
+      /* Page body: natural flow, no flex tricks */
+      .page-body {
+        display: block !important;
+        flex: none !important;
+        overflow: visible !important;
+        min-height: 0 !important;
+      }
+
+      /* Reset vertical-centering margins */
+      .page-body > .chapter-label + * { margin-top: 0 !important; }
+      .page-body > *:first-child:not(.chapter-label) { margin-top: 0 !important; }
+      .page-body > *:last-child { margin-bottom: 0 !important; }
+
+      /* Typography */
+      .page h1 { font-size: 17px; margin-bottom: 14px; padding-bottom: 8px; }
+      .page h2 { font-size: 13px; margin: 14px 0 8px; }
+      .page p  { font-size: 14px; line-height: 1.7; margin-bottom: 10px; }
+      .chapter-label { font-size: 9px; margin-bottom: 6px; }
+
+      /* Formulas */
+      .formula     { font-size: 13px; padding: 8px 12px; }
+      .formula.big { font-size: 16px; padding: 14px 16px; }
+
+      /* Video buttons: full width */
+      .video-btn    { max-width: 100% !important; padding: 12px 14px; font-size: 13px; margin: 10px 0; }
+      .play-icon    { width: 34px; height: 34px; font-size: 12px; }
+
+      /* Hide desktop pagination nav */
+      #nav { display: none !important; }
+
+      /* Page footer: hide on mobile (page numbers irrelevant in scroll view) */
+      .page-footer { display: none; }
+
+      /* Cover */
+      .cover-inner { padding: 32px 20px; border-left: 4px solid var(--brand); min-height: 0; }
+      .cover-title { font-size: 26px; }
+      .cover-subtitle { font-size: 13px; }
+
+      /* Modal: full screen */
+      #modal-box {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+      }
+      #video-player, #video-frame { max-height: 56vw; }
+    }
+
 </style>
 </head>
 <body>
@@ -1838,6 +1927,28 @@ function closeVideo(){
   setTimeout(()=>{pages[current].scrollTop=savedScroll;},60);
 }
 updateUI();
+
+// ── Mobile: override navigation to use scrollIntoView ─────────────────────
+if (window.matchMedia('(max-width: 768px)').matches) {
+  window.goToPage = function(idx) {
+    var p = pages[idx];
+    if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+}
+
+// ── Swipe navigation (desktop/tablet only) ─────────────────────────────────
+(function(){
+  if (window.matchMedia('(max-width: 768px)').matches) return;
+  var startX = 0, startY = 0;
+  document.addEventListener('touchstart', function(e){
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+  }, {passive: true});
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - startX;
+    var dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) changePage(dx < 0 ? 1 : -1);
+  }, {passive: true});
+})();
 </script>
 </body>
 </html>
