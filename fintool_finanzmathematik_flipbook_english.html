@@ -1899,14 +1899,14 @@ function playVideo(key){
   if (isPage) {
     player.style.display='none'; frame.style.display='block'; frame.src=url;
   } else if (isHls) {
-    if (player.canPlayType('application/vnd.apple.mpegurl')) {
-      player.src = url; player.load(); player.play();
-    } else if (window.Hls && Hls.isSupported()) {
+    if (window.Hls && Hls.isSupported()) {
       if (hlsInstance) { hlsInstance.destroy(); }
       hlsInstance = new Hls();
       hlsInstance.loadSource(url);
       hlsInstance.attachMedia(player);
       hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => player.play());
+    } else if (player.canPlayType('application/vnd.apple.mpegurl')) {
+      player.src = url; player.load(); player.play();
     } else {
       player.src = url; player.load(); player.play();
     }
