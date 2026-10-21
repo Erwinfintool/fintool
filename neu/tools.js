@@ -17,48 +17,48 @@ const FINTOOL_TOOLS = [
   {
     kategorie:    "Vorsorge",
     titel:        "Kapitalverzehr-Simulator",
-    beschreibung: "Wie lange reicht das Pensionskapital – und welche Rolle spielt die Rendite?",
+    beschreibung: "Wie lange reicht das Pensionskapital bei verschiedenen Anlagerenditen?",
     datei:        "kapitalverzehr-simulator.html"
   },
 
   {
-    kategorie:    "Sparen & Entnehmen",
-    titel:        "Renditefolgerisiko-Rechner",
-    beschreibung: "Vermögensaufbau und Kapitalentnahme: Wie stark hängt alles davon ab, wann die guten und schlechten Börsenjahre kommen?",
+    kategorie:    "Sparen & Entsparen kombiniert",
+    titel:        "Renditefolgerisiko-Rechner für Vermögensaufbau und Kapitalentnahme",
+    beschreibung: "Wie stark hängt alles davon ab, wann die guten und schlechten Börsenjahre kommen?",
     datei:        "renditefolgerisiko-rechner.html"
   },
 
   {
-    kategorie:    "Sparen",
+    kategorie:    "Sparplan",
     titel:        "Vermögensaufbau-Simulator",
-    beschreibung: "Tausende zufällige Börsenverläufe für Ihren Sparplan – die Bandbreite möglicher Ergebnisse.",
+    beschreibung: "…und die Bedeutung der Abfolge der Renditen",
     datei:        "vermoegensaufbau-simulator.html"
   },
 
   {
-    kategorie:    "Rente",
-    titel:        "Renditefolgerisiko-Simulator",
-    beschreibung: "Wie sicher reicht das Aktienkapital bei regelmässigen Entnahmen im Ruhestand?",
+    kategorie:    "Entsparplan",
+    titel:        "Vermögensverzehr-Simulator",
+    beschreibung: "…und die Bedeutung der Abfolge der Renditen",
     datei:        "renditefolgerisiko-simulator.html"
   },
 
   {
-    kategorie:    "Sparen & Vorsorge",
-    titel:        "Sparplan-Rechner",
+    kategorie:    "Vermögens-Aufbau",
+    titel:        "Rendite-Rechner",
     beschreibung: "Renditeversprechen nachgerechnet – mit Allokation, Kosten, Inflation und Steuern.",
     datei:        "sparplan-rechner.html"
   },
 
   {
-    kategorie:    "Rendite & Anlage",
+    kategorie:    "Aktien versus Immobilien",
     titel:        "Aktien versus Immobilien",
     beschreibung: "Immobilie, Aktien und gehebelte Aktien auf einer gemeinsamen Basis: die Rendite auf das Eigenkapital.",
     datei:        "renditerechner.html"
   },
 
   {
-    kategorie:    "Aktien Schweiz",
-    titel:        "Aktien-Prognose-Simulator",
+    kategorie:    "Prognose-Simulator",
+    titel:        "Aktien Schweiz",
     beschreibung: "Was der SPI historisch gebracht hat – und welche Bandbreite für die Zukunft realistisch ist.",
     datei:        "aktien-prognose-simulator.html"
   },
@@ -73,7 +73,7 @@ const FINTOOL_TOOLS = [
   {
     kategorie:    "Inflation & Kaufkraft",
     titel:        "Inflationsrechner",
-    beschreibung: "Was Inflation mit einem Betrag und mit einem Sparplan macht – über 10, 20, 40 Jahre.",
+    beschreibung: "Was Inflation mit einem Sparbetrag und mit einem Sparplan macht – über 10, 20, 40 Jahre.",
     datei:        "inflationsrechner.html"
   },
 
