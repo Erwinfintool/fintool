@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kapitalverzehr-Simulator | Fintool</title>
+<link rel="icon" href="assets/fintool-logo.png">
+<link rel="stylesheet" href="assets/fintool.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+.ev-outer{max-width:680px;margin:0 auto}
+.ev{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+.ev-top{height:4px;background:rgba(0,0,0,.07)}
+.ev-bar{height:100%;background:var(--blue-mid);width:0%;transition:width .15s linear}
+.ev-dots{display:flex;justify-content:center;gap:8px;padding:9px 0 3px}
+.ev-dot{width:7px;height:7px;border-radius:50%;background:rgba(0,0,0,.13);cursor:pointer;transition:background .25s,transform .25s}
+.ev-dot.on{background:var(--blue-mid);transform:scale(1.3)}
+.ev-body{padding:18px 28px 12px;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ev-vis{width:100%;display:flex;align-items:center;justify-content:center;flex:1}
+.ev-cap{margin-top:12px;font-size:12.5px;color:#555;line-height:1.65;text-align:center;max-width:540px;min-height:40px}
+.ev-cap b{color:#111;font-weight:500}
+.ev-ctrl{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;background:#f7f7f5;border-top:.5px solid #e8e8e8}
+.evb{background:#fff;border:.5px solid #d0d0d0;color:#333;border-radius:7px;padding:5px 14px;font-size:12px;cursor:pointer}
+.evb:hover{background:#f0f0f0}
+.ev-lbl{font-size:11px;color:#aaa}
+.ibox{background:#f7f7f5;border-radius:9px;padding:10px 16px;text-align:center}
+.ibox-l{font-size:10px;color:#999;margin-bottom:4px}
+.ibox-v{font-size:17px;font-weight:500}
+.so{max-width:900px;margin:0 auto}
+.sc2{background:#fff;border-radius:var(--radius);padding:20px;position:relative;box-shadow:var(--shadow-sm)}
+.cg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+@media(max-width:580px){.cg,.lr{grid-template-columns:1fr}
+
+}
+.cb label{font-size:11px;color:#666;display:block;margin-bottom:3px}
+.cb .val{font-size:17px;font-weight:500;color:#111;margin-bottom:4px;line-height:1}
+.cb input[type=range]{width:100%;accent-color:var(--blue-mid)}
+.cb .re{display:flex;justify-content:space-between;font-size:10px;color:#aaa;margin-top:1px}
+.rb{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px}
+.rbt{padding:3px 11px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid;transition:background .12s,color .12s}
+.lr{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:5px}
+.lc{display:flex;align-items:center;gap:9px}
+.lc .sym{font-size:20px;flex-shrink:0}
+.lc .inn{flex:1}
+.lc .inn span{font-size:12px;font-weight:500;display:block;margin-bottom:3px}
+.lc .inn input[type=range]{width:100%}
+.avgrow{display:flex;gap:16px;margin:3px 0 12px;font-size:11px;color:#888;flex-wrap:wrap}
+.avgb{display:flex;align-items:center;gap:5px}
+.cw{width:100%;height:300px;margin-bottom:15px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-bottom:14px}
+.scard{background:#f8f8f5;border-radius:7px;padding:8px 10px}
+.scard .sl3{font-size:10px;color:#888;margin-bottom:3px}
+.scard .sv{font-size:14px;font-weight:500;color:#111}
+.scard .ss{font-size:10px;color:#aaa;margin-top:1px}
+.sl2{font-size:10px;font-weight:500;color:#888;margin:0 0 7px;text-transform:uppercase;letter-spacing:.05em}
+.sep{border:none;border-top:.5px solid #eee;margin:15px 0}
+.tw{width:100%;overflow-x:auto;border:.5px solid #e0e0e0;border-radius:7px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{padding:6px 7px;border-bottom:.5px solid #ddd;color:#666;font-weight:500;white-space:nowrap;text-align:right;background:#f8f8f5}
+th:first-child{text-align:left;position:sticky;left:0;background:#f8f8f5}
+th.mc{border-top:2px solid #8B4000;color:#8B4000}
+th.fc{border-top:2px solid #1F5FA6;color:#1F5FA6}
+td{padding:5px 7px;border-bottom:.5px solid #f0f0f0;white-space:nowrap;text-align:right}
+td:first-child{text-align:left;position:sticky;left:0;background:#fff}
+tr:last-child td{border-bottom:none}
+.pos{color:#1a7a3c;font-weight:500}
+.neg{color:#c0392b;font-weight:500}
+.mu{color:#888}
+.summary{background:linear-gradient(135deg,#f0f4fb 0%,#f8f9fc 100%);
+  border:0.5px solid rgba(68,114,196,.2);border-radius:10px;
+  padding:18px 20px;margin-top:16px}
+.summary-title{font-size:12px;font-weight:600;color:var(--blue-dark);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px}
+.summary-title::before{content:'';display:inline-block;width:3px;height:14px;
+  background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));border-radius:2px}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+@media(max-width:500px){.sum-grid{grid-template-columns:1fr}
+}
+.sum-block{background:#fff;border-radius:8px;padding:10px 13px;
+  border:.5px solid rgba(68,114,196,.12)}
+.sum-block-title{font-size:10px;font-weight:600;color:#888;
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.sum-row{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;padding:2px 0;border-bottom:.5px solid #f5f5f5}
+.sum-row:last-child{border-bottom:none}
+.sum-row-label{color:#555}
+.sum-row-val{font-weight:500;color:#111}
+.sum-row-val.good{color:#1a7a3c}
+.sum-row-val.warn{color:#b08800}
+.sum-row-val.bad{color:#c0392b}
+.sum-conclusion{background:#fff;border-radius:8px;padding:11px 14px;
+  border-left:3px solid var(--blue-mid);font-size:12px;color:#333;line-height:1.6}
+.sum-conclusion b{color:var(--blue-dark)}
+#slides{display:none}
+.ev-cap{font-size:13.5px}
+
+</style>
+</head>
+<body>
+
+<!-- ══ STARTSEITE ══ -->
+<div id="splash">
+  <div class="page">
+    <div class="splash-hero">
+      <button class="ft-tile" type="button" onclick="showApp()" aria-label="Kapitalverzehr öffnen">
+      <span class="ft-tile-logo"><img src="assets/fintool-logo.png" alt=""></span>
+      <span class="ft-tile-label">Kapitalverzehr</span>
+    </button>
+      <p class="splash-eyebrow">Finanzplanung <span>·</span> Vorsorge</p>
+      <h1 class="splash-title">Kapitalverzehr-<strong>Simulator</strong></h1>
+      <p class="splash-author">Prof. Dr. Erwin W. Heri</p>
+    </div>
+
+    <div class="section tile-click" id="intro_tile">
+      <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
+        <div>
+          <div class="cta-tile-title">Worum es geht</div>
+          <div class="cta-tile-sub">Wie lange reicht Ihr Pensionskapital – und welche Rolle spielt die Rendite?</div>
+        </div>
+        <div class="cta-tile-arrow">⌄</div>
+      </div>
+      <div class="section-body intro-text intro-body" id="intro_body">
+        <p>Wer in Pension geht und einen Teil des Kapitals bezieht, steht vor einer einfachen, aber folgenreichen Frage: <strong>Wie lange reicht das Geld?</strong> Die Antwort hängt von drei Grössen ab – vom Startkapital, vom jährlichen Bezug und von der Rendite, die das verbleibende Kapital in der Zwischenzeit erwirtschaftet.</p>
+        <p>Dieser Simulator rechnet den Kapitalverzehr Jahr für Jahr durch: Zu Jahresbeginn wird der Bezug entnommen (Rentenvorschuss-Prinzip), der Rest wird zum gewählten Zinssatz verzinst. Sie sehen für mehrere Renditeszenarien gleichzeitig, in welchem Alter das Kapital aufgebraucht ist – und können das mit der statistischen Lebenserwartung gemäss Bundesamt für Statistik vergleichen.</p>
+        <p>Die Lektion, die sich dabei fast von selbst einstellt: Bei einer Entnahmequote über der Rendite ist das Kapital irgendwann weg – aber ob das mit 80 oder erst mit 95 passiert, entscheidet die Rendite. Ein paar Prozentpunkte machen mehr als zehn Jahre Unterschied. Wer das Gefühl dafür Schritt für Schritt entwickeln möchte, startet mit der kurzen Intro; wer lieber gleich rechnet, geht direkt zum Simulator.</p>
+      </div>
+    </div>
+
+    <div class="section cta-tile" onclick="showApp()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showApp()">
+      <div class="cta-tile-inner">
+        <div>
+          <div class="cta-tile-title">Direkt zum Simulator</div>
+          <div class="cta-tile-sub">Startkapital, Bezug &amp; Renditen selbst einstellen</div>
+        </div>
+        <div class="cta-tile-arrow">→</div>
+      </div>
+    </div>
+
+    <div class="section cta-tile secondary" onclick="showSlides()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showSlides()">
+      <div class="cta-tile-inner">
+        <div>
+          <div class="cta-tile-title">▶&nbsp; Intro ansehen</div>
+          <div class="cta-tile-sub">Die Konzepte in 9 Schritten – mit Beispielzahlen</div>
+        </div>
+        <div class="cta-tile-arrow">→</div>
+      </div>
+    </div>
+    <div class="splash-footer"><a href="https://fintool.ch">fintool.ch</a> · Prof. Dr. Erwin W. Heri</div>
+  </div>
+</div>
+
+<!-- ══ INTRO (Schritt für Schritt) ══ -->
+<div id="slides">
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo"><img src="assets/fintool-logo.png" alt="Fintool"></div>
+      <div>
+        <div class="app-title">Kapitalverzehr-Simulator · Intro</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin W. Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+  <div class="page">
+<div class="ev-outer"><div class="ev"><div class="ev-top"><div class="ev-bar" id="xbar"></div></div><div class="ev-dots" id="xdots"></div><div class="ev-body"><div class="ev-vis" id="xvis"></div><div class="ev-cap" id="xcap"></div></div><div class="ev-ctrl"><button class="evb" id="xprev">&#8592;</button><div style="display:flex;align-items:center;gap:10px"><button class="evb" id="xplay">&#9654;</button><span class="ev-lbl" id="xlbl">1 / 9</span></div><button class="evb" id="xnext">&#8594;</button></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo"><img src="assets/fintool-logo.png" alt="Fintool"></div>
+      <div>
+        <div class="app-title">Kapitalverzehr-Simulator</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin W. Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+  <div class="page">
+<div class="so"><div class="sc2"><div class="cg"><div class="cb"><label>Startkapital</label><div class="val" id="v-cap">CHF 450'000</div><input type="range" id="s-cap" min="50000" max="2000000" step="10000" value="450000"><div class="re"><span>50k</span><span>2M</span></div></div><div class="cb"><label>Jahresbezug (am 01.01.)</label><div class="val" id="v-wd">CHF 30'000</div><input type="range" id="s-wd" min="5000" max="150000" step="1000" value="30000"><div class="re"><span>5k</span><span>150k</span></div></div><div class="cb"><label>Rentenalter</label><div class="val" id="v-sa">65 Jahre</div><input type="range" id="s-sa" min="55" max="75" step="1" value="65"><div class="re"><span>55</span><span>75</span></div></div></div><p class="sl2">Rendite-Szenarien</p><div class="rb" id="rbtns"></div><p class="sl2">Lebenserwartungs-Schwellen</p><div class="lr"><div class="lc"><span class="sym" style="color:#8B4000">&#9794;</span><div class="inn"><span id="v-ma" style="color:#8B4000">M&#228;nner &middot; Alter 90</span><input type="range" id="s-ma" min="66" max="109" step="1" value="90" style="accent-color:#8B4000"></div></div><div class="lc"><span class="sym" style="color:#1F5FA6">&#9792;</span><div class="inn"><span id="v-fe" style="color:#1F5FA6">Frauen &middot; Alter 95</span><input type="range" id="s-fe" min="66" max="109" step="1" value="95" style="accent-color:#1F5FA6"></div></div></div><div class="avgrow"><div class="avgb" style="color:#8B4000"><svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#8B4000" stroke-width="1.5" stroke-dasharray="3,3"/></svg>&#216; M&#228;nner: 85 J. (BFS)</div><div class="avgb" style="color:#1F5FA6"><svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#1F5FA6" stroke-width="1.5" stroke-dasharray="3,3"/></svg>&#216; Frauen: 88 J. (BFS)</div></div><div class="cw"><canvas id="kc"></canvas></div><div class="sg" id="scards"></div>
+      <div class="summary">
+        <div class="summary-title">Zusammenfassung Ihrer Simulation</div>
+        <div id="sum-content"></div>
+      </div>
+</div></div>
+    <div class="app-footer">
+      <img class="ft-footer-logo" src="assets/fintool-logo.png" alt="Fintool">
+      Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin W. Heri</a>
+    </div>
+  </div>
+</div>
+
+<script>
+
+/* ── NAV ─────────────────────────────────────────── */
+function hideAll(){ for(const id of ['splash','slides','app']) document.getElementById(id).style.display='none'; window.scrollTo(0,0); }
+function showSplash(){ hideAll(); document.getElementById('splash').style.display='block'; }
+function showSlides(){ hideAll(); document.getElementById('slides').style.display='block'; }
+function showApp(){ hideAll(); document.getElementById('app').style.display='block'; if(!simInit)initSim(); }
+function toggleIntro(){ document.getElementById('intro_tile').classList.toggle('open'); }
+function showCover(){ showSplash(); } function showVid(){ showSlides(); } function showSim(){ showApp(); }
+
+/* ── VIDEO ───────────────────────────────────────── */
+var VC0=450000,VWD=30000,DEP0=80;
+var VR=[{v:0,l:"0 %",c:"#003087"},{v:.01,l:"1 %",c:"#3D5498"},{v:.015,l:"1.5 %",c:"#009999"},
+        {v:.02,l:"2 %",c:"#3a8a3a"},{v:.025,l:"2.5 %",c:"#b08800"},{v:.03,l:"3 %",c:"#c05000"},
+        {v:.04,l:"4 %",c:"#b02020"},{v:.05,l:"5 %",c:"#6b3300"}];
+function vcc(r,t){if(t===0)return VC0;if(r===0)return VC0-VWD*t;var g=Math.pow(1+r,t);return VC0*g-VWD*(1+r)*(g-1)/r;}
+var PL=34,PR=6,PT=18,PB=20,SW=600,SH=160,PW=SW-PL-PR,PH=SH-PT-PB;
+function px(a){return PL+(a-65)/45*PW;}
+function py(v){return PT+PH-(v+750000)/1330000*PH;}
+function mkPth(r){var d=[];for(var a=65;a<=110;a++)d.push(px(a).toFixed(1)+","+py(vcc(r,a-65)).toFixed(1));return "M "+d.join(" L ");}
+function mkC(rl,refs){
+  var s='<svg viewBox="0 0 '+SW+' '+SH+'" width="100%" style="overflow:visible;display:block">';
+  var ys=[-600000,-400000,-200000,0,200000,400000];
+  for(var i=0;i<ys.length;i++){
+    var y=ys[i],yp=py(y).toFixed(1);
+    s+='<line x1="'+PL+'" y1="'+yp+'" x2="'+(PL+PW)+'" y2="'+yp+'" stroke="'+(y===0?'rgba(0,0,0,.2)':'rgba(0,0,0,.06)')+'" stroke-width="'+(y===0?1.5:.5)+'"/>';
+    s+='<text x="'+(PL-2)+'" y="'+(parseFloat(yp)+3.5).toFixed(1)+'" text-anchor="end" font-size="8" fill="#999">'+(y<0?'-':'')+Math.abs(y/1000)+'k</text>';
+  }
+  var xs=[65,70,75,80,85,90,95,100,110];
+  for(var j=0;j<xs.length;j++) s+='<text x="'+px(xs[j]).toFixed(1)+'" y="'+(PT+PH+13)+'" text-anchor="middle" font-size="9" fill="#777">'+xs[j]+'</text>';
+  for(var k=0;k<rl.length;k++) s+='<path d="'+mkPth(rl[k].v)+'" fill="none" stroke="'+rl[k].c+'" stroke-width="2"/>';
+  if(refs){for(var m=0;m<refs.length;m++){var ag=refs[m][0],co=refs[m][1],lb=refs[m][2],tk=refs[m][3],xp=px(ag).toFixed(1);
+    s+='<line x1="'+xp+'" y1="'+PT+'" x2="'+xp+'" y2="'+(PT+PH)+'" stroke="'+co+'" stroke-width="'+(tk?2:1.2)+'" stroke-dasharray="'+(tk?"8,4":"3,3")+'" opacity="'+(tk?1:.6)+'"/>';
+    s+='<text x="'+xp+'" y="'+(PT-3)+'" text-anchor="middle" font-size="'+(tk?10:9)+'" fill="'+co+'" font-weight="'+(tk?500:400)+'">'+lb+'</text>';}}
+  return s+'</svg>';
+}
+var CZ=mkC([VR[0]],[[DEP0,'#c00000','Alter '+DEP0,true]]);
+var CA=mkC(VR,null);
+var CR=mkC(VR,[[85,'#8B4000','M Ø 85',false],[88,'#1F5FA6','F Ø 88',false],[90,'#8B4000','M 90',true],[95,'#1F5FA6','F 95',true]]);
+var VLEG='';for(var vi=0;vi<VR.length;vi++) VLEG+='<div style="display:flex;align-items:center;gap:3px;font-size:10px;color:#555"><span style="width:12px;height:2.5px;background:'+VR[vi].c+';display:inline-block;border-radius:2px"></span>'+VR[vi].l+'</div>';
+var LB='<div style="text-align:right;margin-bottom:3px"><img src="assets/fintool-logo.png" style="height:15px;opacity:.38" alt=""></div>';
+
+var SC=[
+{d:8000,
+ v:LB+'<div style="text-align:center;width:100%;max-width:520px"><div style="font-size:22px;font-weight:500;color:#111;margin-bottom:5px">Kapitalverzehr-Simulator</div><div style="font-size:13px;color:#888;margin-bottom:12px">Wie lange reicht Ihr Pensionskapital?</div><div style="border-top:.5px solid #ebebeb;margin-bottom:11px"></div><div style="font-size:12px;color:#444;line-height:1.7;text-align:left;margin-bottom:14px">Fintool erm&ouml;glicht Ihnen zu errechnen, in welcher Art und Weise sich Ihr Alterskapital je nach Jahresbezug und erwarteter Rendite auf dem Restkapital entwickelt. Geben Sie Ihr Startkapital ein (nach Kapitalsteuer), w&auml;hlen Sie Ihren Jahresbezug (zur Deckung eventueller Budgetl&uuml;cken) und geben Sie an, zu welchen Renditen Sie gedenken, das Restkapital jeweils zu investieren. Wir laden Sie ein, verschiedene Szenarien zu simulieren, um ein Gef&uuml;hl f&uuml;r die Problemstellung des Kapitalverzehrs zu entwickeln. Denken Sie dabei daran, dass alles nominelle Gr&ouml;ssen sind, welche m&ouml;gliche Inflationsraten nicht ber&uuml;cksichtigen. <b>Viel Vergn&uuml;gen.</b></div><div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap"><div class="ibox"><div class="ibox-l">Startkapital</div><div class="ibox-v" style="color:#3D5498">CHF 450&#8217;000</div></div><div class="ibox"><div class="ibox-l">Jahresbezug</div><div class="ibox-v" style="color:#b08800">CHF 30&#8217;000</div></div><div class="ibox"><div class="ibox-l">Renditen</div><div class="ibox-v" style="color:#3a8a3a">0&ndash;5 %</div></div></div></div>',
+ c:'Dieses Erkl&auml;rvideo f&uuml;hrt durch alle Konzepte &mdash; Schritt f&uuml;r Schritt &mdash; und verwendet CHF 450&#8217;000 Startkapital, CHF 30&#8217;000 Jahresbezug und Renditen 0&thinsp;&ndash;&thinsp;5&#8239;% p.a.'},
+{d:5000,
+ v:LB+'<div style="text-align:center;width:100%"><div style="font-size:44px;font-weight:500;color:#3D5498;line-height:1;margin-bottom:7px">CHF 450&#8217;000</div><div style="font-size:12px;color:#888;margin-bottom:16px">Kapital bei Rentenantritt, Alter 65</div><div style="background:rgba(68,114,196,.12);border-radius:7px;height:12px;width:70%;margin:0 auto;overflow:hidden"><div id="capbar" style="height:100%;background:#3D5498;width:0;border-radius:7px;transition:width 1.5s ease"></div></div></div>',
+ c:'Das <b>Startkapital</b> bildet die Grundlage. Je gr&ouml;sser das Kapital, desto l&auml;nger reicht es.',
+ fn:function(){setTimeout(function(){var b=document.getElementById('capbar');if(b)b.style.width='45%';},200);}},
+{d:5000,
+ v:LB+'<div style="text-align:center;width:100%;max-width:380px"><div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px"><div class="ibox" style="padding:10px 16px"><div class="ibox-l">1. Januar</div><div style="font-size:20px">&#128197;</div></div><div><div style="width:36px;height:2px;background:#b08800;margin-bottom:2px"></div><div style="font-size:18px;color:#b08800">&#8594;</div><div style="font-size:10px;color:#aaa">j&auml;hrlich</div></div><div style="background:rgba(176,136,0,.1);border:.5px solid rgba(176,136,0,.3);border-radius:9px;padding:10px 16px"><div style="font-size:10px;color:#b08800;margin-bottom:3px">Bezug</div><div style="font-size:22px;font-weight:500;color:#b08800">30&#8217;000</div></div></div><div style="display:flex;gap:6px;justify-content:center"><div class="ibox" style="padding:6px 11px"><div class="ibox-l">Jahr 1</div><div style="font-size:12px;font-weight:500;color:#c00000">-30k</div></div><div class="ibox" style="padding:6px 11px"><div class="ibox-l">Jahr 2</div><div style="font-size:12px;font-weight:500;color:#c00000">-30k</div></div><div class="ibox" style="padding:6px 11px"><div class="ibox-l">Jahr 3</div><div style="font-size:12px;font-weight:500;color:#c00000">-30k</div></div><div class="ibox" style="padding:6px 11px"><div class="ibox-l">Jahr 4</div><div style="font-size:12px;font-weight:500;color:#c00000">-30k</div></div></div></div>',
+ c:'Am <b>1. Januar</b> jedes Jahres werden CHF 30&#8217;000 entnommen &mdash; das Rentenvorschuss-Prinzip.'},
+{d:5500,
+ v:LB+'<div style="text-align:center;width:100%"><div style="display:flex;align-items:center;justify-content:center;gap:11px;font-size:22px;font-weight:500;margin-bottom:18px;flex-wrap:wrap"><span style="color:#b08800">30&#8217;000</span><span style="color:#ccc;font-size:17px">&#247;</span><span style="color:#3D5498">450&#8217;000</span><span style="color:#ccc;font-size:17px">=</span><span style="color:#c00000;font-size:34px">6.7 %</span></div><div style="background:rgba(192,0,0,.07);border:.5px solid rgba(192,0,0,.18);border-radius:9px;padding:10px 20px;display:inline-block;font-size:12px;color:#444">Bei Renditen <b style="color:#c00000">unter 6.7 %</b> wird das Kapital aufgezehrt</div></div>',
+ c:'Die <b>Entnahmequote</b> betr&auml;gt 6.7 %. Da alle gezeigten Renditen darunter liegen, wird das Kapital schliesslich aufgebraucht.'},
+{d:6000,v:LB+'<div style="width:100%">'+CZ+'</div>',c:'Bei <b>0&#8239;% Rendite</b> sinkt das Kapital um CHF 30&#8217;000 pro Jahr. Bei Alter <b style="color:#c00000">'+DEP0+'</b> ist es aufgebraucht.'},
+{d:7500,v:LB+'<div style="width:100%">'+CA+'<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:7px">'+VLEG+'</div></div>',c:'Je h&ouml;her die Rendite, desto l&auml;nger h&auml;lt das Kapital. Bei 5&#8239;% bis Alter ~91, bei 0&#8239;% bis Alter '+DEP0+'. Unterschied: <b>&uuml;ber 10 Jahre</b>.'},
+{d:5500,
+ v:LB+'<div style="display:flex;gap:32px;align-items:center;justify-content:center"><div style="text-align:center"><div style="width:20px;height:20px;border-radius:50%;background:#8B4000;margin:0 auto 3px"></div><div style="width:12px;height:24px;background:#8B4000;margin:0 auto;border-radius:2px 2px 0 0"></div><div style="display:flex;gap:2px;justify-content:center"><div style="width:5px;height:16px;background:#8B4000;border-radius:0 0 2px 2px;transform:rotate(-8deg)"></div><div style="width:5px;height:16px;background:#8B4000;border-radius:0 0 2px 2px;transform:rotate(8deg)"></div></div><div style="font-size:38px;font-weight:500;color:#8B4000;margin-top:5px">85</div><div style="font-size:11px;color:#888">&#216; M&auml;nner</div><div style="font-size:10px;color:#bbb;margin-top:2px">+20 J. ab 65</div></div><div style="width:1px;height:85px;background:#e0e0e0"></div><div style="text-align:center"><div style="width:20px;height:20px;border-radius:50%;background:#1F5FA6;margin:0 auto 3px"></div><div style="width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:24px solid #1F5FA6;margin:0 auto"></div><div style="display:flex;gap:2px;justify-content:center"><div style="width:5px;height:14px;background:#1F5FA6;border-radius:0 0 2px 2px;transform:rotate(-8deg)"></div><div style="width:5px;height:14px;background:#1F5FA6;border-radius:0 0 2px 2px;transform:rotate(8deg)"></div></div><div style="font-size:38px;font-weight:500;color:#1F5FA6;margin-top:5px">88</div><div style="font-size:11px;color:#888">&#216; Frauen</div><div style="font-size:10px;color:#bbb;margin-top:2px">+23 J. ab 65</div></div></div>',
+ c:'&#216; Sterbealter (ab 65): <b style="color:#8B4000">85 Jahre</b> M&auml;nner, <b style="color:#1F5FA6">88 Jahre</b> Frauen (BFS 2020&ndash;2022).'},
+{d:6500,v:LB+'<div style="width:100%">'+CR+'</div>',c:'Die <b>gepunkteten Linien</b> markieren das &#216; Sterbealter (85/88). Die <b>gestrichelten</b> bei 90/95 zeigen das Kapital f&uuml;r Langlebige.'},
+{d:6000,
+ v:LB+'<div style="width:100%;max-width:460px"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:16px"><div class="ibox" style="padding:11px 8px"><div class="ibox-l">Rendite 0 %</div><div style="font-size:20px;font-weight:500;color:#c00000">Alter '+DEP0+'</div><div style="font-size:10px;color:#aaa;margin-top:2px">aufgebraucht</div></div><div class="ibox" style="padding:11px 8px"><div class="ibox-l">Rendite 3 %</div><div style="font-size:20px;font-weight:500;color:#b08800">Alter 88</div><div style="font-size:10px;color:#aaa;margin-top:2px">aufgebraucht</div></div><div class="ibox" style="padding:11px 8px"><div class="ibox-l">Rendite 5 %</div><div style="font-size:20px;font-weight:500;color:#3a8a3a">Alter 91</div><div style="font-size:10px;color:#aaa;margin-top:2px">aufgebraucht</div></div></div><div style="text-align:center"><button onclick="showSim()" style="background:linear-gradient(135deg,#2C3E7A,#3D5498);color:#fff;border:none;border-radius:9px;padding:11px 24px;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 4px 12px rgba(68,114,196,.28)">Simulator starten &#8599;</button></div></div>',
+ c:'<b>Fazit:</b> Die Rendite entscheidet &uuml;ber mehr als 10 Jahre zus&auml;tzliche Kapital-Laufzeit. Jetzt selbst ausprobieren!'}
+];
+var VN=SC.length,vcur=0,vplay=false,vel=0,vt=null;
+function vdots(){var el=document.getElementById('xdots');el.innerHTML='';for(var i=0;i<VN;i++){var d=document.createElement('div');d.className='ev-dot'+(i===vcur?' on':'');d.setAttribute('data-i',i);d.onclick=function(){vgo(parseInt(this.getAttribute('data-i')));};el.appendChild(d);}}
+function vren(){var s=SC[vcur];document.getElementById('xvis').innerHTML=s.v;document.getElementById('xcap').innerHTML=s.c;document.getElementById('xlbl').textContent=(vcur+1)+' / '+VN;vdots();if(s.fn)s.fn();}
+function vstop(){if(vt){clearInterval(vt);vt=null;}}
+function vstart(){vstop();vt=setInterval(function(){vel+=100;var dur=SC[vcur].d;document.getElementById('xbar').style.width=Math.min(vel/dur*100,100)+'%';if(vel>=dur){vstop();if(vcur<VN-1)vgo(vcur+1);else{vplay=false;document.getElementById('xplay').innerHTML='&#9654;';}}},100);}
+function vgo(n){vcur=Math.max(0,Math.min(VN-1,n));vel=0;vstop();vren();if(vplay)vstart();}
+document.getElementById('xprev').onclick=function(){vgo(vcur-1);};
+document.getElementById('xnext').onclick=function(){vgo(vcur+1);};
+document.getElementById('xplay').onclick=function(){vplay=!vplay;this.innerHTML=vplay?'&#9646;&#9646;':'&#9654;';if(vplay){if(vcur===VN-1&&vel>=SC[vcur].d)vgo(0);else vstart();}else vstop();};
+vren();
+
+/* ── SIMULATOR ───────────────────────────────────── */
+var simInit=false;
+var SR=[{v:0,l:"0 %",c:"#003087"},{v:.01,l:"1 %",c:"#3D5498"},{v:.015,l:"1.5 %",c:"#00B0C8"},
+        {v:.02,l:"2 %",c:"#70AD47"},{v:.025,l:"2.5 %",c:"#FFC000"},{v:.03,l:"3 %",c:"#ED7D31"},
+        {v:.04,l:"4 %",c:"#C00000"},{v:.05,l:"5 %",c:"#7B3F00"}];
+var AM=85,AF=88,cap=450000,wd=30000,sa=65,maA=90,feA=95;
+var svis=new Set(SR.map(function(r){return r.l;}));
+function cc(C,W,r,t){if(t===0)return C;if(r===0)return C-W*t;var g=Math.pow(1+r,t);return C*g-W*(1+r)*(g-1)/r;}
+function nf(v){var s=Math.abs(Math.round(v)).toString();var out='';for(var i=0;i<s.length;i++){if(i>0&&(s.length-i)%3===0)out+="'";out+=s[i];}return (v<0?'-':'')+out;}
+function chf(v){return (v<0?'-':'')+'CHF '+nf(Math.abs(v));}
+function dp(r){for(var t=1;t<=110-sa;t++)if(cc(cap,wd,r,t)<=0)return sa+t;return null;}
+function isSp(a){return a===AM||a===AF||a===maA||a===feA;}
+function gcols(){var s=new Set([70,75,80,85,88,90,95,100,AM,AF,maA,feA]);var a=[];s.forEach(function(x){if(x>sa&&x<=110)a.push(x);});return a.sort(function(a,b){return a-b;});}
+function initSim(){
+  simInit=true;
+  SR.forEach(function(r){var b=document.createElement('button');b.className='rbt';b.textContent=r.l;b.style.cssText='border-color:'+r.c+';background:'+r.c+';color:#fff';b.onclick=function(){if(svis.has(r.l)){if(svis.size>1){svis.delete(r.l);b.style.background='transparent';b.style.color=r.c;}}else{svis.add(r.l);b.style.background=r.c;b.style.color='#fff';}upd();};document.getElementById('rbtns').appendChild(b);});
+  var ctx=document.getElementById('kc').getContext('2d');
+  window.ch=new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:150},interaction:{mode:'index',intersect:false},hover:{mode:null},plugins:{legend:{display:false},tooltip:{enabled:false,backgroundColor:'#fff',borderColor:'rgba(0,0,0,.1)',borderWidth:1,titleColor:'#111',bodyColor:'#444',titleFont:{size:12,weight:'500'},bodyFont:{size:11},padding:8,callbacks:{title:function(i){return 'Alter '+i[0].label+' Jahre';},label:function(i){return '  '+i.dataset.label+':  '+chf(i.parsed.y);}}}},scales:{x:{type:'category',grid:{display:false},border:{display:false},title:{display:true,text:'Alter (Jahre)',color:'#333',font:{size:11,weight:'500'},padding:{top:4}},ticks:{maxRotation:0,autoSkip:false,callback:function(v,i){var a=sa+i;return (a%5===0||isSp(a))?a:'';},color:function(c){var a=sa+c.index;return (a===AM||a===maA)?'#8B4000':(a===AF||a===feA)?'#1F5FA6':'#222';},font:function(c){var a=sa+c.index;return {size:isSp(a)?12:11,weight:'500'};}}},y:{grid:{color:'rgba(0,0,0,.05)'},border:{display:false},title:{display:true,text:'Kapital (CHF)',color:'#777',font:{size:10}},ticks:{color:'#777',font:{size:10},callback:function(v){if(v===0)return '0';return (v<0?'-':'')+nf(Math.abs(v/1000))+'k';}}}}},plugins:[{id:'z0',afterDraw:function(c){var y=c.scales.y,x=c.scales.x,y0=y.getPixelForValue(0),t=c.ctx;t.save();t.strokeStyle='rgba(0,0,0,.13)';t.lineWidth=1.5;t.beginPath();t.moveTo(x.left,y0);t.lineTo(x.right,y0);t.stroke();t.restore();}},{id:'ref',afterDraw:function(c){var ys=c.scales.y,xs=c.scales.x,t=c.ctx,lb=c.data.labels;[[AM,'#8B4000','M Ø '+AM,false],[AF,'#1F5FA6','F Ø '+AF,false],[maA,'#8B4000','M '+maA,true],[feA,'#1F5FA6','F '+feA,true]].forEach(function(r){var age=r[0],col=r[1],lbl=r[2],tk=r[3],idx=lb.indexOf(String(age));if(idx<0)return;var x=xs.getPixelForValue(idx);t.save();t.setLineDash(tk?[8,4]:[3,4]);t.strokeStyle=col;t.lineWidth=tk?2.5:1.5;t.globalAlpha=tk?1:.6;t.beginPath();t.moveTo(x,ys.bottom);t.lineTo(x,ys.top+18);t.stroke();t.setLineDash([]);t.globalAlpha=1;t.font=(tk?'500 12':'400 11')+'px sans-serif';t.fillStyle=col;t.textAlign='center';t.fillText(lbl,x,ys.top+(tk?5:16));t.restore();});}}]});
+  document.getElementById('s-cap').addEventListener('input',function(){cap=+this.value;document.getElementById('v-cap').textContent=chf(cap);upd();});
+  document.getElementById('s-wd').addEventListener('input',function(){wd=+this.value;document.getElementById('v-wd').textContent=chf(wd);upd();});
+  document.getElementById('s-sa').addEventListener('input',function(){sa=+this.value;document.getElementById('v-sa').textContent=sa+' Jahre';upd();});
+  document.getElementById('s-ma').addEventListener('input',function(){maA=+this.value;document.getElementById('v-ma').textContent='M\u00e4nner \u00b7 Alter '+maA;upd();});
+  document.getElementById('s-fe').addEventListener('input',function(){feA=+this.value;document.getElementById('v-fe').textContent='Frauen \u00b7 Alter '+feA;upd();});
+  upd();
+}
+function upd(){
+  var ages=[];for(var i=0;i<=110-sa;i++)ages.push(String(sa+i));
+  window.ch.data.labels=ages;
+  window.ch.data.datasets=SR.filter(function(r){return svis.has(r.l);}).map(function(r){return{label:r.l,data:ages.map(function(_,i){return Math.round(cc(cap,wd,r.v,i));}),borderColor:r.c,backgroundColor:r.c,borderWidth:2,pointRadius:0,tension:0};});
+  var mn=0;SR.forEach(function(r){var v=cc(cap,wd,r.v,110-sa);if(v<mn)mn=v;});
+  window.ch.options.scales.y.min=Math.floor(mn/100000)*100000-50000;
+  window.ch.options.scales.y.max=Math.ceil(cap/100000)*100000+80000;
+  window.ch.update();
+  genSummary();
+  var eq=(wd/cap*100).toFixed(1),best=SR.filter(function(r){return svis.has(r.l);}).slice(-1)[0];
+  var d0=dp(0),cM=cc(cap,wd,best.v,AM-sa),cF=cc(cap,wd,best.v,AF-sa);
+  document.getElementById('scards').innerHTML=[
+    {l:'Entnahmequote',v:eq+' %',s:'Jahresbezug / Startkapital'},
+    {l:'\u00d8 \u2642 '+AM+' \u00b7 '+best.l,v:chf(cM),s:cM>=0?'Kapital positiv':'Kapital aufgebraucht'},
+    {l:'\u00d8 \u2640 '+AF+' \u00b7 '+best.l,v:chf(cF),s:cF>=0?'Kapital positiv':'Kapital aufgebraucht'},
+    {l:'Laufzeit bei 0 %',v:d0?'Alter '+d0:'> 110 J.',s:'ohne Anlagerendite'}
+  ].map(function(c){return '<div class="scard"><div class="sl3">'+c.l+'</div><div class="sv">'+c.v+'</div><div class="ss">'+c.s+'</div></div>';}).join('');
+}
+
+
+function genSummary(){
+  var el=document.getElementById('sum-content');
+  if(!el) return;
+
+  // Capital at each threshold for all rates
+  var thresholds=[
+    {age:AM, label:'Ø M\u00e4nner ('+AM+' J.)', col:'#8B4000', key:'am'},
+    {age:AF, label:'Ø Frauen ('+AF+' J.)',     col:'#1F5FA6', key:'af'},
+    {age:maA,label:'Schwelle M\u00e4nner ('+maA+' J.)', col:'#8B4000', key:'ma'},
+    {age:feA,label:'Schwelle Frauen ('+feA+' J.)',   col:'#1F5FA6', key:'fe'}
+  ];
+
+  // For each threshold: how many rates still positive?
+  function posCount(age){
+    var n=0;
+    SR.forEach(function(r){if(svis.has(r.l)&&cc(cap,wd,r.v,age-sa)>0)n++;});
+    return n;
+  }
+  function totalVis(){var n=0;SR.forEach(function(r){if(svis.has(r.l))n++;});return n;}
+
+  // Min rate for capital to last until given age
+  function minRateFor(age){
+    var found=null;
+    SR.forEach(function(r){
+      if(svis.has(r.l)&&cc(cap,wd,r.v,age-sa)>0){
+        if(found===null)found=r.l;
+      }
+    });
+    return found;
+  }
+
+  var vis=totalVis();
+  var eq=(wd/cap*100).toFixed(1);
+
+  // Build laufzeit rows
+  var laufRows='';
+  SR.forEach(function(r){
+    if(!svis.has(r.l))return;
+    var d=dp(r.v);
+    var years=d?(d-sa):null;
+    var cls=d&&d>feA?'good':d&&d>AM?'warn':'bad';
+    var label=d?('Alter '+d+' ('+years+' Jahre)'):'> 110 Jahre';
+    laufRows+='<div class="sum-row"><span class="sum-row-label">'+r.l+'</span><span class="sum-row-val '+cls+'">'+label+'</span></div>';
+  });
+
+  // Build threshold rows
+  var thrRows='';
+  thresholds.forEach(function(t){
+    if(t.age<=sa)return;
+    var pc=posCount(t.age);
+    var cls=pc>=vis*0.75?'good':pc>=vis*0.5?'warn':'bad';
+    var txt=pc+' von '+vis+' Szenarien positiv';
+    thrRows+='<div class="sum-row"><span class="sum-row-label" style="color:'+t.col+'">'+t.label+'</span><span class="sum-row-val '+cls+'">'+txt+'</span></div>';
+  });
+
+  // Conclusion text
+  var minForMale=minRateFor(AM);
+  var minForFemale=minRateFor(AF);
+  var minForMaA=minRateFor(maA);
+  var minForFeA=minRateFor(feA);
+
+  var concl='Bei einem <b>Startkapital von '+chf(cap)+'</b> und einem <b>Jahresbezug von '+chf(wd)+'</b> (Entnahmequote '+eq+'%) ab Alter '+sa+' zeigt die Simulation: ';
+
+  if(minForFemale){
+    concl+='Das Kapital reicht bis zum durchschnittlichen Sterbealter der Frauen ('+AF+' J.) ab einer Rendite von <b>'+minForFemale+'</b>. ';
+  } else {
+    concl+='Bei keinem der aktiven Szenarien reicht das Kapital bis zum durchschnittlichen Sterbealter der Frauen ('+AF+' J.). ';
+  }
+  if(minForMaA&&maA>sa){
+    concl+='F\u00fcr die gew\u00e4hlte M\u00e4nner-Schwelle (Alter '+maA+') ist mindestens <b>'+minForMaA+'</b> n\u00f6tig. ';
+  }
+  if(minForFeA&&feA>sa){
+    concl+='F\u00fcr die gew\u00e4hlte Frauen-Schwelle (Alter '+feA+') ist mindestens <b>'+minForFeA+'</b> n\u00f6tig.';
+  }
+
+  el.innerHTML=
+    '<div class="sum-grid">'+
+      '<div class="sum-block">'+
+        '<div class="sum-block-title">Kapital aufgebraucht bei</div>'+
+        laufRows+
+      '</div>'+
+      '<div class="sum-block">'+
+        '<div class="sum-block-title">Positive Szenarien bei Altersschwellen</div>'+
+        thrRows+
+      '</div>'+
+    '</div>'+
+    '<div class="sum-conclusion">'+concl+'</div>';
+}
+
+</script>
+</body>
+</html>

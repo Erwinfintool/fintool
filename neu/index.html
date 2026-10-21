@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rechner &amp; Simulatoren | Fintool</title>
+<link rel="icon" href="assets/fintool-logo.png">
+<link rel="stylesheet" href="assets/fintool.css">
+<style>
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .tool-card { display: flex; flex-direction: column; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; overflow: hidden; transition: transform .15s, box-shadow .15s; }
+  .tool-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .tool-card-top { background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid)); padding: 18px 18px 14px; display: flex; align-items: center; gap: 12px; }
+  .tool-card-top img { height: 18px; width: auto; filter: brightness(0) invert(1); opacity: .9; }
+  .tool-card-top span { color: rgba(255,255,255,0.8); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .tool-card-bar { height: 4px; background: var(--red); }
+  .tool-card-body { padding: 14px 18px 18px; flex: 1; display: flex; flex-direction: column; }
+  .tool-card-title { font-size: 16px; font-weight: 700; color: var(--grey-800); margin-bottom: 6px; }
+  .tool-card-sub { font-size: 13px; color: var(--grey-500); line-height: 1.5; flex: 1; }
+  .tool-card-link { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--blue-dark); }
+  .overview-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 32px 8px 20px; }
+  .overview-hero img { height: 44px; width: auto; margin-bottom: 18px; }
+  .page { max-width: 900px; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="overview-hero">
+    <img src="assets/fintool-logo.png" alt="Fintool">
+    <p class="splash-eyebrow">Tools <span>·</span> Rechner &amp; Simulatoren</p>
+    <h1 class="splash-title">Selber <strong>rechnen</strong> statt glauben</h1>
+    <p class="splash-author">Prof. Dr. Erwin W. Heri</p>
+    <p class="splash-sub">Alle Rechner und Simulatoren von Fintool an einem Ort. Jedes Tool erklärt zuerst, worum es geht – und macht dann jede Annahme sichtbar und veränderbar.</p>
+  </div>
+
+  <div class="tools-grid">
+    <a class="tool-card" href="kapitalverzehr-simulator.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Vorsorge</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Kapitalverzehr-Simulator</div><div class="tool-card-sub">Wie lange reicht das Pensionskapital – und welche Rolle spielt die Rendite?</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="renditefolgerisiko-rechner.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Sparen &amp; Entnehmen</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Renditefolgerisiko-Rechner</div><div class="tool-card-sub">Vermögensaufbau und Kapitalentnahme: Wie stark hängt alles davon ab, wann die guten und schlechten Börsenjahre kommen?</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="vermoegensaufbau-simulator.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Sparen</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Vermögensaufbau-Simulator</div><div class="tool-card-sub">Tausende zufällige Börsenverläufe für Ihren Sparplan – die Bandbreite möglicher Ergebnisse.</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="renditefolgerisiko-simulator.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Rente</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Renditefolgerisiko-Simulator</div><div class="tool-card-sub">Wie sicher reicht das Aktienkapital bei regelmässigen Entnahmen im Ruhestand?</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="sparplan-rechner.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Sparen &amp; Vorsorge</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Sparplan-Rechner</div><div class="tool-card-sub">Renditeversprechen nachgerechnet – mit Allokation, Kosten, Inflation und Steuern.</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="renditerechner.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Rendite &amp; Anlage</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Aktien versus Immobilien</div><div class="tool-card-sub">Immobilie, Aktien und gehebelte Aktien auf einer gemeinsamen Basis: die Rendite auf das Eigenkapital.</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="aktien-prognose-simulator.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Aktien Schweiz</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Aktien-Prognose-Simulator</div><div class="tool-card-sub">Was der SPI historisch gebracht hat – und welche Bandbreite für die Zukunft realistisch ist.</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="hypothekenrechner.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Hypothek &amp; Zinsen</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Hypothekenrechner</div><div class="tool-card-sub">Fünf Jahre fest oder Geldmarkt – was hätte es seit 1970 gekostet?</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="inflationsrechner.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Inflation &amp; Kaufkraft</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Inflationsrechner</div><div class="tool-card-sub">Was Inflation mit einem Betrag und mit einem Sparplan macht – über 10, 20, 40 Jahre.</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+    <a class="tool-card" href="individuelle-teuerung.html">
+      <div class="tool-card-top"><img src="assets/fintool-logo.png" alt=""><span>Konsum &amp; Inflation</span></div><div class="tool-card-bar"></div>
+      <div class="tool-card-body"><div class="tool-card-title">Individueller Teuerungsrechner</div><div class="tool-card-sub">Ihre persönliche Teuerung nach Ihrem eigenen Warenkorb – im Vergleich zum Durchschnittshaushalt.</div><div class="tool-card-link">Öffnen →</div></div>
+    </a>
+  </div>
+
+  <div class="app-footer" style="margin-top:24px;">
+    <img class="ft-footer-logo" src="assets/fintool-logo.png" alt="Fintool">
+    Alle Rechner dienen der Illustration und Ausbildung. Keine Anlage-, Steuer- oder Finanzierungsberatung.<br>
+    <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin W. Heri</a>
+  </div>
+</div>
+
+</body>
+</html>

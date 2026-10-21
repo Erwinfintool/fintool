@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aktien versus Immobilien Simulator | Fintool</title>
+<link rel="icon" href="assets/fintool-logo.png">
+<link rel="stylesheet" href="assets/fintool.css">
+<style>
+  .btn-primary:active { transform: translateY(0); }
+  .intro-list { list-style: none; padding: 0; margin: 0 0 14px; }
+  .intro-list li { padding: 10px 12px; margin-bottom: 8px; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; }
+  .intro-list li.li-immo   { background: var(--immo-bg);   border-left: 4px solid var(--immo); }
+  .intro-list li.li-aktien { background: var(--aktien-bg); border-left: 4px solid var(--aktien); }
+  .intro-list li.li-lev    { background: var(--lev-bg);    border-left: 4px solid var(--lev); }
+  .intro-list li strong { display: block; margin-bottom: 2px; }
+  .intro-formula { background: var(--grey-50); border: 1px solid var(--grey-100); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+  .intro-formula span { color: var(--grey-500); }
+  .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; }
+  .field-col label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--grey-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .input-wrap input {
+    flex: 1; border: none; background: transparent;
+    padding: 9px 10px; font-size: 14px; font-weight: 700;
+    color: var(--blue-dark); outline: none; min-width: 0;
+  }
+
+  .output-val {
+    background: var(--grey-50);
+    border: 1.5px solid var(--grey-100);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px;
+    font-size: 14px; font-weight: 700;
+    color: var(--grey-800);
+  }
+
+  .assump-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 480px) { .assump-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+  .assump-item {}
+  .assump-label {
+    font-size: 10px; font-weight: 700;
+    color: var(--grey-500); text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 5px;
+  }
+  .period-val { font-size: 22px; font-weight: 800; color: var(--blue-dark); min-width: 56px; text-align: center; }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 520px) { .result-grid { grid-template-columns: 1fr; } }
+  .result-card-hdr {
+    padding: 10px 12px;
+    font-size: 11px; font-weight: 700;
+    color: var(--white);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .rc-immo .result-card-hdr   { background: var(--blue-dark); }
+  .rc-aktien .result-card-hdr { background: var(--aktien); }
+  .rc-lev .result-card-hdr    { background: var(--lev); }
+  .rc-immo .result-row.hl .result-val   { color: var(--blue-dark); }
+  .rc-aktien .result-row.hl .result-val { color: var(--aktien); }
+  .rc-lev .result-row.hl .result-val    { color: var(--lev); }
+
+  .chart-bars {
+    display: flex; gap: 12px; align-items: flex-end;
+    height: 140px; padding: 0 8px 4px;
+  }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .bar { width: 100%; border-radius: 5px 5px 0 0; min-height: 4px; transition: height .4s cubic-bezier(.4,0,.2,1); }
+  .bar-val { font-size: 12px; font-weight: 800; color: var(--grey-800); }
+  .bar-lbl { font-size: 10px; color: var(--grey-500); text-align: center; line-height: 1.3; }
+  .tag-red { background: #FEF0EE; color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ══ STARTSEITE ══ -->
+<div id="splash">
+  <div class="page">
+    <div class="splash-hero">
+      <button class="ft-tile" type="button" onclick="showApp()" aria-label="Renditerechner öffnen">
+      <span class="ft-tile-logo"><img src="assets/fintool-logo.png" alt=""></span>
+      <span class="ft-tile-label">Renditerechner</span>
+    </button>
+      <p class="splash-eyebrow">Rendite <span>·</span> Anlage</p>
+      <h1 class="splash-title">Aktien <strong>versus</strong> Immobilien</h1>
+      <p class="splash-author">Prof. Dr. Erwin W. Heri</p>
+    </div>
+
+    <div class="section tile-click" id="intro_tile">
+      <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
+        <div>
+          <div class="cta-tile-title">Worum es geht und wie gerechnet wird</div>
+          <div class="cta-tile-sub">Immobilien vs. Aktien vs. Aktien mit Leverage – alle Annahmen sichtbar und veränderbar</div>
+        </div>
+        <div class="cta-tile-arrow">⌄</div>
+      </div>
+      <div class="section-body intro-text intro-body" id="intro_body">
+        <h4>Worum es geht</h4>
+        <p>«Immobilien oder Aktien?» ist eine der meistgestellten Fragen in der Geldanlage – und eine der am seltensten sauber beantworteten. Meist werden Äpfel mit Birnen verglichen: die Wertsteigerung einer fremdfinanzierten Liegenschaft mit der Kursentwicklung eines unverschuldeten Aktiendepots. Dieser Simulator stellt die drei Varianten auf eine gemeinsame Basis und rechnet für alle dasselbe: <strong>die Rendite auf das eingesetzte Eigenkapital</strong>.</p>
+        <ul class="intro-list">
+          <li class="li-immo"><strong>🏠 Anlageimmobilie</strong>Kauf einer Liegenschaft, zu einem frei wählbaren Teil mit einer Hypothek finanziert. Ertrag: Mietzinsen abzüglich Hypothekarzins, Verwaltung und Unterhalt.</li>
+          <li class="li-aktien"><strong>📈 Aktien ohne Leverage</strong>Dasselbe Eigenkapital wird vollständig in ein breit diversifiziertes Aktienportfolio investiert. Ertrag: Dividenden abzüglich Depotgebühr und Produktkosten.</li>
+          <li class="li-lev"><strong>⚡ Aktien mit Leverage</strong>Das Aktienportfolio wird – analog zur Immobilie – mit einem Lombardkredit gehebelt, so dass das gleiche Gesamtvolumen investiert wird wie bei der Liegenschaft. Ertrag: Dividenden abzüglich Kosten und Lombardzins.</li>
+        </ul>
+        <p>Der Vergleich zwischen Variante 1 und 3 ist der eigentlich faire: gleiches Eigenkapital, gleicher Fremdkapitalanteil, gleiches Investitionsvolumen. Variante 2 zeigt, was der Verzicht auf den Hebel kostet – oder erspart.</p>
+        <h4>So wird gerechnet</h4>
+        <p><strong>1. Laufender Nettoertrag pro Jahr.</strong> Bei der Immobilie: Mietertrag (Immobilienrendite × Kaufpreis) minus Hypothekarzins, Verwaltungsaufwand (in Prozent der Miete) und Unterhalt/Rückstellungen (in Prozent des Kaufpreises). Bei den Aktien: Dividende minus Depotgebühr und Produktkosten (TER) – und bei der gehebelten Variante zusätzlich minus Lombardzins.</p>
+        <p><strong>2. Cashertrag über die Haltedauer.</strong> Der jährliche Nettoertrag wird mit der gewählten Haltedauer multipliziert. Vereinfachend wird dabei auf eine Wiederanlage der Erträge verzichtet – das benachteiligt alle drei Varianten gleichermassen und hält die Rechnung nachvollziehbar.</p>
+        <p><strong>3. Eigenkapital am Ende.</strong> Die eingegebene Wertentwicklung (über die gesamte Haltedauer, nicht pro Jahr) wird auf das investierte Volumen angewendet. Vom Endwert wird das Fremdkapital – Hypothek bzw. Lombardkredit – abgezogen. Was bleibt, ist das Eigenkapital am Ende der Haltedauer.</p>
+        <p><strong>4. Rendite auf das Eigenkapital.</strong> Cashertrag plus Eigenkapital am Ende ergeben das Total-Vermögen. Daraus wird – bezogen auf das eingesetzte Eigenkapital und die Haltedauer – die durchschnittliche jährliche Rendite berechnet:</p>
+        <div class="intro-formula">
+          EK-Rendite p.a. &nbsp;=&nbsp; (Total Vermögen ÷ eingesetztes Eigenkapital)<sup>1 / Haltedauer</sup> &nbsp;−&nbsp; 1<br>
+          <span>mit Total Vermögen = Cashertrag total + Eigenkapital am Ende</span>
+        </div>
+        <p>Diese Kennzahl steht in jeder Resultatkarte zuunterst und wird im Balkendiagramm verglichen.</p>
+        <h4>Alle Annahmen sind Ihre Annahmen</h4>
+        <p>Jede Zahl im Simulator ist veränderbar: Fremdkapitalanteile, Immobilien- und Dividendenrendite, Hypothekar- und Lombardzins, Kosten, Investitionsbeträge, Wertentwicklung und Haltedauer. Die voreingestellten Werte sind plausible Grössenordnungen für die Schweiz, keine Prognosen.</p>
+        <p>Beobachten Sie insbesondere zwei Dinge: Erstens, wie stark die Resultate auf die <strong>Wertentwicklung</strong> reagieren – sie dominiert über lange Haltedauern alles andere. Zweitens, was der <strong>Hebel</strong> tut: Fremdkapital vergrössert die Eigenkapitalrendite, wenn die Anlage mehr abwirft als der Kredit kostet – und er vergrössert den Verlust, wenn sie es nicht tut. Das gilt für die Hypothek auf der Liegenschaft genauso wie für den Lombardkredit auf dem Depot. Setzen Sie testhalber eine negative Wertentwicklung ein, und Sie sehen es sofort.</p>
+        <p>Nicht berücksichtigt sind Steuern (Eigenmietwert, Liegenschafts- und Grundstückgewinnsteuern, Verrechnungssteuer), Transaktionskosten beim Kauf und Verkauf, Nachschusspflichten beim Lombardkredit sowie die Illiquidität und das Klumpenrisiko einer einzelnen Liegenschaft. Die Simulation dient der Illustration der Mechanik – sie ist keine Anlageberatung.</p>
+      </div>
+    </div>
+
+    <div class="section cta-tile" onclick="showApp()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showApp()">
+      <div class="cta-tile-inner">
+        <div>
+          <div class="cta-tile-title">Direkt zum Simulator</div>
+          <div class="cta-tile-sub">Fremdkapital, Renditen, Kosten &amp; Haltedauer selbst eingeben</div>
+        </div>
+        <div class="cta-tile-arrow">→</div>
+      </div>
+    </div>
+
+    <div class="splash-footer"><a href="https://fintool.ch">fintool.ch</a> · Prof. Dr. Erwin W. Heri</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo"><img src="assets/fintool-logo.png" alt="Fintool"></div>
+      <div>
+        <div class="app-title">Aktien versus Immobilien</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin W. Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+
+  <div class="page">
+
+    <!-- Annahmen -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">⚙</span>
+        <div>
+          <div class="section-header-title">Annahmen <span class="tag">Veränderbar</span></div>
+          <div class="section-header-sub">Beobachten Sie, wie sensibel die Ergebnisse auf Veränderungen reagieren</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="assump-grid">
+          <div class="assump-item">
+            <div class="assump-label">FK Immobilien</div>
+            <div class="input-wrap"><input type="number" id="a_fkImmo" value="50" min="0" max="90" step="1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">FK Aktien (Leverage)</div>
+            <div class="input-wrap"><input type="number" id="a_fkAktien" value="50" min="0" max="90" step="1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Immobilienrendite</div>
+            <div class="input-wrap"><input type="number" id="a_immoRend" value="3.0" min="0" max="10" step="0.1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Dividendenrendite</div>
+            <div class="input-wrap"><input type="number" id="a_divRend" value="2.0" min="0" max="8" step="0.1"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Depotgebühr</div>
+            <div class="input-wrap"><input type="number" id="a_depot" value="0.20" min="0" max="2" step="0.05"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Produktkosten (TER)</div>
+            <div class="input-wrap"><input type="number" id="a_ter" value="0.15" min="0" max="2" step="0.05"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Lombardzins</div>
+            <div class="input-wrap"><input type="number" id="a_lombard" value="3.0" min="0" max="8" step="0.25"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Hypothekarzins</div>
+            <div class="input-wrap"><input type="number" id="a_hypo" value="2.0" min="0" max="6" step="0.25"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Verwaltungsaufwand</div>
+            <div class="input-wrap"><input type="number" id="a_verwalt" value="4.0" min="0" max="10" step="0.5"><span class="input-unit">%</span></div>
+          </div>
+          <div class="assump-item">
+            <div class="assump-label">Unterhalt / Rückst.</div>
+            <div class="input-wrap"><input type="number" id="a_unterhalt" value="1.0" min="0" max="5" step="0.25"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investitionen -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">💰</span>
+        <div>
+          <div class="section-header-title">Investition & Kapitalstruktur</div>
+          <div class="section-header-sub">Kaufpreis / Investitionsbetrag und Wertentwicklung über die Haltedauer</div>
+        </div>
+      </div>
+      <div class="section-body">
+
+        <!-- Immo -->
+        <div class="field-label">🏠 Anlageimmobilien</div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>Kaufpreis</label>
+            <div class="input-wrap"><input type="number" id="i_investImmo" value="3000000" step="50000"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field-col">
+            <label>Eigenkapital</label>
+            <div class="output-val" id="o_ekImmo">1'500'000</div>
+          </div>
+          <div class="field-col">
+            <label>Wertentwicklung</label>
+            <div class="input-wrap"><input type="number" id="i_wertImmo" value="75" min="-50" max="300" step="5"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Aktien -->
+        <div class="field-label">📈 Aktien (ohne Leverage)</div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>Investition (EK)</label>
+            <div class="input-wrap"><input type="number" id="i_investAktien" value="1500000" step="50000"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field-col">
+            <label>Eigenkapital</label>
+            <div class="output-val" id="o_ekAktien">1'500'000</div>
+          </div>
+          <div class="field-col">
+            <label>Wertentwicklung</label>
+            <div class="input-wrap"><input type="number" id="i_wertAktien" value="170" min="-80" max="500" step="5"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Leverage -->
+        <div class="field-label">⚡ Aktien mit Leverage <span class="tag tag-red">Lombardkredit</span></div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>Investition (total)</label>
+            <div class="input-wrap"><input type="number" id="i_investLev" value="3000000" step="50000"><span class="input-unit">CHF</span></div>
+          </div>
+          <div class="field-col">
+            <label>Eigenkapital</label>
+            <div class="output-val" id="o_ekLev">1'500'000</div>
+          </div>
+          <div class="field-col">
+            <label>Wertentwicklung</label>
+            <div class="input-wrap"><input type="number" id="i_wertLev" value="170" min="-80" max="500" step="5"><span class="input-unit">%</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Haltedauer -->
+    <div class="section">
+      <div class="section-body">
+        <div class="period-row">
+          <span class="period-label">Haltedauer</span>
+          <input type="range" id="slider_period" min="5" max="40" value="20" step="1">
+          <span class="period-val"><span id="lbl_period">20</span> J.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultate -->
+    <div class="result-grid">
+      <div class="result-card rc-immo">
+        <div class="result-card-hdr">🏠 Immobilien</div>
+        <div class="result-card-body">
+          <div class="result-row"><span class="result-lbl">Mietertrag p.a.</span><span class="result-val" id="r_miet">—</span></div>
+          <div class="result-row"><span class="result-lbl">Nettoertrag p.a.</span><span class="result-val" id="r_nettoImmo">—</span></div>
+          <div class="result-row"><span class="result-lbl">Cashertrag total</span><span class="result-val" id="r_cashImmo">—</span></div>
+          <div class="result-row"><span class="result-lbl">EK heute</span><span class="result-val" id="r_ekHeuteImmo">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">Total Vermögen</span><span class="result-val" id="r_totalImmo">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">EK-Rendite p.a.</span><span class="result-val" id="r_rendImmo">—</span></div>
+        </div>
+      </div>
+      <div class="result-card rc-aktien">
+        <div class="result-card-hdr">📈 Aktien</div>
+        <div class="result-card-body">
+          <div class="result-row"><span class="result-lbl">Dividende p.a.</span><span class="result-val" id="r_divAktien">—</span></div>
+          <div class="result-row"><span class="result-lbl">Nettoertrag p.a.</span><span class="result-val" id="r_nettoAktien">—</span></div>
+          <div class="result-row"><span class="result-lbl">Cashertrag total</span><span class="result-val" id="r_cashAktien">—</span></div>
+          <div class="result-row"><span class="result-lbl">EK heute</span><span class="result-val" id="r_ekHeuteAktien">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">Total Vermögen</span><span class="result-val" id="r_totalAktien">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">EK-Rendite p.a.</span><span class="result-val" id="r_rendAktien">—</span></div>
+        </div>
+      </div>
+      <div class="result-card rc-lev">
+        <div class="result-card-hdr">⚡ Leverage</div>
+        <div class="result-card-body">
+          <div class="result-row"><span class="result-lbl">Dividende p.a.</span><span class="result-val" id="r_divLev">—</span></div>
+          <div class="result-row"><span class="result-lbl">Nettoertrag p.a.</span><span class="result-val" id="r_nettoLev">—</span></div>
+          <div class="result-row"><span class="result-lbl">Cashertrag total</span><span class="result-val" id="r_cashLev">—</span></div>
+          <div class="result-row"><span class="result-lbl">EK heute</span><span class="result-val" id="r_ekHeuteLev">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">Total Vermögen</span><span class="result-val" id="r_totalLev">—</span></div>
+          <div class="result-row hl"><span class="result-lbl">EK-Rendite p.a.</span><span class="result-val" id="r_rendLev">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">📊</span>
+        <div><div class="section-header-title">EK-Rendite p.a. im Vergleich</div></div>
+      </div>
+      <div class="section-body">
+        <div class="chart-bars">
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vI">—</div>
+            <div class="bar" id="bc_bI" style="background:var(--blue-dark);"></div>
+            <div class="bar-lbl">Immo-<br>bilien</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vA">—</div>
+            <div class="bar" id="bc_bA" style="background:var(--aktien);"></div>
+            <div class="bar-lbl">Aktien</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-val" id="bc_vL">—</div>
+            <div class="bar" id="bc_bL" style="background:var(--lev);"></div>
+            <div class="bar-lbl">Aktien<br>Leverage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-footer">
+      <img class="ft-footer-logo" src="assets/fintool-logo.png" alt="Fintool">
+      Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin W. Heri</a>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /app -->
+
+<script>
+function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; window.scrollTo(0,0); if (typeof onShowApp==='function') onShowApp(); }
+function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='block'; window.scrollTo(0,0); }
+function toggleIntro() { document.getElementById('intro_tile').classList.toggle('open'); }
+function onShowApp(){ compute(); }
+
+function fmt(v)    { return Math.round(v).toLocaleString('de-CH'); }
+function fmtP(v)   { return (v*100).toFixed(2)+'%'; }
+function val(id)   { return parseFloat(document.getElementById(id).value)||0; }
+function set(id,t) { document.getElementById(id).textContent=t; }
+
+function compute() {
+  const fkI=val('a_fkImmo')/100, fkA=val('a_fkAktien')/100;
+  const iR=val('a_immoRend')/100, dR=val('a_divRend')/100;
+  const dep=val('a_depot')/100, ter=val('a_ter')/100;
+  const lom=val('a_lombard')/100, hyp=val('a_hypo')/100;
+  const vw=val('a_verwalt')/100, un=val('a_unterhalt')/100;
+  const invI=val('i_investImmo'), invA=val('i_investAktien'), invL=val('i_investLev');
+  const wI=val('i_wertImmo')/100, wA=val('i_wertAktien')/100, wL=val('i_wertLev')/100;
+  const T=val('slider_period');
+
+  // Immo
+  const hK=invI*fkI, ekI=invI-hK;
+  const miet=invI*iR, hzins=hK*hyp, vwA=miet*vw, unA=invI*un;
+  const nI=miet-hzins-vwA-unA, cI=T*nI;
+  const wHI=invI*(1+wI), ekHI=wHI-hK;
+  const totI=ekHI+cI;
+  const rpI=Math.pow(Math.max(totI/ekI,0.0001),1/T)-1;
+
+  // Aktien
+  const ekA=invA, divA=invA*dR, depA=invA*dep, terA=invA*ter;
+  const nA=divA-depA-terA, cA=T*nA;
+  const wHA=invA*(1+wA), ekHA=wHA;
+  const totA=ekHA+cA;
+  const rpA=Math.pow(Math.max(totA/ekA,0.0001),1/T)-1;
+
+  // Leverage
+  const lK=invL*fkA, ekL=invL-lK;
+  const divL=invL*dR, depL=invL*dep, terL=invL*ter, lzins=lK*lom;
+  const nL=divL-depL-terL-lzins, cL=T*nL;
+  const wHL=invL*(1+wL), ekHL=wHL-lK;
+  const totL=ekHL+cL;
+  const rpL=Math.pow(Math.max(totL/ekL,0.0001),1/T)-1;
+
+  // Outputs
+  set('o_ekImmo',  fmt(ekI));
+  set('o_ekAktien',fmt(ekA));
+  set('o_ekLev',   fmt(ekL));
+
+  set('r_miet',        fmt(miet)+' CHF');
+  set('r_nettoImmo',   fmt(nI)+' CHF');
+  set('r_cashImmo',    fmt(cI)+' CHF');
+  set('r_ekHeuteImmo', fmt(ekHI)+' CHF');
+  set('r_totalImmo',   fmt(totI)+' CHF');
+  set('r_rendImmo',    fmtP(rpI));
+
+  set('r_divAktien',    fmt(divA)+' CHF');
+  set('r_nettoAktien',  fmt(nA)+' CHF');
+  set('r_cashAktien',   fmt(cA)+' CHF');
+  set('r_ekHeuteAktien',fmt(ekHA)+' CHF');
+  set('r_totalAktien',  fmt(totA)+' CHF');
+  set('r_rendAktien',   fmtP(rpA));
+
+  set('r_divLev',    fmt(divL)+' CHF');
+  set('r_nettoLev',  fmt(nL)+' CHF');
+  set('r_cashLev',   fmt(cL)+' CHF');
+  set('r_ekHeuteLev',fmt(ekHL)+' CHF');
+  set('r_totalLev',  fmt(totL)+' CHF');
+  set('r_rendLev',   fmtP(rpL));
+
+  // Chart
+  const rI=rpI*100, rA=rpA*100, rL=rpL*100;
+  const mx=Math.max(Math.abs(rI),Math.abs(rA),Math.abs(rL),1);
+  const mxH=120;
+  function bh(v){return Math.max(4,Math.round(Math.max(v,0)/mx*mxH))+'px';}
+  set('bc_vI',fmtP(rpI)); set('bc_vA',fmtP(rpA)); set('bc_vL',fmtP(rpL));
+  document.getElementById('bc_bI').style.height=bh(rI);
+  document.getElementById('bc_bA').style.height=bh(rA);
+  document.getElementById('bc_bL').style.height=bh(rL);
+}
+
+document.getElementById('slider_period').addEventListener('input',function(){
+  document.getElementById('lbl_period').textContent=this.value; compute();
+});
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',compute));
+</script>
+</body>
+</html>
