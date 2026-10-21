@@ -130,6 +130,22 @@
 
   /* ── APP SCREEN ── */
   #app { display: none; }
+  #intro { display: none; }
+
+  /* ── INTRO / MEHR ERFAHREN ── */
+  .intro-text { font-size: 15px; line-height: 1.65; color: var(--grey-800); }
+  .intro-text p { margin-bottom: 14px; }
+  .intro-text p:last-child { margin-bottom: 0; }
+  .intro-text strong { color: var(--blue-dark); }
+  .intro-list { list-style: none; padding: 0; margin: 0 0 14px; }
+  .intro-list li { padding: 10px 12px; margin-bottom: 8px; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; }
+  .intro-list li.li-immo   { background: var(--immo-bg);   border-left: 4px solid var(--immo); }
+  .intro-list li.li-aktien { background: var(--aktien-bg); border-left: 4px solid var(--aktien); }
+  .intro-list li.li-lev    { background: var(--lev-bg);    border-left: 4px solid var(--lev); }
+  .intro-list li strong { display: block; margin-bottom: 2px; }
+  .intro-formula { background: var(--grey-50); border: 1px solid var(--grey-100); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+  .intro-formula span { color: var(--grey-500); }
+  .intro-cta { margin-top: 20px; display: flex; justify-content: center; }
 
   .app-header {
     background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%);
@@ -360,10 +376,98 @@
     ▶ &nbsp;Direkt zum Simulator
   </button>
   <p class="splash-or">oder</p>
-  <button class="btn-outline" onclick="showApp()">
+  <button class="btn-outline" onclick="showIntro()">
     Mehr erfahren &nbsp;→
   </button>
 </div>
+
+<!-- ══ INTRO / MEHR ERFAHREN ══ -->
+<div id="intro">
+
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 18L9 12L13 15L18 8" stroke="#2C3E7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="6" r="2" fill="#C0392B"/>
+        </svg>
+      </div>
+      <div>
+        <div class="app-title">Aktien versus Immobilien Simulator</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+
+  <div class="page">
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">💡</span>
+        <div>
+          <div class="section-header-title">Worum es geht</div>
+          <div class="section-header-sub">Was dieser Simulator rechnet – und was nicht</div>
+        </div>
+      </div>
+      <div class="section-body intro-text">
+        <p>«Immobilien oder Aktien?» ist eine der meistgestellten Fragen in der Geldanlage – und eine der am seltensten sauber beantworteten. Meist werden Äpfel mit Birnen verglichen: die Wertsteigerung einer fremdfinanzierten Liegenschaft mit der Kursentwicklung eines unverschuldeten Aktiendepots. Dieser Simulator stellt die drei Varianten auf eine gemeinsame Basis und rechnet für alle dasselbe: <strong>die Rendite auf das eingesetzte Eigenkapital</strong>.</p>
+        <ul class="intro-list">
+          <li class="li-immo"><strong>🏠 Anlageimmobilie</strong>Kauf einer Liegenschaft, zu einem frei wählbaren Teil mit einer Hypothek finanziert. Ertrag: Mietzinsen abzüglich Hypothekarzins, Verwaltung und Unterhalt.</li>
+          <li class="li-aktien"><strong>📈 Aktien ohne Leverage</strong>Dasselbe Eigenkapital wird vollständig in ein breit diversifiziertes Aktienportfolio investiert. Ertrag: Dividenden abzüglich Depotgebühr und Produktkosten.</li>
+          <li class="li-lev"><strong>⚡ Aktien mit Leverage</strong>Das Aktienportfolio wird – analog zur Immobilie – mit einem Lombardkredit gehebelt, so dass das gleiche Gesamtvolumen investiert wird wie bei der Liegenschaft. Ertrag: Dividenden abzüglich Kosten und Lombardzins.</li>
+        </ul>
+        <p>Der Vergleich zwischen Variante 1 und 3 ist der eigentlich faire: gleiches Eigenkapital, gleicher Fremdkapitalanteil, gleiches Investitionsvolumen. Variante 2 zeigt, was der Verzicht auf den Hebel kostet – oder erspart.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">🧮</span>
+        <div>
+          <div class="section-header-title">So wird gerechnet</div>
+          <div class="section-header-sub">Für jede der drei Varianten in vier Schritten</div>
+        </div>
+      </div>
+      <div class="section-body intro-text">
+        <p><strong>1. Laufender Nettoertrag pro Jahr.</strong> Bei der Immobilie: Mietertrag (Immobilienrendite × Kaufpreis) minus Hypothekarzins, Verwaltungsaufwand (in Prozent der Miete) und Unterhalt/Rückstellungen (in Prozent des Kaufpreises). Bei den Aktien: Dividende minus Depotgebühr und Produktkosten (TER) – und bei der gehebelten Variante zusätzlich minus Lombardzins.</p>
+        <p><strong>2. Cashertrag über die Haltedauer.</strong> Der jährliche Nettoertrag wird mit der gewählten Haltedauer multipliziert. Vereinfachend wird dabei auf eine Wiederanlage der Erträge verzichtet – das benachteiligt alle drei Varianten gleichermassen und hält die Rechnung nachvollziehbar.</p>
+        <p><strong>3. Eigenkapital am Ende.</strong> Die eingegebene Wertentwicklung (über die gesamte Haltedauer, nicht pro Jahr) wird auf das investierte Volumen angewendet. Vom Endwert wird das Fremdkapital – Hypothek bzw. Lombardkredit – abgezogen. Was bleibt, ist das Eigenkapital am Ende der Haltedauer.</p>
+        <p><strong>4. Rendite auf das Eigenkapital.</strong> Cashertrag plus Eigenkapital am Ende ergeben das Total-Vermögen. Daraus wird – bezogen auf das eingesetzte Eigenkapital und die Haltedauer – die durchschnittliche jährliche Rendite berechnet:</p>
+        <div class="intro-formula">
+          EK-Rendite p.a. &nbsp;=&nbsp; (Total Vermögen ÷ eingesetztes Eigenkapital)<sup>1 / Haltedauer</sup> &nbsp;−&nbsp; 1<br>
+          <span>mit Total Vermögen = Cashertrag total + Eigenkapital am Ende</span>
+        </div>
+        <p>Diese Kennzahl steht in jeder Resultatkarte zuunterst und wird im Balkendiagramm verglichen.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">⚙</span>
+        <div>
+          <div class="section-header-title">Alle Annahmen sind Ihre Annahmen</div>
+          <div class="section-header-sub">Was Sie verändern können – und worauf Sie achten sollten</div>
+        </div>
+      </div>
+      <div class="section-body intro-text">
+        <p>Jede Zahl im Simulator ist veränderbar: Fremdkapitalanteile, Immobilien- und Dividendenrendite, Hypothekar- und Lombardzins, Kosten, Investitionsbeträge, Wertentwicklung und Haltedauer. Die voreingestellten Werte sind plausible Grössenordnungen für die Schweiz, keine Prognosen.</p>
+        <p>Beobachten Sie insbesondere zwei Dinge: Erstens, wie stark die Resultate auf die <strong>Wertentwicklung</strong> reagieren – sie dominiert über lange Haltedauern alles andere. Zweitens, was der <strong>Hebel</strong> tut: Fremdkapital vergrössert die Eigenkapitalrendite, wenn die Anlage mehr abwirft als der Kredit kostet – und er vergrössert den Verlust, wenn sie es nicht tut. Das gilt für die Hypothek auf der Liegenschaft genauso wie für den Lombardkredit auf dem Depot. Setzen Sie testhalber eine negative Wertentwicklung ein, und Sie sehen es sofort.</p>
+        <p>Nicht berücksichtigt sind Steuern (Eigenmietwert, Liegenschafts- und Grundstückgewinnsteuern, Verrechnungssteuer), Transaktionskosten beim Kauf und Verkauf, Nachschusspflichten beim Lombardkredit sowie die Illiquidität und das Klumpenrisiko einer einzelnen Liegenschaft. Die Simulation dient der Illustration der Mechanik – sie ist keine Anlageberatung.</p>
+        <div class="intro-cta">
+          <button class="btn-primary" onclick="showApp()">▶ &nbsp;Zum Simulator</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-footer">
+      Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin Heri</a>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /intro -->
 
 <!-- ══ APP ══ -->
 <div id="app">
@@ -595,8 +699,9 @@
 </div><!-- /app -->
 
 <script>
-function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; compute(); }
-function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='flex'; }
+function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('intro').style.display='none'; document.getElementById('app').style.display='block'; window.scrollTo(0,0); compute(); }
+function showIntro()  { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='none'; document.getElementById('intro').style.display='block'; window.scrollTo(0,0); }
+function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('intro').style.display='none'; document.getElementById('splash').style.display='flex'; window.scrollTo(0,0); }
 
 function fmt(v)    { return Math.round(v).toLocaleString('de-CH'); }
 function fmtP(v)   { return (v*100).toFixed(2)+'%'; }
