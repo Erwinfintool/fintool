@@ -15,17 +15,38 @@
 const FINTOOL_TOOLS = [
 
   {
+    kategorie:    "Prognose-Simulator",
+    titel:        "Aktien Schweiz",
+    beschreibung: "Was der SPI historisch gebracht hat – und welche Bandbreite für die Zukunft realistisch ist.",
+    datei:        "aktien-prognose-simulator.html"
+  },
+
+  {
+    kategorie:    "Vermögens-Aufbau",
+    titel:        "Rendite-Rechner",
+    beschreibung: "Renditeversprechen nachgerechnet – mit Allokation, Kosten, Inflation und Steuern.",
+    datei:        "sparplan-rechner.html"
+  },
+
+  {
+    kategorie:    "Inflation & Kaufkraft",
+    titel:        "Inflationsrechner",
+    beschreibung: "Was Inflation mit einem Sparbetrag und mit einem Sparplan macht – über 10, 20, 40 Jahre.",
+    datei:        "inflationsrechner.html"
+  },
+
+  {
+    kategorie:    "Konsum & Inflation",
+    titel:        "Individueller Teuerungsrechner",
+    beschreibung: "Ihre persönliche Teuerung nach Ihrem eigenen Warenkorb – im Vergleich zum Durchschnittshaushalt.",
+    datei:        "individuelle-teuerung.html"
+  },
+
+  {
     kategorie:    "Vorsorge",
     titel:        "Kapitalverzehr-Simulator",
     beschreibung: "Wie lange reicht das Pensionskapital bei verschiedenen Anlagerenditen?",
     datei:        "kapitalverzehr-simulator.html"
-  },
-
-  {
-    kategorie:    "Sparen & Entsparen kombiniert",
-    titel:        "Renditefolgerisiko-Rechner für Vermögensaufbau und Kapitalentnahme",
-    beschreibung: "Wie stark hängt alles davon ab, wann die guten und schlechten Börsenjahre kommen?",
-    datei:        "renditefolgerisiko-rechner.html"
   },
 
   {
@@ -43,24 +64,10 @@ const FINTOOL_TOOLS = [
   },
 
   {
-    kategorie:    "Vermögens-Aufbau",
-    titel:        "Rendite-Rechner",
-    beschreibung: "Renditeversprechen nachgerechnet – mit Allokation, Kosten, Inflation und Steuern.",
-    datei:        "sparplan-rechner.html"
-  },
-
-  {
-    kategorie:    "Aktien versus Immobilien",
-    titel:        "Aktien versus Immobilien",
-    beschreibung: "Immobilie, Aktien und gehebelte Aktien auf einer gemeinsamen Basis: die Rendite auf das Eigenkapital.",
-    datei:        "renditerechner.html"
-  },
-
-  {
-    kategorie:    "Prognose-Simulator",
-    titel:        "Aktien Schweiz",
-    beschreibung: "Was der SPI historisch gebracht hat – und welche Bandbreite für die Zukunft realistisch ist.",
-    datei:        "aktien-prognose-simulator.html"
+    kategorie:    "Sparen & Entsparen kombiniert",
+    titel:        "Renditefolgerisiko-Rechner für Vermögensaufbau und Kapitalentnahme",
+    beschreibung: "Wie stark hängt alles davon ab, wann die guten und schlechten Börsenjahre kommen?",
+    datei:        "renditefolgerisiko-rechner.html"
   },
 
   {
@@ -71,17 +78,10 @@ const FINTOOL_TOOLS = [
   },
 
   {
-    kategorie:    "Inflation & Kaufkraft",
-    titel:        "Inflationsrechner",
-    beschreibung: "Was Inflation mit einem Sparbetrag und mit einem Sparplan macht – über 10, 20, 40 Jahre.",
-    datei:        "inflationsrechner.html"
-  },
-
-  {
-    kategorie:    "Konsum & Inflation",
-    titel:        "Individueller Teuerungsrechner",
-    beschreibung: "Ihre persönliche Teuerung nach Ihrem eigenen Warenkorb – im Vergleich zum Durchschnittshaushalt.",
-    datei:        "individuelle-teuerung.html"
+    kategorie:    "Aktien versus Immobilien",
+    titel:        "Aktien versus Immobilien",
+    beschreibung: "Immobilie, Aktien und gehebelte Aktien auf einer gemeinsamen Basis: die Rendite auf das Eigenkapital.",
+    datei:        "renditerechner.html"
   }
 
 ];
