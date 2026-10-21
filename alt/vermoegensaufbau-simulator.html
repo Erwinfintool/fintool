@@ -4,17 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vermögensaufbau-Simulator | Fintool</title>
-<link rel="icon" href="assets/fintool-logo.png">
-<link rel="stylesheet" href="assets/fintool.css">
 <style>
-  /* Token-Abbildung auf das Fintool-Design */
   :root{
-    --bg:var(--grey-50); --panel:var(--white); --panel2:var(--grey-50); --border:var(--grey-100);
-    --text:var(--grey-800); --muted:var(--grey-500); --navy:var(--blue-dark); --blue:var(--blue-mid);
-    --accent:var(--blue-mid); --accent-dark:var(--blue-dark); --accent-soft:var(--blue-bg);
-    --red-soft:var(--red-bg); --green-soft:var(--green-bg); --amber-soft:var(--amber-bg); --purple-soft:var(--purple-bg);
+    --bg:#eef0f3; --panel:#ffffff; --panel2:#f4f5f7; --border:#e5e8ed;
+    --text:#16213a; --muted:#7c8494; --navy:#1c3f73; --blue:#2f5fa8; --blue-dark:#1c3f73;
+    --accent:#2f5fa8; --accent-dark:#1c3f73; --accent-soft:#e7edf7;
+    --red:#c0392b; --red-soft:#fbeae8; --green:#2a7d4f; --green-soft:#e7f3ec; --amber:#c98a1a; --amber-soft:#fbf1de;
   }
-.page{max-width:1100px; margin:0 auto; padding:20px 16px 60px;}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text);
+  }
+  .topbar{background:#ffffff; border-bottom:1px solid var(--border);}
+  .topbar-inner{max-width:1240px; margin:0 auto; padding:18px 28px; display:flex; align-items:center; justify-content:space-between;}
+  .topbar-title{font-size:19px; font-weight:700; letter-spacing:-.01em; color:var(--text);}
+  .logo{display:inline-flex; align-items:flex-end; font-family:Georgia,"Times New Roman",serif; font-size:21px; font-weight:700; letter-spacing:.02em; color:var(--blue);}
+  .logo svg{width:24px; height:31px; margin:0 1px; overflow:visible;}
+  .page{max-width:1240px; margin:0 auto; padding:28px;}
   .subtitle{color:var(--muted); font-size:14.5px; margin:0 0 24px 0; max-width:900px; line-height:1.6;}
   .layout{display:grid; grid-template-columns:340px 1fr; gap:22px; align-items:start;}
   @media (max-width:980px){.layout{grid-template-columns:1fr;}}
@@ -87,79 +94,74 @@
   .compare-box .csub{font-size:12px; color:var(--muted); margin-top:4px;}
   .badge{display:inline-block; background:var(--accent-soft); color:var(--blue-dark); font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; margin-left:8px; vertical-align:middle;}
 
-  /* Fintool-Design: Überschreibungen */
-  .card{border-radius:var(--radius); border:1px solid var(--grey-100); box-shadow:var(--shadow-sm);}
-  .section-title.big, .section-title.phase, .phase-head h2, details.tech summary .t-title, .phase-btn .num{font-family:var(--font);}
-  .section-title.phase{font-size:22px;}
-  .page.wide{max-width:1100px;}
+  /* ---------- Splash / App-Startbildschirm ---------- */
+  .splash{
+    position:fixed; inset:0; background:#ffffff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:22px; z-index:100; padding:24px;
+  }
+  .tile{
+    width:300px; max-width:80vw; border-radius:44px; overflow:hidden; cursor:pointer;
+    box-shadow:0 18px 50px rgba(20,30,60,.18); display:flex; flex-direction:column;
+    border:none; background:none; padding:0; font:inherit; text-align:left;
+  }
+  .tile-top{
+    background:var(--navy); padding:38px 20px 30px 20px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:26px;
+  }
+  .tile-logo{display:inline-flex; align-items:flex-end; font-family:Georgia,"Times New Roman",serif; font-weight:700; font-size:34px; color:#ffffff; letter-spacing:.01em;}
+  .tile-logo svg{width:40px; height:52px; margin:0 1px; overflow:visible;}
+  .tile-play{
+    width:88px; height:88px; border-radius:18px; background:#3f6fb0; display:flex;
+    align-items:center; justify-content:center; transition:filter .15s;
+  }
+  .tile:hover .tile-play{filter:brightness(1.08);}
+  .tile-play svg{width:34px; height:34px; margin-left:5px;}
+  .tile-bottom{background:var(--green); padding:20px 16px; text-align:center;}
+  .tile-bottom-text{color:#ffffff; font-weight:800; font-size:16px; letter-spacing:.04em;}
+  .splash-hint{color:var(--muted); font-size:13px; max-width:320px; text-align:center; line-height:1.5;}
+  .app.hidden{display:none;}
+  .back-btn{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text); font-weight:700;
+    font-size:13px; padding:8px 16px 8px 12px; border-radius:999px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .back-btn:hover{background:var(--border);}
 </style>
 </head>
 <body>
 
-<!-- ══ STARTSEITE ══ -->
-<div id="splash">
-  <div class="page">
-    <div class="splash-hero">
-      <button class="ft-tile" type="button" onclick="showApp()" aria-label="Vermögensaufbau öffnen">
-      <span class="ft-tile-logo"><img src="assets/fintool-logo.png" alt=""></span>
-      <span class="ft-tile-label">VERMÖGENSAUFBAU</span>
-    </button>
-      <p class="splash-eyebrow">Sparplan <span>·</span> Renditefolgerisiko</p>
-      <h1 class="splash-title">Vermögensaufbau-<strong>Simulator</strong></h1>
-      <p class="splash-author">Prof. Dr. Erwin W. Heri</p>
+<div class="splash" id="splash">
+  <button class="tile" id="tileEnter" aria-label="Vermögensaufbau-Simulator starten">
+    <div class="tile-top">
+      <div class="tile-logo">FI<svg viewBox="0 0 130 170" fill="none"><polyline points="14,132 34,112 52,138" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/><polyline points="5,158 48,58 64,132 114,4" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>TOOL</div>
+      <div class="tile-play"><svg viewBox="0 0 24 24"><polygon points="4,2 22,12 4,22" fill="#1c3f73"/></svg></div>
     </div>
+    <div class="tile-bottom"><div class="tile-bottom-text">VERMÖGENSAUFBAU</div></div>
+  </button>
+  <div class="splash-hint">Klicken Sie auf das Symbol, um den Vermögensaufbau-Simulator zu starten.</div>
+</div>
 
-    <div class="section tile-click" id="intro_tile">
-      <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
-        <div>
-          <div class="cta-tile-title">Die Problemstellung</div>
-          <div class="cta-tile-sub">Wie sicher wächst Ihr Vermögen bei regelmässigem Sparen – und welche Rolle spielt die Reihenfolge der Börsenjahre?</div>
-        </div>
-        <div class="cta-tile-arrow">⌄</div>
-      </div>
-      <div class="section-body intro-text intro-body" id="intro_body">
-        <p>Wie sicher wächst Ihr Vermögen, wenn Sie über viele Jahre regelmässig sparen? Dieses Tool spielt Ihren Sparplan tausende Male mit zufälligen Börsenverläufen durch und zeigt Ihnen die Bandbreite möglicher Ergebnisse — auf Basis eines Schweizer Aktienportfolios (SPI).</p>
+<div class="app hidden" id="app">
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="back-btn" id="backBtn">&#8592; Startseite</button>
+    <div class="topbar-title">Vermögensaufbau-Simulator</div>
+    <div class="logo">FI<svg viewBox="0 0 130 170" fill="none"><polyline points="14,132 34,112 52,138" stroke="#a9adb3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><polyline points="5,158 48,58 64,132 114,4" stroke="#e2231c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>TOOL</div>
+  </div>
+</header>
+
+<div class="page">
+<p class="subtitle">Wie sicher wächst Ihr Vermögen, wenn Sie über viele Jahre regelmässig sparen? Dieses Tool spielt Ihren Sparplan tausende Male mit zufälligen Börsenverläufen durch und zeigt Ihnen die Bandbreite möglicher Ergebnisse — auf Basis eines Schweizer Aktienportfolios (SPI).</p>
+
+<div class="card">
+  <div class="section-title big">Die Problemstellung</div>
+  <div class="prose">
     <p>In unserem Kapitalverzehr-Simulator haben wir gezeigt, dass es beim Bezug einer Rente aus einem Aktienportfolio nicht nur auf die durchschnittliche Rendite ankommt, sondern auch auf deren <strong>Reihenfolge</strong> — das Renditefolgerisiko. Genau dieselbe Grundfrage stellt sich spiegelbildlich auch beim Vermögensaufbau über einen Sparplan: Zwei Personen, die über dieselbe Anzahl Jahre denselben Betrag einzahlen und im Durchschnitt exakt dieselbe Rendite erzielen, können am Ende des Sparprozesses ganz unterschiedlich dastehen — je nachdem, ob die guten und schlechten Börsenjahre früh oder spät in ihrer Sparphase eintreffen.</p>
     <p>Damit Sie ein Gefühl für dieses Risiko bekommen, rechnet dieser Simulator Ihren Sparplan nicht nur einmal, sondern tausende Male durch — jedes Mal mit einer anderen, zufällig gewürfelten Abfolge von guten und schlechten Börsenjahren. Man nennt das eine Monte-Carlo-Simulation, benannt nach dem Casino, weil auch hier der Zufall eine zentrale Rolle spielt. Am Ende zeigt Ihnen das Tool keine einzelne Prognose, sondern eine ganze Bandbreite möglicher Endvermögen: von eher glücklichen bis zu eher unglücklichen Zeitpunkten für Ihre wichtigsten Sparjahre.</p>
     <p>Der entscheidende Unterschied zur Entnahmephase: Beim Sparen wird das Renditefolgerisiko nicht durch frühe, sondern tendenziell durch <strong>späte</strong> Rückschläge verschärft. Ein Börseneinbruch kurz nach Beginn Ihrer Sparphase trifft ein noch kleines Kapital — Sie kaufen in den Folgejahren mit Ihren laufenden Einzahlungen zu tieferen Kursen zu (den sogenannten Cost-Average-Effekt) und profitieren überproportional von der anschliessenden Erholung. Ein ebenso grosser Einbruch kurz vor dem Ende der Sparphase trifft dagegen bereits das gesamte, über Jahrzehnte angesparte Kapital — und es bleibt kaum noch Zeit, sich davon zu erholen. Die Reihenfolge der Renditen ist also auch hier alles andere als egal, nur wirkt das Risiko in die entgegengesetzte Richtung wie beim Kapitalverzehr.</p>
     <p>Für die zufälligen Jahresrenditen stehen wieder zwei Methoden zur Wahl. Bei der <strong>parametrischen Methode</strong> ziehen wir die Renditen aus einer angenommenen Verteilung mit einer festen mittleren Rendite und einer festen Schwankungsbreite (Volatilität) — beide Werte können Sie links frei anpassen. Bei der <strong>historischen Bootstrap-Methode</strong> ziehen wir stattdessen echte, tatsächlich eingetretene Jahresrenditen Schweizer Aktien seit 1900, inklusive realer Krisenjahre wie 1931, 1974, 2008 oder 2022 — das bildet reale Marktschwankungen oft realistischer ab als eine reine Normalverteilung.</p>
-  
-      </div>
-    </div>
-
-    <div class="section cta-tile" onclick="showApp()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showApp()">
-      <div class="cta-tile-inner">
-        <div>
-          <div class="cta-tile-title">Direkt zum Simulator</div>
-          <div class="cta-tile-sub">Alter, Einzahlungen, Allokation &amp; Methode selbst wählen</div>
-        </div>
-        <div class="cta-tile-arrow">→</div>
-      </div>
-    </div>
-
-    <div class="splash-footer"><a href="https://fintool.ch">fintool.ch</a> · Prof. Dr. Erwin W. Heri</div>
   </div>
 </div>
-
-<!-- ══ APP ══ -->
-
-
-
-<div id="app">
-  <header class="app-header">
-    <div class="app-header-left">
-      <div class="app-logo"><img src="assets/fintool-logo.png" alt="Fintool"></div>
-      <div>
-        <div class="app-title">Vermögensaufbau-Simulator</div>
-        <div class="app-sub">fintool.ch · Prof. Dr. Erwin W. Heri</div>
-      </div>
-    </div>
-    <button class="btn-back" onclick="showSplash()">← Zurück</button>
-  </header>
-  <div class="red-bar"></div>
-
-<div class="page wide">
-
 
 <div class="layout">
   <!-- LEFT: CONTROLS -->
@@ -356,14 +358,8 @@
     </div>
   </div>
 </div>
-    <div class="app-footer">
-      <img class="ft-footer-logo" src="assets/fintool-logo.png" alt="Fintool">
-      Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
-      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin W. Heri</a>
-    </div>
-
-  </div><!-- /page -->
-</div><!-- /app -->
+</div>
+</div>
 
 <script>
 // ---------- Historical annual return series (real, official, sourced) ----------
@@ -899,10 +895,14 @@ function runSingle(){
 document.getElementById('runBtn').addEventListener('click', runSingle);
 
 // ---------- Splash / App-Startbildschirm ----------
-function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; window.scrollTo(0,0); if (typeof onShowApp==='function') onShowApp(); }
-function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='block'; window.scrollTo(0,0); }
-function toggleIntro() { document.getElementById('intro_tile').classList.toggle('open'); }
-function onShowApp(){  }
+document.getElementById('tileEnter').addEventListener('click', ()=>{
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('app').classList.remove('hidden');
+});
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('splash').style.display = 'flex';
+});
 
 // initial run
 updateDurationHint();

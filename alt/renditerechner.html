@@ -4,10 +4,139 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aktien versus Immobilien Simulator | Fintool</title>
-<link rel="icon" href="assets/fintool-logo.png">
-<link rel="stylesheet" href="assets/fintool.css">
 <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark:  #2C3E7A;
+    --blue-mid:   #3D5498;
+    --blue-light: #5B73B8;
+    --blue-bg:    #EEF1FA;
+    --red:        #C0392B;
+    --red-light:  #E8A09A;
+    --immo:       #2C3E7A;
+    --immo-bg:    #EEF1FA;
+    --aktien:     #1A6B3A;
+    --aktien-bg:  #E8F5EE;
+    --lev:        #6B3A8A;
+    --lev-bg:     #F2EBF9;
+    --grey-50:    #F8F9FB;
+    --grey-100:   #ECEEF2;
+    --grey-300:   #C4C8D0;
+    --grey-500:   #7A8090;
+    --grey-800:   #1A1D24;
+    --white:      #FFFFFF;
+    --radius:     14px;
+    --radius-sm:  8px;
+    --shadow:     0 4px 24px rgba(44,62,122,0.10);
+    --shadow-sm:  0 2px 8px rgba(44,62,122,0.08);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--grey-50);
+    color: var(--grey-800);
+    min-height: 100vh;
+  }
+
+  /* ── SPLASH SCREEN ── */
+  #splash {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+    background: var(--white);
+    text-align: center;
+  }
+
+  .splash-eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--blue-mid);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .splash-eyebrow span { opacity: 0.4; margin: 0 8px; }
+
+  .splash-title {
+    font-size: clamp(32px, 8vw, 52px);
+    font-weight: 300;
+    color: var(--grey-800);
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+  }
+  .splash-title strong {
+    font-weight: 800;
+  }
+
+  .splash-sub {
+    font-size: clamp(15px, 3vw, 18px);
+    color: var(--grey-500);
+    line-height: 1.55;
+    max-width: 420px;
+    margin-bottom: 40px;
+  }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 420px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+    color: var(--white);
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(44,62,122,0.25);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(44,62,122,0.30); }
   .btn-primary:active { transform: translateY(0); }
+
+  .splash-or {
+    font-size: 13px;
+    color: var(--grey-300);
+    margin: 4px 0 16px;
+  }
+
+  .btn-outline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+    padding: 16px 24px;
+    background: var(--white);
+    color: var(--blue-mid);
+    border: 1.5px solid var(--blue-light);
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-outline:hover { background: var(--blue-bg); }
+
+  /* ── APP SCREEN ── */
+  #app { display: none; }
+  #intro { display: none; }
+
+  /* ── INTRO / MEHR ERFAHREN ── */
+  .intro-text { font-size: 15px; line-height: 1.65; color: var(--grey-800); }
+  .intro-text p { margin-bottom: 14px; }
+  .intro-text p:last-child { margin-bottom: 0; }
+  .intro-text strong { color: var(--blue-dark); }
   .intro-list { list-style: none; padding: 0; margin: 0 0 14px; }
   .intro-list li { padding: 10px 12px; margin-bottom: 8px; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; }
   .intro-list li.li-immo   { background: var(--immo-bg);   border-left: 4px solid var(--immo); }
@@ -16,7 +145,84 @@
   .intro-list li strong { display: block; margin-bottom: 2px; }
   .intro-formula { background: var(--grey-50); border: 1px solid var(--grey-100); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
   .intro-formula span { color: var(--grey-500); }
-  .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; }
+  .intro-cta { margin-top: 20px; display: flex; justify-content: center; }
+
+  .app-header {
+    background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-header-left { display: flex; align-items: center; gap: 12px; }
+  .app-logo {
+    width: 36px; height: 36px;
+    background: var(--white);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .app-logo svg { width: 22px; height: 22px; }
+  .app-title { color: var(--white); font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .app-sub { color: rgba(255,255,255,0.65); font-size: 11px; margin-top: 1px; }
+  .btn-back {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+  .red-bar {
+    background: var(--red);
+    height: 4px;
+  }
+
+  /* ── SECTIONS ── */
+  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .section {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--grey-100);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header-icon { font-size: 16px; }
+  .section-header-title { font-size: 13px; font-weight: 700; color: var(--grey-800); }
+  .section-header-sub { font-size: 11px; color: var(--grey-500); margin-top: 1px; }
+
+  .section-body { padding: 16px 18px; }
+
+  /* ── FIELDS ── */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--grey-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
   .field-col label {
     font-size: 10px;
     font-weight: 600;
@@ -26,10 +232,25 @@
     margin-bottom: 4px;
     display: block;
   }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--grey-50);
+    border: 1.5px solid var(--grey-100);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .input-wrap:focus-within { border-color: var(--blue-mid); }
   .input-wrap input {
     flex: 1; border: none; background: transparent;
     padding: 9px 10px; font-size: 14px; font-weight: 700;
     color: var(--blue-dark); outline: none; min-width: 0;
+  }
+  .input-unit {
+    padding: 0 10px; font-size: 12px;
+    color: var(--grey-500); font-weight: 500; flex-shrink: 0;
   }
 
   .output-val {
@@ -41,6 +262,9 @@
     color: var(--grey-800);
   }
 
+  .divider { height: 1px; background: var(--grey-100); margin: 14px 0; }
+
+  /* ── ASSUMPTIONS ── */
   .assump-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -54,8 +278,21 @@
     color: var(--grey-500); text-transform: uppercase;
     letter-spacing: 0.4px; margin-bottom: 5px;
   }
+
+  /* ── PERIOD ── */
+  .period-row {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+  .period-label { font-size: 12px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  input[type=range] {
+    flex: 1; min-width: 120px;
+    accent-color: var(--blue-dark);
+    height: 4px;
+  }
   .period-val { font-size: 22px; font-weight: 800; color: var(--blue-dark); min-width: 56px; text-align: center; }
 
+  /* ── RESULTS ── */
   .result-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -63,6 +300,12 @@
     margin-bottom: 16px;
   }
   @media (max-width: 520px) { .result-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
   .result-card-hdr {
     padding: 10px 12px;
     font-size: 11px; font-weight: 700;
@@ -72,10 +315,24 @@
   .rc-immo .result-card-hdr   { background: var(--blue-dark); }
   .rc-aktien .result-card-hdr { background: var(--aktien); }
   .rc-lev .result-card-hdr    { background: var(--lev); }
+
+  .result-card-body { background: var(--white); padding: 12px; }
+  .result-row {
+    display: flex; justify-content: space-between;
+    align-items: baseline; gap: 6px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--grey-100);
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-lbl { font-size: 11px; color: var(--grey-500); flex: 1; }
+  .result-val { font-size: 13px; font-weight: 700; color: var(--grey-800); text-align: right; flex-shrink: 0; }
+  .result-row.hl .result-lbl { color: var(--grey-800); font-weight: 600; font-size: 12px; }
+  .result-row.hl .result-val { font-size: 16px; }
   .rc-immo .result-row.hl .result-val   { color: var(--blue-dark); }
   .rc-aktien .result-row.hl .result-val { color: var(--aktien); }
   .rc-lev .result-row.hl .result-val    { color: var(--lev); }
 
+  /* ── BAR CHART ── */
   .chart-bars {
     display: flex; gap: 12px; align-items: flex-end;
     height: 140px; padding: 0 8px 4px;
@@ -84,34 +341,77 @@
   .bar { width: 100%; border-radius: 5px 5px 0 0; min-height: 4px; transition: height .4s cubic-bezier(.4,0,.2,1); }
   .bar-val { font-size: 12px; font-weight: 800; color: var(--grey-800); }
   .bar-lbl { font-size: 10px; color: var(--grey-500); text-align: center; line-height: 1.3; }
+
+  /* ── FOOTER ── */
+  .app-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--grey-300);
+    margin-top: 8px;
+    padding-bottom: 20px;
+  }
+  .app-footer a { color: var(--blue-light); text-decoration: none; }
+  .app-footer strong { color: var(--grey-500); }
+
+  .tag {
+    display: inline-block;
+    background: var(--blue-bg);
+    color: var(--blue-mid);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 3px 8px; border-radius: 20px;
+    margin-left: 6px;
+  }
   .tag-red { background: #FEF0EE; color: var(--red); }
 </style>
 </head>
 <body>
 
-<!-- ══ STARTSEITE ══ -->
+<!-- ══ SPLASH ══ -->
 <div id="splash">
-  <div class="page">
-    <div class="splash-hero">
-      <button class="ft-tile" type="button" onclick="showApp()" aria-label="Aktien Vs. Immobilien-Rechner öffnen">
-      <span class="ft-tile-logo"><img src="assets/fintool-logo.png" alt=""></span>
-      <span class="ft-tile-label small">AKTIEN VS. IMMOBILIEN-RECHNER</span>
-    </button>
-      <p class="splash-eyebrow">Rendite <span>·</span> Anlage</p>
-      <h1 class="splash-title">Aktien <strong>versus</strong> Immobilien</h1>
-      <p class="splash-author">Prof. Dr. Erwin W. Heri</p>
-    </div>
+  <p class="splash-eyebrow">Rendite <span>·</span> Anlage</p>
+  <h1 class="splash-title">Aktien versus Immobilien Simulator</h1>
+  <p class="splash-sub">Immobilien vs. Aktien vs. Aktien mit Leverage — alle Annahmen sichtbar und veränderbar.</p>
+  <button class="btn-primary" onclick="showApp()">
+    ▶ &nbsp;Direkt zum Simulator
+  </button>
+  <p class="splash-or">oder</p>
+  <button class="btn-outline" onclick="showIntro()">
+    Mehr erfahren &nbsp;→
+  </button>
+</div>
 
-    <div class="section tile-click" id="intro_tile">
-      <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
-        <div>
-          <div class="cta-tile-title">Worum es geht und wie gerechnet wird</div>
-          <div class="cta-tile-sub">Immobilien vs. Aktien vs. Aktien mit Leverage – alle Annahmen sichtbar und veränderbar</div>
-        </div>
-        <div class="cta-tile-arrow">⌄</div>
+<!-- ══ INTRO / MEHR ERFAHREN ══ -->
+<div id="intro">
+
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 18L9 12L13 15L18 8" stroke="#2C3E7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="6" r="2" fill="#C0392B"/>
+        </svg>
       </div>
-      <div class="section-body intro-text intro-body" id="intro_body">
-        <h4>Worum es geht</h4>
+      <div>
+        <div class="app-title">Aktien versus Immobilien Simulator</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin Heri</div>
+      </div>
+    </div>
+    <button class="btn-back" onclick="showSplash()">← Zurück</button>
+  </header>
+  <div class="red-bar"></div>
+
+  <div class="page">
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">💡</span>
+        <div>
+          <div class="section-header-title">Worum es geht</div>
+          <div class="section-header-sub">Was dieser Simulator rechnet – und was nicht</div>
+        </div>
+      </div>
+      <div class="section-body intro-text">
         <p>«Immobilien oder Aktien?» ist eine der meistgestellten Fragen in der Geldanlage – und eine der am seltensten sauber beantworteten. Meist werden Äpfel mit Birnen verglichen: die Wertsteigerung einer fremdfinanzierten Liegenschaft mit der Kursentwicklung eines unverschuldeten Aktiendepots. Dieser Simulator stellt die drei Varianten auf eine gemeinsame Basis und rechnet für alle dasselbe: <strong>die Rendite auf das eingesetzte Eigenkapital</strong>.</p>
         <ul class="intro-list">
           <li class="li-immo"><strong>🏠 Anlageimmobilie</strong>Kauf einer Liegenschaft, zu einem frei wählbaren Teil mit einer Hypothek finanziert. Ertrag: Mietzinsen abzüglich Hypothekarzins, Verwaltung und Unterhalt.</li>
@@ -119,7 +419,18 @@
           <li class="li-lev"><strong>⚡ Aktien mit Leverage</strong>Das Aktienportfolio wird – analog zur Immobilie – mit einem Lombardkredit gehebelt, so dass das gleiche Gesamtvolumen investiert wird wie bei der Liegenschaft. Ertrag: Dividenden abzüglich Kosten und Lombardzins.</li>
         </ul>
         <p>Der Vergleich zwischen Variante 1 und 3 ist der eigentlich faire: gleiches Eigenkapital, gleicher Fremdkapitalanteil, gleiches Investitionsvolumen. Variante 2 zeigt, was der Verzicht auf den Hebel kostet – oder erspart.</p>
-        <h4>So wird gerechnet</h4>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">🧮</span>
+        <div>
+          <div class="section-header-title">So wird gerechnet</div>
+          <div class="section-header-sub">Für jede der drei Varianten in vier Schritten</div>
+        </div>
+      </div>
+      <div class="section-body intro-text">
         <p><strong>1. Laufender Nettoertrag pro Jahr.</strong> Bei der Immobilie: Mietertrag (Immobilienrendite × Kaufpreis) minus Hypothekarzins, Verwaltungsaufwand (in Prozent der Miete) und Unterhalt/Rückstellungen (in Prozent des Kaufpreises). Bei den Aktien: Dividende minus Depotgebühr und Produktkosten (TER) – und bei der gehebelten Variante zusätzlich minus Lombardzins.</p>
         <p><strong>2. Cashertrag über die Haltedauer.</strong> Der jährliche Nettoertrag wird mit der gewählten Haltedauer multipliziert. Vereinfachend wird dabei auf eine Wiederanlage der Erträge verzichtet – das benachteiligt alle drei Varianten gleichermassen und hält die Rechnung nachvollziehbar.</p>
         <p><strong>3. Eigenkapital am Ende.</strong> Die eingegebene Wertentwicklung (über die gesamte Haltedauer, nicht pro Jahr) wird auf das investierte Volumen angewendet. Vom Endwert wird das Fremdkapital – Hypothek bzw. Lombardkredit – abgezogen. Was bleibt, ist das Eigenkapital am Ende der Haltedauer.</p>
@@ -129,36 +440,49 @@
           <span>mit Total Vermögen = Cashertrag total + Eigenkapital am Ende</span>
         </div>
         <p>Diese Kennzahl steht in jeder Resultatkarte zuunterst und wird im Balkendiagramm verglichen.</p>
-        <h4>Alle Annahmen sind Ihre Annahmen</h4>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">⚙</span>
+        <div>
+          <div class="section-header-title">Alle Annahmen sind Ihre Annahmen</div>
+          <div class="section-header-sub">Was Sie verändern können – und worauf Sie achten sollten</div>
+        </div>
+      </div>
+      <div class="section-body intro-text">
         <p>Jede Zahl im Simulator ist veränderbar: Fremdkapitalanteile, Immobilien- und Dividendenrendite, Hypothekar- und Lombardzins, Kosten, Investitionsbeträge, Wertentwicklung und Haltedauer. Die voreingestellten Werte sind plausible Grössenordnungen für die Schweiz, keine Prognosen.</p>
         <p>Beobachten Sie insbesondere zwei Dinge: Erstens, wie stark die Resultate auf die <strong>Wertentwicklung</strong> reagieren – sie dominiert über lange Haltedauern alles andere. Zweitens, was der <strong>Hebel</strong> tut: Fremdkapital vergrössert die Eigenkapitalrendite, wenn die Anlage mehr abwirft als der Kredit kostet – und er vergrössert den Verlust, wenn sie es nicht tut. Das gilt für die Hypothek auf der Liegenschaft genauso wie für den Lombardkredit auf dem Depot. Setzen Sie testhalber eine negative Wertentwicklung ein, und Sie sehen es sofort.</p>
         <p>Nicht berücksichtigt sind Steuern (Eigenmietwert, Liegenschafts- und Grundstückgewinnsteuern, Verrechnungssteuer), Transaktionskosten beim Kauf und Verkauf, Nachschusspflichten beim Lombardkredit sowie die Illiquidität und das Klumpenrisiko einer einzelnen Liegenschaft. Die Simulation dient der Illustration der Mechanik – sie ist keine Anlageberatung.</p>
-      </div>
-    </div>
-
-    <div class="section cta-tile" onclick="showApp()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showApp()">
-      <div class="cta-tile-inner">
-        <div>
-          <div class="cta-tile-title">Direkt zum Simulator</div>
-          <div class="cta-tile-sub">Fremdkapital, Renditen, Kosten &amp; Haltedauer selbst eingeben</div>
+        <div class="intro-cta">
+          <button class="btn-primary" onclick="showApp()">▶ &nbsp;Zum Simulator</button>
         </div>
-        <div class="cta-tile-arrow">→</div>
       </div>
     </div>
 
-    <div class="splash-footer"><a href="https://fintool.ch">fintool.ch</a> · Prof. Dr. Erwin W. Heri</div>
-  </div>
-</div>
+    <div class="app-footer">
+      Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin Heri</a>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /intro -->
 
 <!-- ══ APP ══ -->
 <div id="app">
 
   <header class="app-header">
     <div class="app-header-left">
-      <div class="app-logo"><img src="assets/fintool-logo.png" alt="Fintool"></div>
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 18L9 12L13 15L18 8" stroke="#2C3E7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="6" r="2" fill="#C0392B"/>
+        </svg>
+      </div>
       <div>
-        <div class="app-title">Aktien versus Immobilien</div>
-        <div class="app-sub">fintool.ch · Prof. Dr. Erwin W. Heri</div>
+        <div class="app-title">Aktien versus Immobilien Simulator</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin Heri</div>
       </div>
     </div>
     <button class="btn-back" onclick="showSplash()">← Zurück</button>
@@ -367,19 +691,17 @@
     </div>
 
     <div class="app-footer">
-      <img class="ft-footer-logo" src="assets/fintool-logo.png" alt="Fintool">
       Simulation zu Illustrationszwecken. Keine Anlageberatung.<br>
-      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin W. Heri</a>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin Heri</a>
     </div>
 
   </div><!-- /page -->
 </div><!-- /app -->
 
 <script>
-function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; window.scrollTo(0,0); if (typeof onShowApp==='function') onShowApp(); }
-function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='block'; window.scrollTo(0,0); }
-function toggleIntro() { document.getElementById('intro_tile').classList.toggle('open'); }
-function onShowApp(){ compute(); }
+function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('intro').style.display='none'; document.getElementById('app').style.display='block'; window.scrollTo(0,0); compute(); }
+function showIntro()  { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='none'; document.getElementById('intro').style.display='block'; window.scrollTo(0,0); }
+function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('intro').style.display='none'; document.getElementById('splash').style.display='flex'; window.scrollTo(0,0); }
 
 function fmt(v)    { return Math.round(v).toLocaleString('de-CH'); }
 function fmtP(v)   { return (v*100).toFixed(2)+'%'; }

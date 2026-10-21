@@ -4,184 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inflationsrechner | Fintool</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --blue-dark:  #2C3E7A;
-    --blue-mid:   #3D5498;
-    --blue-light: #5B73B8;
-    --blue-bg:    #EEF1FA;
-    --red:        #C0392B;
-    --red-light:  #E8A09A;
-    --aktien:     #1A6B3A;
-    --aktien-bg:  #E8F5EE;
-    --grey-50:    #F8F9FB;
-    --grey-100:   #ECEEF2;
-    --grey-300:   #C4C8D0;
-    --grey-500:   #7A8090;
-    --grey-800:   #1A1D24;
-    --white:      #FFFFFF;
-    --radius:     14px;
-    --radius-sm:  8px;
-    --shadow:     0 4px 24px rgba(44,62,122,0.10);
-    --shadow-sm:  0 2px 8px rgba(44,62,122,0.08);
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--grey-50);
-    color: var(--grey-800);
-    min-height: 100vh;
-  }
-
-  /* ── SPLASH SCREEN ── */
-  #splash { min-height: 100vh; padding: 40px 16px 60px; background: var(--grey-50); }
-  .splash-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 8px 8px; }
-  .intro-text p { font-size: 14px; line-height: 1.65; color: var(--grey-800); margin-bottom: 14px; }
-  .intro-text p:last-child { margin-bottom: 0; }
-
-  .section.cta-tile { cursor: pointer; background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid)); border: none; transition: transform .15s, box-shadow .15s; }
-  .section.cta-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(44,62,122,0.30); }
-  .section.cta-tile:active { transform: translateY(0); }
-  .cta-tile-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 20px; }
-  .cta-tile-title { color: var(--white); font-size: 17px; font-weight: 700; }
-  .cta-tile-sub { color: rgba(255,255,255,0.75); font-size: 12px; margin-top: 4px; }
-  .cta-tile-arrow { color: var(--white); font-size: 26px; font-weight: 700; flex-shrink: 0; transition: transform .2s; }
-
-  .tile-click .cta-tile-inner { padding: 18px 20px; cursor: pointer; transition: background .15s; }
-  .tile-click .cta-tile-inner:hover { background: var(--grey-50); }
-  .tile-click.open .cta-tile-arrow { transform: rotate(180deg); }
-
-  .splash-eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--blue-mid); text-transform: uppercase; margin-bottom: 20px; }
-  .splash-eyebrow span { opacity: 0.4; margin: 0 8px; }
-
-  .splash-title { font-size: clamp(28px, 6vw, 42px); font-weight: 300; color: var(--grey-800); line-height: 1.1; margin-bottom: 8px; letter-spacing: -1px; }
-  .splash-title strong { font-weight: 800; }
-
-  /* ── APP SCREEN ── */
-  #app { display: none; }
-  .app-header { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%); padding: 16px 20px 14px; display: flex; align-items: center; justify-content: space-between; }
-  .app-header-left { display: flex; align-items: center; gap: 12px; }
-  .app-logo { width: 36px; height: 36px; background: var(--white); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .app-logo svg { width: 22px; height: 22px; }
-  .app-title { color: var(--white); font-size: 15px; font-weight: 700; line-height: 1.2; }
-  .app-sub { color: rgba(255,255,255,0.65); font-size: 11px; margin-top: 1px; }
-  .btn-back { background: rgba(255,255,255,0.15); border: none; color: var(--white); font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: background .15s; }
-  .btn-back:hover { background: rgba(255,255,255,0.25); }
-
-  .red-bar { background: var(--red); height: 4px; }
-
-  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
-
-  .section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden; }
-  .section-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--grey-100); display: flex; align-items: center; gap: 10px; }
-  .section-header-icon { font-size: 16px; }
-  .section-header-title { font-size: 13px; font-weight: 700; color: var(--grey-800); }
-  .section-header-sub { font-size: 11px; color: var(--grey-500); margin-top: 1px; }
-  .section-body { padding: 16px 18px; }
-
-  /* ── PART SWITCH ── */
-  .part-switch-wrap { padding: 6px; }
-  .part-switch { display: flex; background: var(--grey-50); border: 1.5px solid var(--grey-100); border-radius: var(--radius-sm); padding: 4px; gap: 4px; }
-  .part-switch button { flex: 1; border: none; background: transparent; padding: 13px 10px; font-size: 13px; font-weight: 700; color: var(--grey-500); border-radius: 7px; cursor: pointer; transition: all .15s; text-align: left; }
-  .part-switch button .ps-num { display: block; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.7; margin-bottom: 2px; }
-  .part-switch button.active { background: var(--blue-dark); color: var(--white); box-shadow: var(--shadow-sm); }
-
-  /* ── FIELDS ── */
-  .field { margin-bottom: 14px; }
-  .field:last-child { margin-bottom: 0; }
-  .field-label { font-size: 11px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-
-  .input-wrap { display: flex; align-items: center; background: var(--grey-50); border: 1.5px solid var(--grey-100); border-radius: var(--radius-sm); overflow: hidden; transition: border-color .15s; }
-  .input-wrap:focus-within { border-color: var(--blue-mid); }
-  .input-wrap input { flex: 1; border: none; background: transparent; padding: 9px 10px; font-size: 14px; font-weight: 700; color: var(--blue-dark); outline: none; min-width: 0; }
-  .input-unit { padding: 0 10px; font-size: 12px; color: var(--grey-500); font-weight: 500; flex-shrink: 0; }
-
-  .divider { height: 1px; background: var(--grey-100); margin: 14px 0; }
-  .hint { font-size: 11px; color: var(--grey-500); line-height: 1.5; margin-top: 8px; }
-
-  /* ── SEGMENTED CONTROL (Rhythmus) ── */
-  .segmented { display: flex; background: var(--grey-50); border: 1.5px solid var(--grey-100); border-radius: var(--radius-sm); padding: 3px; gap: 4px; flex-wrap: wrap; }
-  .segmented button { flex: 1 1 40%; min-width: 90px; border: none; background: transparent; padding: 9px 8px; font-size: 12px; font-weight: 700; color: var(--grey-500); border-radius: 6px; cursor: pointer; transition: all .15s; }
-  .segmented button.active { background: var(--blue-dark); color: var(--white); box-shadow: var(--shadow-sm); }
-
-  /* ── PERIOD SLIDER ── */
-  .period-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .period-label { font-size: 12px; font-weight: 700; color: var(--grey-500); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
-  input[type=range] { flex: 1; min-width: 120px; accent-color: var(--blue-dark); height: 4px; }
-  .period-val { font-size: 22px; font-weight: 800; color: var(--blue-dark); min-width: 70px; text-align: center; }
-  .period-sub { font-size: 11px; color: var(--grey-500); width: 100%; text-align: right; margin-top: 2px; }
-
-  /* ── NARRATIVE BOX ── */
-  .narrative { font-size: 13px; line-height: 1.6; color: var(--grey-800); background: var(--blue-bg); border: 1.5px solid var(--blue-light); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; }
-  .narrative strong { color: var(--blue-dark); }
-
-  /* ── RESULTS ── */
-  .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  @media (max-width: 620px) { .result-grid { grid-template-columns: 1fr; } }
-
-  .result-card { border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-sm); }
-  .result-card-hdr { padding: 10px 12px; font-size: 11px; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 5px; }
-  .rc-pess .result-card-hdr { background: var(--red); }
-  .rc-neutral .result-card-hdr { background: var(--blue-dark); }
-  .rc-opt .result-card-hdr { background: var(--aktien); }
-
-  .result-card-body { background: var(--white); padding: 12px; }
-  .result-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 5px 0; border-bottom: 1px solid var(--grey-100); }
-  .result-row:last-child { border-bottom: none; }
-  .result-lbl { font-size: 11px; color: var(--grey-500); flex: 1; }
-  .result-val { font-size: 13px; font-weight: 700; color: var(--grey-800); text-align: right; flex-shrink: 0; }
-  .result-row.hl .result-lbl { color: var(--grey-800); font-weight: 600; font-size: 12px; }
-  .result-row.hl .result-val { font-size: 16px; }
-  .rc-pess .result-row.hl .result-val { color: var(--red); }
-  .rc-neutral .result-row.hl .result-val { color: var(--blue-dark); }
-  .rc-opt .result-row.hl .result-val { color: var(--aktien); }
-
-  /* ── CHART ── */
-  .area-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 0 4px 12px; align-items: center; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--grey-500); font-weight: 600; }
-
-  /* ── TABLE ── */
-  .rate-table-wrap { overflow-x: auto; margin-top: 18px; }
-  .rate-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .rate-table caption { caption-side: top; text-align: left; font-size: 11px; color: var(--grey-500); line-height: 1.5; padding-bottom: 10px; }
-  .rate-table th, .rate-table td { padding: 8px 8px; text-align: right; border-bottom: 1px solid var(--grey-100); white-space: nowrap; }
-  .rate-table th:first-child, .rate-table td:first-child { text-align: left; white-space: normal; line-height: 1.35; }
-  .rate-table thead th { font-size: 11px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.4px; background: var(--blue-dark); }
-  .rate-table thead th:first-child { background: var(--grey-800); }
-  .rate-table tbody th { text-align: left; font-weight: 600; color: var(--grey-500); font-size: 11px; }
-  .rate-table tbody tr.hl td, .rate-table tbody tr.hl th { font-weight: 800; color: var(--grey-800); background: var(--grey-50); }
-
-  /* ── FOOTER ── */
-  .app-footer { text-align: center; font-size: 11px; color: var(--grey-300); margin-top: 8px; padding-bottom: 20px; }
-  .app-footer a { color: var(--blue-light); text-decoration: none; }
-  .app-footer strong { color: var(--grey-500); }
-
-  .part-panel { display: none; }
-  .part-panel.active { display: block; }
-</style>
+<link rel="icon" href="assets/fintool-logo.png">
+<link rel="stylesheet" href="assets/fintool.css">
 </head>
 <body>
 
-<!-- ══ SPLASH ══ -->
+<!-- ══ STARTSEITE ══ -->
 <div id="splash">
   <div class="page">
-    <div class="splash-hero" style="padding-bottom:0;">
+    <div class="splash-hero">
+      <button class="ft-tile" type="button" onclick="showApp()" aria-label="Inflationsrechner öffnen">
+      <span class="ft-tile-logo"><img src="assets/fintool-logo.png" alt=""></span>
+      <span class="ft-tile-label">INFLATIONSRECHNER</span>
+    </button>
       <p class="splash-eyebrow">Inflation <span>·</span> Kaufkraft</p>
       <h1 class="splash-title">Inflations<strong>rechner</strong></h1>
-      <p style="font-size:19px; color:var(--grey-500); font-weight:600; margin-top:14px; margin-bottom:24px;">Prof. Dr. Erwin W. Heri</p>
+      <p class="splash-author">Prof. Dr. Erwin W. Heri</p>
     </div>
 
-    <div class="section tile-click">
+    <div class="section tile-click" id="intro_tile">
       <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
         <div>
-          <div class="cta-tile-title" style="color:var(--grey-800);">Warum dieser Rechner</div>
-          <div class="cta-tile-sub" style="color:var(--grey-500);">Was Inflation mit einem Betrag und mit einem Sparplan macht</div>
+          <div class="cta-tile-title">Warum dieser Rechner</div>
+          <div class="cta-tile-sub">Was Inflation mit einem Betrag und mit einem Sparplan macht</div>
         </div>
-        <div class="cta-tile-arrow" id="intro_chevron" style="color:var(--blue-dark);">⌄</div>
+        <div class="cta-tile-arrow">⌄</div>
       </div>
-      <div class="section-body intro-text" id="intro_body" style="display:none; padding-top:0;">
+      <div class="section-body intro-text intro-body" id="intro_body">
         <p>Inflation wird meist als abstrakte Prozentzahl wahrgenommen – 1, 2 oder 3 Prozent pro Jahr klingen harmlos. Über lange Zeiträume summiert sich dieser scheinbar kleine Effekt jedoch durch Zinseszins zu einem erheblichen Kaufkraftverlust. CHF 100'000 verlieren bei 2 % Inflation in 20 Jahren rund einen Drittel ihrer Kaufkraft, in 40 Jahren mehr als die Hälfte.</p>
         <p>Dieser Rechner macht diesen Effekt an zwei konkreten Situationen sichtbar. <strong>Teil 1</strong> zeigt, was mit einem einmaligen Betrag geschieht, wenn er über eine bestimmte Zeit lediglich liegen bleibt: Wie viel ist er real, also gemessen in heutiger Kaufkraft, in der Zukunft noch wert – und welcher nominale Betrag wäre dannzumal nötig, um dieselbe Kaufkraft wie heute zu haben?</p>
         <p><strong>Teil 2</strong> überträgt dieselbe Logik auf einen Anlage- resp. Sparplan mit regelmässigen Einzahlungen – monatlich, quartalsweise, halbjährlich oder jährlich. Auch hier gilt: Jede einzelne Einzahlung wird zum Zeitpunkt der Einzahlung durch die Inflation bis zum Ende der Laufzeit entwertet. Der Rechner zeigt, wie stark die Summe Ihrer nominalen Einzahlungen von deren realem Gegenwert – gemessen in heutigen Franken – abweicht.</p>
@@ -199,6 +48,8 @@
         <div class="cta-tile-arrow">→</div>
       </div>
     </div>
+
+    <div class="splash-footer"><a href="https://fintool.ch">fintool.ch</a> · Prof. Dr. Erwin W. Heri</div>
   </div>
 </div>
 
@@ -207,15 +58,10 @@
 
   <header class="app-header">
     <div class="app-header-left">
-      <div class="app-logo">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M4 18L9 12L13 15L18 8" stroke="#2C3E7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="20" cy="6" r="2" fill="#C0392B"/>
-        </svg>
-      </div>
+      <div class="app-logo"><img src="assets/fintool-logo.png" alt="Fintool"></div>
       <div>
         <div class="app-title">Inflationsrechner</div>
-        <div class="app-sub">fintool.ch · Prof. Dr. Erwin Heri</div>
+        <div class="app-sub">fintool.ch · Prof. Dr. Erwin W. Heri</div>
       </div>
     </div>
     <button class="btn-back" onclick="showSplash()">← Zurück</button>
@@ -441,24 +287,19 @@
     </div><!-- /panel_teil2 -->
 
     <div class="app-footer">
+      <img class="ft-footer-logo" src="assets/fintool-logo.png" alt="Fintool">
       Illustrationsrechner zu Ausbildungszwecken. Keine Anlage- oder Steuerberatung.<br>
-      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin Heri</a>
+      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin W. Heri</a>
     </div>
 
   </div><!-- /page -->
 </div><!-- /app -->
 
 <script>
-function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; computeAll(); }
-function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='flex'; }
-
-function toggleIntro() {
-  const body = document.getElementById('intro_body');
-  const tile = body.closest('.tile-click');
-  const isOpen = body.style.display === 'block';
-  body.style.display = isOpen ? 'none' : 'block';
-  tile.classList.toggle('open', !isOpen);
-}
+function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; window.scrollTo(0,0); if (typeof onShowApp==='function') onShowApp(); }
+function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='block'; window.scrollTo(0,0); }
+function toggleIntro() { document.getElementById('intro_tile').classList.toggle('open'); }
+function onShowApp(){ computeAll(); }
 
 function fmt(v)    { return Math.round(v).toLocaleString('de-CH'); }
 function fmtCHF(v) { return fmt(v)+' CHF'; }

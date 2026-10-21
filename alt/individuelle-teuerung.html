@@ -1,21 +1,33 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de-CH">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Individueller Teuerungsrechner | Fintool</title>
-<link rel="icon" href="assets/fintool-logo.png">
-<link rel="stylesheet" href="assets/fintool.css">
+<title>Individueller Teuerungsrechner – fintool.ch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-
-    :root {
+  :root {
     color-scheme: light;
-    --paper: var(--grey-50); --surface: var(--white); --surface-2: var(--grey-50); --sidebar: var(--grey-50);
-    --ink: var(--grey-800); --ink-soft: var(--grey-800); --muted: var(--grey-500);
-    --line: var(--grey-100); --line-strong: var(--grey-300);
-    --brand: var(--blue-dark); --brand-ink: #ffffff; --brand-soft: var(--blue-bg);
-    --bar-avg: var(--blue-mid); --bar-yours: var(--red);
-    --good: var(--green); --critical: var(--red); --focus: var(--blue-mid);
+    --paper:       #f7f6f1;
+    --surface:     #fffefb;
+    --surface-2:   #fbfaf5;
+    --sidebar:     #f1efe8;
+    --ink:         #17181c;
+    --ink-soft:    #52534f;
+    --muted:       #8b8a82;
+    --line:        #e3e1d6;
+    --line-strong: #c9c7ba;
+    --brand:       #1d3557;
+    --brand-ink:   #ffffff;
+    --brand-soft:  #e8edf3;
+    --bar-avg:     #eb6834;
+    --bar-yours:   #d03b3b;
+    --good:        #0ca30c;
+    --critical:    #d03b3b;
+    --focus:       #1d3557;
+    --shadow:      0 1px 2px rgba(23,24,28,0.06), 0 8px 24px rgba(23,24,28,0.05);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -40,13 +52,82 @@
       --shadow:      0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
     }
   }
-  
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper:       #101113;
+    --surface:     #1a1b1e;
+    --surface-2:   #1f2023;
+    --sidebar:     #18191b;
+    --ink:         #f4f3ef;
+    --ink-soft:    #c3c2b7;
+    --muted:       #8f8d84;
+    --line:        #2d2e31;
+    --line-strong: #3c3d40;
+    --brand:       #7ea3d1;
+    --brand-ink:   #101113;
+    --brand-soft:  #202b3a;
+    --bar-avg:     #d95926;
+    --bar-yours:   #e66767;
+    --good:        #0ca30c;
+    --critical:    #e66767;
+    --focus:       #7ea3d1;
+    --shadow:      0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
   .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--brand); }
   button { font-family: inherit; }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
+  .site-header {
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .site-header__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand-mark {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .brand-mark strong { color: var(--ink); font-weight: 700; }
+  .back-link { font-size: 0.9rem; color: var(--ink-soft); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--brand); }
 
+  .page-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 24px 80px; }
 
+  .intro {
+    margin-bottom: 18px;
+    max-width: 74ch;
+  }
+  .eyebrow {
+    font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--brand); font-weight: 600; margin: 0 0 8px;
+  }
+  .intro h1 { font-size: clamp(1.5rem, 2.8vw, 2rem); }
+  .intro p { color: var(--ink-soft); font-size: 0.98rem; margin: 10px 0 0; }
+  .intro .source-note { margin-top: 10px; font-size: 0.84rem; color: var(--muted); }
+  .intro .source-note a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--line-strong); }
 
   /* ---------- App shell (mirrors the BFS tool's layout) ---------- */
   .toolbar {
@@ -57,7 +138,7 @@
     border-radius: 12px 12px 0 0;
     padding: 12px 18px;
   }
-  .toolbar__title { font-family: var(--font); font-weight: 600; font-size: 1.05rem; }
+  .toolbar__title { font-family: "Source Serif 4", serif; font-weight: 600; font-size: 1.05rem; }
   .toolbar__actions { display: flex; gap: 6px; }
   .icon-btn {
     width: 30px; height: 30px; border-radius: 7px;
@@ -92,7 +173,7 @@
   }
   .side-block { margin-bottom: 20px; }
   .side-block h3 {
-    font-family: var(--font);
+    font-family: "IBM Plex Sans", sans-serif;
     font-size: 0.78rem; letter-spacing: 0.03em; text-transform: uppercase;
     color: var(--ink-soft); font-weight: 600; margin-bottom: 10px;
     display: flex; align-items: center; gap: 6px;
@@ -269,7 +350,7 @@
   table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; font-family: "IBM Plex Mono", monospace; }
   table.data-table th, table.data-table td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
   table.data-table th:first-child, table.data-table td:first-child {
-    text-align: left; font-family: var(--font); position: sticky; left: 0; background: var(--surface);
+    text-align: left; font-family: "IBM Plex Sans", sans-serif; position: sticky; left: 0; background: var(--surface);
   }
   table.data-table thead th { background: var(--surface-2); color: var(--ink-soft); font-weight: 600; }
   table.data-table td.editable input {
@@ -286,91 +367,161 @@
     border-radius: 10px; font-size: 0.82rem; color: var(--muted);
   }
 
+  .site-footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 22px 0 40px; }
+  .site-footer__inner {
+    max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted);
+  }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
   /* ---------- Deckblatt / Startbildschirm ---------- */
+  .cover-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 64px 24px 40px;
+    flex: 1;
+    width: 100%;
+  }
+  .cover-hero { text-align: center; max-width: 62ch; margin: 0 auto; }
+  .cover-hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); }
+  .cover-hero .byline {
+    margin: 14px 0 0; font-size: 0.98rem; color: var(--ink-soft);
+    font-family: "Source Serif 4", Georgia, serif;
+  }
+  .cover-hero p.lead { color: var(--ink-soft); font-size: 1.05rem; margin: 18px 0 0; }
+  .cover-hero .source-note { margin-top: 14px; font-size: 0.84rem; color: var(--muted); }
+  .cover-hero .source-note a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--line-strong); }
+  .cover-cta-row { display: flex; justify-content: center; margin-top: 32px; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--brand); color: var(--brand-ink);
+    font-weight: 600; font-size: 1.02rem;
+    padding: 14px 28px; border-radius: 10px;
+    text-decoration: none; box-shadow: var(--shadow);
+    border: 1px solid var(--brand); cursor: pointer;
+    transition: transform 0.12s ease, filter 0.12s ease;
+    font-family: inherit;
+  }
+  .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-primary .arrow { font-size: 1.1rem; transition: transform 0.12s ease; }
+  .btn-primary:hover .arrow { transform: translateX(3px); }
+  .cover-chapters { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 56px; }
+  .cover-chapter-card {
+    border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+    box-shadow: var(--shadow); padding: 22px 24px;
+  }
+  .cover-chapter-card .chapter-kicker {
+    font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 0 0 8px;
+  }
+  .cover-chapter-card h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  .cover-chapter-card p { color: var(--ink-soft); font-size: 0.92rem; margin: 0; }
+  .back-to-cover {
+    background: none; border: none; padding: 0; font: inherit;
+    font-size: 0.9rem; color: var(--ink-soft); text-decoration: none;
+    white-space: nowrap; cursor: pointer;
+  }
+  .back-to-cover:hover { color: var(--brand); }
   @media (max-width: 640px) {
     .cover-wrap { padding: 40px 20px 32px; }
     .cover-chapters { grid-template-columns: 1fr; }
   }
-
-  h1, h2, h3 { font-family: var(--font); font-weight: 700; margin: 0; }
-  .num { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
-  .page-wrap { max-width: 1100px; margin: 0 auto; }
-  .toolbar { border-radius: var(--radius) var(--radius) 0 0; }
-  .app-shell { border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow-sm); }
-  #app .page { max-width: 1100px; }
-  .intro-text .chapter-kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--blue-mid); font-weight: 700; margin: 14px 0 2px; }
-  .intro-text h5 { font-size: 14.5px; margin: 0 0 6px; }
-  .intro-text .source-note { font-size: 12px; color: var(--grey-500); }
-
 </style>
 </head>
 <body>
 
-<!-- ══ STARTSEITE ══ -->
-<div id="splash">
-  <div class="page">
-    <div class="splash-hero">
-      <button class="ft-tile" type="button" onclick="showApp()" aria-label="Teuerungsrechner öffnen">
-      <span class="ft-tile-logo"><img src="assets/fintool-logo.png" alt=""></span>
-      <span class="ft-tile-label">TEUERUNGSRECHNER</span>
-    </button>
-      <p class="splash-eyebrow">Rechner <span>·</span> Konsum &amp; Inflation</p>
-      <h1 class="splash-title">Individueller <strong>Teuerungs</strong>rechner</h1>
-      <p class="splash-author">Prof. Dr. Erwin W. Heri</p>
+<div id="coverScreen">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand-mark" href="https://www.fintool.ch"><strong>fintool.ch</strong> · Prof. Dr. Erwin Heri</a>
+      <a class="back-link" href="https://www.fintool.ch">&larr; Zur&uuml;ck</a>
     </div>
+  </header>
 
-    <div class="section tile-click" id="intro_tile">
-      <div class="cta-tile-inner" onclick="toggleIntro()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') toggleIntro()">
-        <div>
-          <div class="cta-tile-title">Worum es geht</div>
-          <div class="cta-tile-sub">Wie stark trifft Sie die Teuerung wirklich?</div>
-        </div>
-        <div class="cta-tile-arrow">⌄</div>
-      </div>
-      <div class="section-body intro-text intro-body" id="intro_body">
-        <p>Wie stark trifft Sie die Teuerung wirklich? Tragen Sie Ihre eigenen Haushaltsausgaben pro Kategorie ein, vergleichen Sie Ihre pers&ouml;nliche Inflation mit jener Ihrer Vergleichsgruppe &ndash; und werfen Sie einen Blick auf die n&auml;chsten zehn Jahre.</p>
-        <p class="chapter-kicker">Kapitel 1</p><h5>Ihr individueller Rechner</h5><p>W&auml;hlen Sie Ihren Haushaltstyp, tragen Sie Ihr Einkommen und Ihre Ausgaben pro Kategorie ein und sehen Sie, wie sich Ihre pers&ouml;nliche Teuerung seit 2000 von der Ihrer Vergleichsgruppe unterscheidet.</p>
-        <p class="chapter-kicker">Kapitel 2</p><h5>10-Jahres-Projektion</h5><p>Sch&auml;tzen Sie ab, wie sich Ihre pers&ouml;nliche Teuerung bei einer von Ihnen gew&auml;hlten, konstanten k&uuml;nftigen Inflationsrate &uuml;ber die n&auml;chsten zehn Jahre entwickeln k&ouml;nnte.</p>
-        <p class="source-note">Darstellung angelehnt an den <a href="https://lik-app.bfs.admin.ch/de/itr" target="_blank" rel="noopener">Individuellen Teuerungsrechner des Bundesamts f&uuml;r Statistik (BFS)</a>, inkl. dessen Referenzwerten f&uuml;r die Haushaltstypen.</p>
-      </div>
-    </div>
-
-    <div class="section cta-tile" onclick="showApp()" role="button" tabindex="0" onkeypress="if(event.key==='Enter') showApp()">
-      <div class="cta-tile-inner">
-        <div>
-          <div class="cta-tile-title">Direkt zum Rechner</div>
-          <div class="cta-tile-sub">Haushaltstyp, Ausgaben &amp; Zeitraum selbst eingeben</div>
-        </div>
-        <div class="cta-tile-arrow">→</div>
+  <div class="cover-wrap">
+    <div class="cover-hero">
+      <p class="eyebrow">Rechner &middot; Konsum &amp; Inflation</p>
+      <h1>Individueller Teuerungsrechner</h1>
+      <p class="byline">Prof. Dr. Erwin W. Heri</p>
+      <p class="lead">
+        Wie stark trifft Sie die Teuerung wirklich? Tragen Sie Ihre eigenen Haushaltsausgaben
+        pro Kategorie ein, vergleichen Sie Ihre pers&ouml;nliche Inflation mit jener Ihrer
+        Vergleichsgruppe &ndash; und werfen Sie einen Blick auf die n&auml;chsten zehn Jahre.
+      </p>
+      <p class="source-note">
+        Darstellung angelehnt an den
+        <a href="https://lik-app.bfs.admin.ch/de/itr" target="_blank" rel="noopener">Individuellen Teuerungsrechner des Bundesamts f&uuml;r Statistik (BFS)</a>,
+        inkl. dessen Referenzwerten f&uuml;r die Haushaltstypen.
+      </p>
+      <div class="cover-cta-row">
+        <button type="button" class="btn-primary" id="btnStartRechner">
+          Rechner starten <span class="arrow">&rarr;</span>
+        </button>
       </div>
     </div>
 
-    <div class="splash-footer"><a href="https://fintool.ch">fintool.ch</a> · Prof. Dr. Erwin W. Heri</div>
+    <div class="cover-chapters">
+      <div class="cover-chapter-card">
+        <p class="chapter-kicker">Kapitel 1</p>
+        <h2>Ihr individueller Rechner</h2>
+        <p>
+          W&auml;hlen Sie Ihren Haushaltstyp, tragen Sie Ihr Einkommen und Ihre Ausgaben pro
+          Kategorie ein und sehen Sie, wie sich Ihre pers&ouml;nliche Teuerung seit 2000 von
+          der Ihrer Vergleichsgruppe unterscheidet.
+        </p>
+      </div>
+      <div class="cover-chapter-card">
+        <p class="chapter-kicker">Kapitel 2</p>
+        <h2>10-Jahres-Projektion</h2>
+        <p>
+          Sch&auml;tzen Sie ab, wie sich Ihre pers&ouml;nliche Teuerung bei einer von Ihnen
+          gew&auml;hlten, konstanten k&uuml;nftigen Inflationsrate &uuml;ber die n&auml;chsten
+          zehn Jahre entwickeln k&ouml;nnte.
+        </p>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      Illustrations- und Bildungsrechner zu Ausbildungszwecken. Keine Anlage- oder Steuerberatung.
+      Die individuellen Kategoriewerte sind Modellsch&auml;tzungen.
+    </p>
   </div>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <span>&copy; 2026 fintool.ch &middot; Prof. Dr. Erwin Heri</span>
+      <span>Quelle Warenkorb, Referenzwerte &amp; Methodik: Bundesamt f&uuml;r Statistik (BFS)</span>
+    </div>
+  </footer>
 </div>
 
+<div id="mainApp" hidden>
 
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand-mark" href="https://www.fintool.ch"><strong>fintool.ch</strong> · Prof. Dr. Erwin Heri</a>
+    <button type="button" class="back-to-cover" id="btnBackToCover">&larr; Zum Deckblatt</button>
+  </div>
+</header>
 
-<!-- ══ APP ══ -->
-<div id="app">
-
-
-  <header class="app-header">
-    <div class="app-header-left">
-      <div class="app-logo"><img src="assets/fintool-logo.png" alt="Fintool"></div>
-      <div>
-        <div class="app-title">Individueller Teuerungsrechner</div>
-        <div class="app-sub">fintool.ch · Prof. Dr. Erwin W. Heri</div>
-      </div>
-    </div>
-    <button class="btn-back" onclick="showSplash()">← Zurück</button>
-  </header>
-  <div class="red-bar"></div>
-  <div class="page">
 <div class="page-wrap">
+  <div class="intro">
+    <p class="eyebrow">Rechner &middot; Konsum &amp; Inflation</p>
+    <h1>Individueller Teuerungsrechner</h1>
+    <p>
+      Tragen Sie Ihre eigenen Haushaltsausgaben pro Kategorie ein und vergleichen Sie Ihre
+      pers&ouml;nliche Teuerung mit jener des Durchschnittshaushalts &ndash; f&uuml;r den
+      gew&auml;hlten Zeitraum.
+    </p>
+    <p class="source-note">
+      Darstellung angelehnt an den
+      <a href="https://lik-app.bfs.admin.ch/de/itr" target="_blank" rel="noopener">Individuellen Teuerungsrechner des Bundesamts f&uuml;r Statistik (BFS)</a>,
+      inkl. dessen Referenzwerten f&uuml;r die Haushaltstypen. Details unter &laquo;Daten &amp; Methodik&raquo; unten.
+      Kapitel 1 (Rechner) und <a href="#projektion">Kapitel 2 (10-Jahres-Projektion)</a> finden Sie
+      auf dieser Seite untereinander.
+    </p>
+  </div>
 
   <div class="toolbar">
     <div class="toolbar__title">Kapitel 1 &middot; Individueller Teuerungsrechner</div>
@@ -591,25 +742,31 @@
   </p>
 </div>
 
-    <div class="app-footer">
-      <img class="ft-footer-logo" src="assets/fintool-logo.png" alt="Fintool">
-      Illustrations- und Bildungsrechner zu Ausbildungszwecken. Keine Anlage- oder Steuerberatung. Quelle Warenkorb, Referenzwerte &amp; Methodik: Bundesamt für Statistik (BFS).<br>
-      <strong>fintool.ch</strong> &nbsp;·&nbsp; <a href="https://fintool.ch">Prof. Dr. Erwin W. Heri</a>
-    </div>
-  </div><!-- /page -->
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <span>&copy; 2026 fintool.ch &middot; Prof. Dr. Erwin Heri</span>
+    <span>Quelle Warenkorb, Referenzwerte &amp; Methodik: Bundesamt f&uuml;r Statistik (BFS)</span>
+  </div>
+</footer>
 
 </div><!-- /#mainApp -->
 
-
-<script>
-function showApp()    { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; window.scrollTo(0,0); if (typeof onShowApp==='function') onShowApp(); }
-function showSplash() { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='block'; window.scrollTo(0,0); }
-function toggleIntro() { document.getElementById('intro_tile').classList.toggle('open'); }
-function onShowApp(){}
-</script>
 <script>
 (function () {
   "use strict";
+
+  var coverScreenEl = document.getElementById("coverScreen");
+  var mainAppEl = document.getElementById("mainApp");
+  document.getElementById("btnStartRechner").addEventListener("click", function () {
+    coverScreenEl.hidden = true;
+    mainAppEl.hidden = false;
+    window.scrollTo(0, 0);
+  });
+  document.getElementById("btnBackToCover").addEventListener("click", function () {
+    mainAppEl.hidden = true;
+    coverScreenEl.hidden = false;
+    window.scrollTo(0, 0);
+  });
 
   var YEARS = [];
   for (var _y = 2000; _y <= 2026; _y++) { YEARS.push(_y); }
